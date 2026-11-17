@@ -8,6 +8,7 @@ class_name TitanController
 var input_enabled := true
 var sync_multiplier: float = 1.0
 var research_speed_multiplier: float = 1.0
+var damage_speed_multiplier: float = 1.0
 
 func _ready() -> void:
 	_ensure_action("move_left", KEY_A)
@@ -33,7 +34,7 @@ func _physics_process(delta: float) -> void:
 		var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 		var direction := Vector3(input_vector.x, 0.0, input_vector.y).normalized()
 		var base_speed := stats.move_speed if stats else 7.0
-		var speed := base_speed * sync_multiplier * research_speed_multiplier
+		var speed := base_speed * sync_multiplier * research_speed_multiplier * damage_speed_multiplier
 		velocity.x = move_toward(velocity.x, direction.x * speed, acceleration * delta)
 		velocity.z = move_toward(velocity.z, direction.z * speed, acceleration * delta)
 	if not is_on_floor():
