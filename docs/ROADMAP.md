@@ -33,6 +33,7 @@ Juego 3D original de guerra de robots gigantes contra monstruos colosales. El ju
 - [ ] Mantener chat desactivado hasta contar con moderación y controles de privacidad probados.
 - [x] Añadir capa inicial de entrada para teclado, mando y controles táctiles.
 - [x] Preparar ajustes generales de escalado, orientación horizontal y renderer compatible.
+- [x] Añadir flujo de GitHub Actions para importar y ejecutar el proyecto en modo headless con Godot 4.3.
 - [ ] Ajustar cada panel del HUD a móvil/tableta y validar resoluciones.
 - [ ] Exportar e instalar Android en dispositivos reales.
 - [ ] Exportar y probar Web, Windows, Linux y macOS.
