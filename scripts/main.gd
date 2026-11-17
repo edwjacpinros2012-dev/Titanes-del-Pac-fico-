@@ -31,6 +31,7 @@ var online_alliance_name: LineEdit
 var online_alliance_tag: LineEdit
 var online_alliance_id: LineEdit
 var online_alliance_log: Label
+var online_safety_user_id: LineEdit
 var contracts_label: Label
 var helicopter_label: Label
 var creature_label: Label
@@ -668,6 +669,19 @@ func _create_online_panel(layer: CanvasLayer) -> void:
 	send.text = "Enviar mensaje"
 	send.pressed.connect(_on_online_chat_send)
 	chat_row.add_child(send)
+	online_safety_user_id = LineEdit.new()
+	online_safety_user_id.placeholder_text = "ID de jugador para bloquear o denunciar"
+	column.add_child(online_safety_user_id)
+	var safety_row := HBoxContainer.new()
+	column.add_child(safety_row)
+	var block_button := Button.new()
+	block_button.text = "Bloquear jugador"
+	block_button.pressed.connect(_on_online_block_player)
+	safety_row.add_child(block_button)
+	var report_button := Button.new()
+	report_button.text = "Denunciar jugador"
+	report_button.pressed.connect(_on_online_report_player)
+	safety_row.add_child(report_button)
 	var refresh := Button.new()
 	refresh.text = "Actualizar chat"
 	refresh.pressed.connect(_on_online_chat_refresh)
@@ -743,3 +757,11 @@ func _on_online_alliance_refresh() -> void:
 	for alliance in alliances:
 		lines.append("[%s] %s — %s" % [str(alliance.get("tag","")),str(alliance.get("name","")),str(alliance.get("id",""))])
 	online_alliance_log.text = "\n".join(lines) if not lines.is_empty() else "No se encontraron alianzas o falta iniciar sesión."
+
+func _on_online_block_player() -> void:
+	var ok: bool = await community_client.block_player(online_safety_user_id.text.strip_edges())
+	online_status_label.text = "Jugador bloqueado; sus mensajes se ocultarán." if ok else "No se pudo bloquear. Revisa el ID y tu sesión."
+
+func _on_online_report_player() -> void:
+	var ok: bool = await community_client.report_player(online_safety_user_id.text.strip_edges(), "other", "Reporte enviado desde el juego.")
+	online_status_label.text = "Denuncia enviada para revisión." if ok else "No se pudo enviar la denuncia. Revisa el ID y tu sesión."
