@@ -616,7 +616,7 @@ func _on_platform_action(action_name: String) -> void:
 			if kaiju_war:
 				if not kaiju_war.is_encounter_active:
 					kaiju_war.begin_encounter()
-					_show_status("Amenaza localizada. Pulsa combatir otra vez para resolver el encuentro.")
+					_show_status("Abisal localizado. Revisa su rol, elige táctica y pulsa J para resolver.")
 				else:
 					kaiju_war.resolve_battle("engage")
 		"kaiju_retreat":
@@ -636,11 +636,6 @@ func _on_platform_action(action_name: String) -> void:
 		"tactic_precision":
 			if kaiju_war and kaiju_war.select_tactic("precision"):
 				_show_status("TÁCTICA: PRECISIÓN. " + kaiju_war.last_tactic_feedback)
-		"repair_titan":
-			if damage_model:
-				var repaired := damage_model.repair_with_resources(resources)
-				_show_status("Reparación completada: %d puntos." % repaired if repaired > 0 else "Faltan recursos o el Centinela ya está reparado.")
-				_update_hud()
 		"tech_select_next":
 			_select_next_technology()
 		"tech_research":
