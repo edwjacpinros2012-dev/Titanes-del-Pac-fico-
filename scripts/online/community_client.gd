@@ -25,6 +25,15 @@ func sign_up(email: String, password: String) -> Dictionary:
 		auth_changed.emit(not access_token.is_empty(), "Cuenta creada. Si se solicita, confirma tu correo.")
 	return result
 
+func register_profile(handle: String, display_name: String) -> bool:
+	if access_token.is_empty() or handle.length() < 3 or handle.length() > 20:
+		return false
+	if not handle.replace("_","").isalnum():
+		return false
+	var payload := {"user_id":user_id,"handle":handle,"display_name":display_name.substr(0,24),"global_chat_enabled":false}
+	var result := await _request(HTTPClient.METHOD_POST, "/rest/v1/player_profiles", payload, true)
+	return int(result.get("status",0)) in [200,201,204]
+
 func sign_in(email: String, password: String) -> Dictionary:
 	if not _configured(): return _fail("Configura la URL y la clave pública de Supabase.")
 	var result := await _request(HTTPClient.METHOD_POST, "/auth/v1/token?grant_type=password", {"email":email.strip_edges(),"password":password})
