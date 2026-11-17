@@ -18,6 +18,8 @@ var creature_manager: CreatureEcosystemManager
 var kaiju_war: KaijuWarManager
 var campaign: CampaignManager
 var alliance_manager: AllianceManager
+var base_development: BaseDevelopmentManager
+var base_label: Label
 var kaiju_label: Label
 var alliance_label: Label
 var community_client: CommunityClient
@@ -79,6 +81,11 @@ func _process(delta: float) -> void:
 		kaiju_label.text = kaiju_war.get_status_text()
 	if alliance_label and alliance_manager:
 		alliance_label.text = alliance_manager.get_summary()
+	if base_development:
+		if base_development.advance_production(delta, resources) > 0:
+			_update_hud()
+	if base_label and base_development:
+		base_label.text = base_development.get_status_text()
 
 func _physics_process(_delta: float) -> void:
 	# El movimiento ahora pertenece al controlador del Titán Alfa.
@@ -89,6 +96,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_collect_nearby(true)
 	if event.is_action_pressed("upgrade_base"):
 		_upgrade_base()
+	if event.is_action_pressed("base_select_next") and base_development:
+		base_development.select_next_facility(base_level)
+		_show_status(base_development.get_selected_facility_text(resources, base_level))
+	if event.is_action_pressed("base_upgrade_selected"):
+		_upgrade_selected_facility()
 	if event.is_action_pressed("evolve_titan"):
 		_evolve_titan()
 	if event.is_action_pressed("market_toggle"):
@@ -132,6 +144,8 @@ func _setup_input() -> void:
 	_add_key("move_right", KEY_RIGHT)
 	_add_key("collect", KEY_E)
 	_add_key("upgrade_base", KEY_B)
+	_add_key("base_select_next", KEY_V)
+	_add_key("base_upgrade_selected", KEY_N)
 	_add_key("evolve_titan", KEY_T)
 	_add_key("sync_pilots", KEY_F)
 	_add_key("stabilize_rift", KEY_R)
@@ -260,6 +274,10 @@ func _create_gameplay_systems() -> void:
 	add_child(alliance_manager)
 	alliance_manager.alliance_changed.connect(_on_alliance_changed)
 	alliance_manager.message_added.connect(_on_alliance_message)
+
+	base_development = BaseDevelopmentManager.new()
+	base_development.name = "BaseDevelopmentManager"
+	add_child(base_development)
 
 	community_client = CommunityClient.new()
 	community_client.name = "CommunityClient"
@@ -414,15 +432,24 @@ func _try_collect_nearby(show_message: bool = false) -> void:
 		_show_status("Acércate a un recurso brillante para recogerlo")
 
 func _upgrade_base() -> void:
-	var cost_metal := base_level * 8
-	var cost_energy := base_level * 4
-	if resources["metal"] >= cost_metal and resources["energia"] >= cost_energy:
-		resources["metal"] -= cost_metal
-		resources["energia"] -= cost_energy
-		base_level += 1
-		_show_status("¡Base mejorada al nivel " + str(base_level) + "!")
+	if base_development and base_development.upgrade_facility("command_hub", resources, base_level):
+		base_level = base_development.get_facility_level("command_hub")
+		_show_status("Centro de mando mejorado. Base nivel %d." % base_level)
 	else:
-		_show_status("Faltan recursos: " + str(cost_metal) + " metal y " + str(cost_energy) + " energía")
+		_show_status(base_development.get_selected_facility_text(resources, base_level) if base_development else "Sistema de base no disponible.")
+	_update_hud()
+
+func _upgrade_selected_facility() -> void:
+	if base_development == null:
+		return
+	var facility_id := base_development.get_selected_facility_id()
+	if facility_id == "command_hub":
+		_upgrade_base()
+		return
+	if base_development.upgrade_facility(facility_id, resources, base_level):
+		_show_status("Instalación mejorada: " + base_development.get_facility_name(facility_id))
+	else:
+		_show_status(base_development.get_selected_facility_text(resources, base_level))
 	_update_hud()
 
 func _evolve_titan() -> void:
@@ -454,6 +481,9 @@ func _create_hud() -> void:
 	hud = Label.new()
 	hud.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(hud)
+	base_label = Label.new()
+	base_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(base_label)
 	objective_label = Label.new()
 	objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(objective_label)
@@ -477,7 +507,7 @@ func _create_hud() -> void:
 	market_label.visible = false
 	column.add_child(market_label)
 	var help := Label.new()
-	help.text = "WASD: mover | E: recoger | B: base | T: mejorar Jaeger | F: enlace\nR: brecha | H: reconocimiento | J: enfrentar Kaiju | G: retirarse\nK: unirse a alianza demo | P: crear alianza | F5: guardar | C: mercado\nMercado: 1-3 comprar | 4-6 vender"
+	help.text = "WASD: mover | E: recoger | B: mejorar centro de mando | T: mejorar Jaeger\nV: elegir instalación | N: mejorar instalación | F: enlace | R: brecha\nH: helicópteros | J: enfrentar Kaiju | G: retirarse | F5: guardar\nK/P: alianza local | C: mercado | Mercado: 1-3 comprar, 4-6 vender"
 	help.add_theme_font_size_override("font_size", 13)
 	column.add_child(help)
 	status_label = Label.new()
@@ -555,6 +585,7 @@ func _save_local_profile() -> void:
 		"credits": trade_manager.credits if trade_manager else 250,
 		"research_data": research_data,
 		"base_level": base_level,
+		"base_development": base_development.export_state() if base_development else {},
 		"titan_level": titan_level,
 		"campaign_level": campaign.player_level if campaign else 1,
 		"jaeger_generation": campaign.jaeger_generation if campaign else 1,
@@ -571,6 +602,13 @@ func _load_local_profile() -> void:
 		return
 	resources = snapshot.get("resources", resources)
 	base_level = int(snapshot.get("base_level", base_level))
+	if base_development:
+		var saved_base: Variant = snapshot.get("base_development", {})
+		if typeof(saved_base) == TYPE_DICTIONARY and not saved_base.is_empty():
+			base_development.import_state(saved_base)
+		else:
+			base_development.set_legacy_base_level(base_level)
+		base_level = base_development.get_facility_level("command_hub")
 	titan_level = int(snapshot.get("titan_level", titan_level))
 	research_data = int(snapshot.get("research_data", research_data))
 	if trade_manager:
