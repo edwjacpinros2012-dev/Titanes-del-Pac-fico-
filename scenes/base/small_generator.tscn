@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/construction/base_building.gd" id="1_script"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_generator"]
+top_radius = 1.1
+bottom_radius = 1.3
+height = 2.5
+
+[sub_resource type="CylinderShape3D" id="CylinderShape_generator"]
+radius = 1.3
+height = 2.5
+
+[node name="SmallGenerator" type="StaticBody3D"]
+script = ExtResource("1_script")
+building_id = "small_generator"
+display_name = "Generador pequeño"
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.25, 0)
+mesh = SubResource("CylinderMesh_generator")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 1.25, 0)
+shape = SubResource("CylinderShape_generator")
