@@ -2,7 +2,7 @@
 
 ## Plataformas objetivo
 
-El proyecto se prepara para Windows, Linux y macOS con teclado y mando; Android y tabletas con pantalla táctil; y navegadores mediante exportación Web.
+El proyecto se prepara para Windows, Linux y macOS con teclado y mando; Android y tabletas con pantalla táctil; y navegadores mediante exportación Web. iOS es una exportación independiente que requiere macOS y herramientas de Apple.
 
 Esto define objetivos de compatibilidad, no significa que existan exportaciones o pruebas aprobadas para cada plataforma.
 
@@ -18,15 +18,14 @@ El panel de cuenta online se oculta en pantallas táctiles mientras la interfaz 
 
 Se conserva Godot 4 y GL Compatibility para ampliar compatibilidad con dispositivos modestos y navegadores. En Android se usa orientación horizontal. La calidad visual final, sombras, resolución y límites de rendimiento se ajustarán después de medir dispositivos reales.
 
-## Exportación
+## Exportación Android
 
-No se incluyen claves, keystores, SDKs ni identificadores inventados. Antes de exportar:
-1. Instalar las plantillas de exportación de la misma versión de Godot.
-2. Configurar Android SDK/JDK y un identificador de paquete definitivo.
-3. Configurar firma de release en un equipo del adulto responsable.
-4. Crear presets desde Project > Export para Windows/Linux/macOS, Android y Web.
-5. Exportar builds de prueba y revisarlas en dispositivo/navegador real.
+El repositorio incluye `export_presets.cfg` con un preset Android para ARMv7 y ARM64, y `scripts/build_android.ps1` para preparar un APK de depuración en Windows. Consulta `docs/ANDROID_BUILD.md` para instalar plantillas, configurar SDK/JDK y exportar.
 
-## Validación pendiente
+No se incluyen claves de publicación, keystores, SDKs ni credenciales. El APK de depuración no equivale a un AAB firmado y listo para Google Play.
 
-No se ha ejecutado Godot en el entorno que actualizó estos archivos. Debe abrirse el proyecto con Godot 4.3 o posterior, ejecutar la escena principal, revisar errores de importación y probar teclado, mando, táctil, guardado y rendimiento. No se debe afirmar compatibilidad verificada hasta completar estas pruebas.
+## Validación
+
+La importación y ejecución breve de la escena principal pasan en GitHub Actions con Godot 4.3. Eso valida la estructura básica del proyecto, pero no sustituye las pruebas en teléfonos/tabletas reales ni confirma una exportación Android.
+
+Pendiente: probar diferentes resoluciones y densidades, táctil simultáneo, mandos Bluetooth, suspensión/reanudación, guardado, rendimiento y consumo térmico en hardware real. Windows/Linux/macOS/Web/iOS necesitan sus propios presets y pruebas.
