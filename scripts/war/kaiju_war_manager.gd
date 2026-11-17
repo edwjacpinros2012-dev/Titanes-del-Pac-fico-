@@ -16,6 +16,7 @@ var encounter_count := 0
 var last_outcome := "Sin encuentros"
 var kaiju_node: Node3D
 var encounter_distance := 22.0
+var last_battle_report: Dictionary = {}
 
 const ROSTER_PATH := "res://data/kaiju/kaiju_roster.json"
 
@@ -42,13 +43,33 @@ func begin_encounter() -> bool:
 	encounter_changed.emit(get_status_text())
 	return true
 
+func get_player_power() -> int:
+	return 3 + jaeger_level * 2 + int(campaign_level / 3) + research_power_bonus
+
+func get_kaiju_power() -> int:
+	return threat * 5
+
+func get_power_gap() -> int:
+	return get_player_power() - get_kaiju_power()
+
+func get_readiness_state() -> String:
+	var gap := get_power_gap()
+	if gap >= 3:
+		return "PREPARACIÓN FAVORABLE"
+	if gap >= -1:
+		return "RIESGO ELEVADO"
+	return "PELIGRO CRÍTICO: CONSIDERA PREPARARTE O RETIRARTE"
+
+func get_preparation_report() -> String:
+	return "POTENCIA CENTINELA %d | AMENAZA %d | DIFERENCIA %+d\n%s" % [get_player_power(), get_kaiju_power(), get_power_gap(), get_readiness_state()]
+
 func resolve_battle(action: String = "engage") -> Dictionary:
 	if not is_encounter_active:
 		return {}
-	var player_power := 3 + jaeger_level * 2 + campaign_level / 3 + research_power_bonus
-	var kaiju_power := threat * 5
+	var player_power := get_player_power()
+	var kaiju_power := get_kaiju_power()
 	var rewards := {"credits": 0, "metal": 0, "energia": 0, "cristal": 0, "research_data": 0}
-	var consequences := {"repair": 0, "supply_loss": 0, "sector_pressure": 0}
+	var consequences := {"repair": 0, "supply_loss": 0, "sector_pressure": 0, "player_power": player_power, "kaiju_power": kaiju_power, "power_gap": player_power - kaiju_power, "readiness": get_readiness_state()}
 	var outcome := "retreat"
 	if action == "retreat":
 		outcome = "retreat"
@@ -67,6 +88,7 @@ func resolve_battle(action: String = "engage") -> Dictionary:
 		consequences["supply_loss"] = 2 + threat
 		consequences["sector_pressure"] = 2
 	last_outcome = outcome
+	last_battle_report = {"outcome": outcome, "player_power": player_power, "kaiju_power": kaiju_power, "power_gap": player_power - kaiju_power, "readiness": get_readiness_state(), "threat": threat, "kaiju_id": active_kaiju_id}
 	is_encounter_active = false
 	if outcome == "victory" or outcome == "partial_success":
 		if is_instance_valid(kaiju_node):
@@ -82,7 +104,25 @@ func resolve_battle(action: String = "engage") -> Dictionary:
 
 func get_status_text() -> String:
 	var state := "ENCUENTRO ACTIVO" if is_encounter_active else "Amenaza detectada"
-	return "KAiju: %s | Amenaza %d | %s | Último resultado: %s" % [active_kaiju_name, threat, state, last_outcome]
+	return "ABISAL: %s | Amenaza %d | %s | Último resultado: %s\n%s" % [active_kaiju_name, threat, state, last_outcome, get_preparation_report()]
+
+func export_state() -> Dictionary:
+	return {
+		"version": 1,
+		"active_kaiju_id": active_kaiju_id,
+		"encounter_count": encounter_count,
+		"last_outcome": last_outcome,
+		"last_battle_report": last_battle_report.duplicate(true)
+	}
+
+func import_state(data: Dictionary) -> void:
+	var saved_id := str(data.get("active_kaiju_id", "bruma_abismal"))
+	_spawn_kaiju(saved_id)
+	encounter_count = maxi(0, int(data.get("encounter_count", 0)))
+	last_outcome = str(data.get("last_outcome", "Sin encuentros"))
+	var saved_report: Variant = data.get("last_battle_report", {})
+	last_battle_report = saved_report.duplicate(true) if saved_report is Dictionary else {}
+	is_encounter_active = false
 
 func _choose_kaiju_for_level() -> String:
 	if campaign_level >= 35:
