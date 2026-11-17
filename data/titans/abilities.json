@@ -1,0 +1,7 @@
+{
+  "abilities": [
+    {"id":"pulse_scan","name":"Pulso de exploración","description":"Detecta recursos y puntos de interés cercanos.","cooldown":12,"range":18,"stage":0},
+    {"id":"resonance_dash","name":"Impulso de resonancia","description":"Permite recorrer distancias cortas con rapidez.","cooldown":18,"range":10,"stage":1},
+    {"id":"guardian_field","name":"Campo guardián","description":"Proyecta una protección temporal alrededor de la base.","cooldown":35,"range":12,"stage":2}
+  ]
+}
