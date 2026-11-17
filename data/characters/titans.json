@@ -1,0 +1,5 @@
+{
+  "titans": [
+    {"id":"titan_alpha","name":"Titán Alfa","role":"explorador equilibrado","initial_level":1,"evolution_stages":["Despertar","Resonancia","Apex"],"abilities":["pulse_scan"],"model":"res://assets/characters/titans/titan_alpha/model/titan_alpha.glb"}
+  ]
+}
