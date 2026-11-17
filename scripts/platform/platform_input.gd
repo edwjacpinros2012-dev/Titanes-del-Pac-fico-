@@ -8,7 +8,8 @@ const GAME_ACTIONS := [
 	["E", "collect"], ["J", "kaiju_engage"], ["G", "kaiju_retreat"],
 	["T", "evolve_titan"], ["B", "upgrade_base"], ["V", "base_select_next"],
 	["N", "base_upgrade_selected"], ["C", "market_toggle"],
-	["O", "tech_select_next"], ["I", "tech_research"]
+	["O", "tech_select_next"], ["I", "tech_research"],
+	["Q", "tactic_flank"], ["X", "tactic_guard"], ["U", "tactic_precision"]
 ]
 
 func _ready() -> void:
