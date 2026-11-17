@@ -108,7 +108,7 @@ func can_upgrade(facility_id: String, inventory: Dictionary, base_level: int) ->
 	if definition.is_empty():
 		return false
 	var current_level := get_facility_level(facility_id)
-	if current_level <= 0 or current_level >= int(definition.get("max_level", 1)):
+	if current_level >= int(definition.get("max_level", 1)):
 		return false
 	if base_level < int(definition.get("unlock_level", 1)):
 		return false
@@ -170,7 +170,8 @@ func get_selected_facility_text(inventory: Dictionary, base_level: int) -> Strin
 	var cost_text := " | Coste: %d metal, %d energía, %d cristal" % [
 		int(cost.get("metal", 0)), int(cost.get("energia", 0)), int(cost.get("cristal", 0))
 	]
-	var status := "MEJORABLE" if can_upgrade(facility_id, inventory, base_level) else "BLOQUEADA O FALTAN RECURSOS"
+	var can_build_or_upgrade := can_upgrade(facility_id, inventory, base_level)
+	var status := "CONSTRUIBLE" if level == 0 and can_build_or_upgrade else "MEJORABLE" if can_build_or_upgrade else "BLOQUEADA O FALTAN RECURSOS"
 	if level >= int(definition.get("max_level", 1)):
 		status = "NIVEL MÁXIMO"
 	return "%s | Nivel %d/%d | %s%s" % [
