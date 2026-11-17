@@ -4,7 +4,9 @@
 |---|---|
 | Prototipo 3D ejecutable descrito en README | Código creado; pendiente de prueba local en Godot |
 | Titán Alfa visual | Escena provisional integrada en la escena principal; no es modelo final |
-| Controlador de titán | Script creado e instancia integrado en escena principal; falta probarlo en Godot |
+| Controlador de titán | Integrado en escena principal; incluye bonificación temporal del enlace de pilotos; falta probarlo en Godot |
+| Enlace de pilotos | Carga con F, activa bonificación temporal de movilidad y muestra estado en HUD; falta prueba local |
+| Brechas oceánicas | Tres marcadores, estabilización con R y recompensas conectadas al inventario local; falta prueba local |
 | Inventario | Lógica básica creada |
 | Fabricación | Gestor y datos de recetas creados; estación/UI pendientes |
 | Energía de base | Gestor creado; conexión con edificios pendientes |
