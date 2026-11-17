@@ -12,6 +12,8 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 - [x] Lógica inicial de clima, ciclo horario y eventos.
 - [x] Lógica inicial de expediciones, descubrimientos y puntos de interés.
 - [ ] Conectar todos los sistemas al flujo principal y HUD.
+- [x] Añadir enlace de pilotos con carga y bonificación temporal de movilidad.
+- [x] Añadir tres brechas oceánicas estabilizables con recompensas y objetivo en HUD.
 - [ ] Producir modelos 3D finales, rig y animaciones.
 - [ ] Crear biomas jugables completos y fauna con IA.
 - [ ] Integrar investigación, misiones y progresión en una campaña.
