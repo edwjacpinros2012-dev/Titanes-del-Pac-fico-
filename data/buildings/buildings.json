@@ -1,0 +1,8 @@
+{
+  "buildings": [
+    {"id":"command_hub","name":"Centro de mando","level":1,"cost":{"metal":0,"energy":0}},
+    {"id":"small_generator","name":"Generador pequeño","level":1,"cost":{"metal":12,"energy":4}},
+    {"id":"storage_depot","name":"Depósito","level":1,"cost":{"metal":10,"energy":2}},
+    {"id":"research_lab","name":"Laboratorio","level":1,"cost":{"metal":20,"energy":12,"crystal":3}}
+  ]
+}
