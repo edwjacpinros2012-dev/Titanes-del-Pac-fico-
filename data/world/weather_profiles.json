@@ -1,0 +1,8 @@
+{
+  "profiles": [
+    {"id":"clear","resource_modifier":1.0,"visibility":1.0},
+    {"id":"rain","resource_modifier":1.0,"visibility":0.9},
+    {"id":"fog","resource_modifier":0.9,"visibility":0.65},
+    {"id":"storm","resource_modifier":0.8,"visibility":0.55}
+  ]
+}
