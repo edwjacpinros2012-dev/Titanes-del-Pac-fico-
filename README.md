@@ -31,8 +31,15 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - Consulta `docs/ANDROID_FREE_RELEASE.md` para el proceso de Google Play.
 - Consulta `data/platform/google_play_release.json` para el estado de preparación. Los valores marcados como provisionales no están listos para publicación.
 
+## Plataformas objetivo
+- PC: teclado y mando.
+- Android y tabletas: controles táctiles y orientación horizontal.
+- Navegadores: objetivo Web mediante exportación Godot.
+- La compatibilidad real de cada exportación sigue pendiente de pruebas en dispositivos y navegadores.
+
 ## Controles principales
-- **WASD / flechas:** moverse.
+- **WASD / flechas / stick izquierdo:** moverse.
+- **Pantalla táctil:** cruceta virtual y botones de acción.
 - **E:** recoger recurso cercano.
 - **B:** mejorar el Centro de mando.
 - **V:** seleccionar instalación de base.
