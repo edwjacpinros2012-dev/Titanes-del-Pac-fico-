@@ -11,6 +11,7 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 ## Sistemas y contenido preparados
 - Escena 3D inicial con movimiento, cámara y recolección básica.
 - Recursos, inventario, fabricación, mejoras de base y evolución.
+- Gestión lógica de diez instalaciones de base con desbloqueos, requisitos, costes y producción pasiva; sin arte final todavía.
 - Titán Alfa y controlador con arte provisional de primitivas.
 - Construcción, energía, investigación, clima y ciclo día/noche.
 - Expediciones, puntos de interés y descubrimientos.
@@ -33,7 +34,9 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 ## Controles principales
 - **WASD / flechas:** moverse.
 - **E:** recoger recurso cercano.
-- **B:** mejorar la base.
+- **B:** mejorar el Centro de mando.
+- **V:** seleccionar instalación de base.
+- **N:** mejorar la instalación seleccionada.
 - **T:** evolucionar el titán.
 - **F:** sincronizar pilotos.
 - **R:** estabilizar una brecha.
