@@ -22,6 +22,10 @@ const TECHNOLOGIES := {
 var unlocked: Array[String] = []
 var selected_index := 0
 
+func get_technology_name(technology_id: String) -> String:
+	var definition: Dictionary = TECHNOLOGIES.get(technology_id, {})
+	return str(definition.get("name", "Tecnología desconocida"))
+
 func get_selected_id() -> String:
 	return str(TECHNOLOGY_ORDER[clampi(selected_index, 0, TECHNOLOGY_ORDER.size() - 1)])
 
