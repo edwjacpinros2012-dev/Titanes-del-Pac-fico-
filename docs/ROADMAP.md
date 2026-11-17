@@ -21,6 +21,8 @@ Juego 3D original de guerra de robots gigantes contra monstruos colosales. El ju
 - [x] Guía de publicación gratuita y lista de verificación de Google Play.
 - [x] Guía de originalidad y revisión de propiedad intelectual.
 - [ ] Corregir e integrar todos los sistemas en la escena principal y HUD.
+- [x] Añadir gestión lógica de diez instalaciones de base, requisitos, costes y producción pasiva local (pendiente de prueba en Godot).
+- [ ] Integrar capacidad de almacén, energía, reparación y efectos reales de cada instalación.
 - [ ] Unificar guardado local de todos los sistemas y probar restauración.
 - [ ] Producir modelos 3D finales, rig y animaciones.
 - [ ] Crear biomas jugables completos e IA avanzada.
