@@ -1,0 +1,10 @@
+{
+  "currency": "creditos",
+  "market": "Mercado Costero de Aurora",
+  "goods": [
+    {"id": "metal", "buy_price": 12, "sell_price": 7, "starting_stock": 40},
+    {"id": "energia", "buy_price": 18, "sell_price": 11, "starting_stock": 25},
+    {"id": "cristal", "buy_price": 28, "sell_price": 19, "starting_stock": 12}
+  ],
+  "design_notes": "Precios de prototipo. En futuras regiones, los precios y existencias variarán por demanda y rareza."
+}
