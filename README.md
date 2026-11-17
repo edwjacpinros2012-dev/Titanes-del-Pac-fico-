@@ -1,6 +1,6 @@
 # Titanes del Pacífico
 
-Juego 3D original de exploración, supervivencia, recolección, construcción y evolución, desarrollado con Godot 4.
+Juego 3D original de exploración, supervivencia ligera, recolección, fabricación, construcción y evolución, desarrollado con Godot 4.
 
 ## Abrir el proyecto
 1. Instala Godot 4.
@@ -8,14 +8,17 @@ Juego 3D original de exploración, supervivencia, recolección, construcción y 
 3. En Godot, pulsa **Importar** y selecciona `project.godot`.
 4. Ejecuta con F6/F5.
 
-## Prototipo actual
+## Prototipo y módulos preparados
 - Escena 3D inicial con movimiento, cámara y recolección básica.
 - Recursos de metal, energía y cristales.
 - Mejora de base y evolución demostrativa.
-- Escena provisional de Titán Alfa con controlador propio.
-- Escenas provisionales de centro de mando, generador y nodo de recurso.
-- Arquitectura modular para inventario, guardado, misiones, investigación y construcción.
-- Datos JSON para titanes, regiones, edificios, tecnologías y misiones.
+- Titán Alfa con escena visual de primitivas, controlador y estadísticas.
+- Escenas provisionales de centro de mando, generador y nodos de recursos.
+- Inventario, fabricación por recetas y sistema de guardado.
+- Construcción, energía de base e investigación.
+- Clima, ciclo día/noche y eventos del mundo.
+- Expediciones, puntos de interés y registro de descubrimientos.
+- Datos JSON para titanes, habilidades, regiones, recursos, edificios, tecnologías, misiones y recetas.
 
 ## Controles de la escena principal
 - **WASD / flechas:** moverse.
@@ -24,17 +27,19 @@ Juego 3D original de exploración, supervivencia, recolección, construcción y 
 - **T:** evolucionar el titán.
 
 ## Estructura
-- `assets/`: arte, personajes, ambientes, edificios, audio e interfaz.
+- `assets/`: futuros modelos, texturas, audio e interfaz.
 - `scenes/`: escenas Godot para mundo, personajes, base y recursos.
 - `scripts/`: lógica modular del juego.
 - `data/`: contenido configurable en JSON y recursos Godot.
-- `docs/` y `documentation/`: diseño, arquitectura y seguimiento.
+- `docs/` y `documentation/`: diseño, investigación, arquitectura y seguimiento.
 - `web/`: página informativa de lanzamiento.
 
-## Estado real del contenido
-Los modelos GLB finales, texturas, esqueletos, animaciones, biomas completos, IA avanzada, combate, misiones integradas y multijugador siguen pendientes. Las cápsulas y primitivas son placeholders de desarrollo, no arte final.
+## Estado real
+Los módulos nuevos de fabricación, clima, energía, expediciones y habilidades están creados como sistemas independientes y todavía necesitan conectarse al HUD y al flujo principal. La escena visual del Titán Alfa usa geometría provisional, no un modelo GLB final. Siguen pendientes modelos 3D finales, texturas, rig, animaciones, biomas completos, IA avanzada, integración completa y multijugador.
+
+No se ha verificado la compilación de todos los scripts en una ejecución local de Godot. Abre el proyecto y revisa errores antes de considerar una función lista.
 
 ## Publicación web
 Vercel aloja la página informativa de `web/`. La versión jugable del navegador requiere exportar el juego desde Godot con la plantilla Web y publicar esos archivos exportados. No se presenta la página informativa como juego web terminado.
 
-Consulta `docs/ROADMAP.md`, `docs/GAME_DESIGN.md` y `docs/ART_PIPELINE.md`.
+Consulta `docs/REFERENCE_RESEARCH.md`, `docs/EXPANSION_PLAN.md`, `docs/CONTENT_STATUS.md`, `docs/ROADMAP.md` y `docs/ART_PIPELINE.md`.
