@@ -66,7 +66,7 @@ La brecha principal es cerrar el ciclo de juego real: explorar → detectar amen
 
 ### G — Guardado
 **Existe:** JSON local versionado, autosalvado y métodos de exportación/importación de varios gestores.  
-**Falta — BLOQUEADOR P0:** inventario de cada campo persistente; migraciones entre versiones; guardado atómico/backup; recuperación ante archivo corrupto; prueba de cerrar/abrir; comprobar que NPC, contratos, helicópteros, criaturas, posición, región, temporizadores, instalaciones y daño restauran exactamente.
+**Auditoría concreta del snapshot actual:** sí guarda recursos, créditos, datos de investigación, nivel de base, estado de instalaciones, nivel del Titán, nivel de campaña, alianza local, tecnologías, frente de guerra, estado del encuentro y daño del Centinela, además del estado comunitario de NPC. **No aparecen en el snapshot principal** el progreso de contratos, estado de expediciones, misión activa de helicópteros/tiempo de vuelo, estado de brechas, descubrimientos del ecosistema, posición del jugador, nodos ya recolectados, clima/ciclo horario ni estado de sincronización de pilotos. Algunas de estas funciones podrían reiniciarse al cargar; deben decidirse y probarse, no asumirse persistentes.\n\n**Falta — BLOQUEADOR P0:** inventario de cada campo persistente; migraciones entre versiones; guardado atómico/backup; recuperación ante archivo corrupto; prueba de cerrar/abrir; completar y verificar restauración de contratos, helicópteros, criaturas, posición, expediciones, brechas, temporizadores, instalaciones y daño.
 
 ### H — Helicópteros
 **Existe:** reconocimiento con dos unidades provisionales, envío y regreso con recompensas/datos.  
