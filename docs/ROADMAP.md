@@ -1,19 +1,21 @@
 # Ruta de desarrollo
 
 ## Objetivo
-Juego 3D original de guerra de robots gigantes contra monstruos colosales. El jugador comienza como recluta con un Mark I y una base pequeña. Godot 4.3.
+Juego 3D original de exploración, supervivencia, recolección, fabricación, construcción y guerra de robots gigantes contra monstruos colosales. El jugador comienza como recluta con un Mark I y una base pequeña. Godot 4.3.
 
 ## Nuevo bloque de producción
-- [x] Rama feature/production-foundation-02 creada.
 - [x] Director de amenaza multidimensional desacoplado: preparación, condición del Centinela, sincronización, apoyo, inteligencia, presión regional y riesgo.
 - [x] Catálogo de cuatro regiones con desbloqueos, biomas, peligros, recursos y objetivos.
 - [x] Reglas de balance y diez niveles de amenaza legibles.
 - [x] Guía visual y contratos de integración.
 - [x] Guardado local con archivo temporal, copia de seguridad y recuperación.
 - [x] Pruebas headless de recursos, guardado y director de amenaza.
-- [ ] Integrar el director en el gestor real de encuentros y HUD.
+- [x] Investigación comparativa con Pacific Drive, MechWarrior 5: Clans, War Robots y demos oficiales de Godot.
+- [x] Gestor modular del ciclo de misión: despliegue, operación, objetivos, informe y regreso a base.
+- [ ] Integrar el gestor de misión con UI, mapa, controlador, economía, daños y guardado.
+- [ ] Integrar el director de amenaza en el gestor real de encuentros y HUD.
 - [ ] Completar restauración de todos los gestores.
-- [ ] Construir el primer combate 3D en tiempo real con controles y feedback.
+- [ ] Construir y validar el primer encuentro 3D en tiempo real.
 - [ ] Completar IA por estados y navegación de un Abisal.
 - [ ] Conectar daño lógico con partes visuales del Centinela.
 - [ ] Integrar catálogo regional en mapa y desbloqueos de campaña.
@@ -23,7 +25,7 @@ Juego 3D original de guerra de robots gigantes contra monstruos colosales. El ju
 
 ## Orden obligatorio
 1. Integridad de guardado y pruebas.
-2. Vertical slice: salida, exploración, amenaza, combate real, resultado, reparación y guardado.
+2. Ciclo jugable: salida, exploración, amenaza, operación, resultado, reparación y guardado.
 3. Hangar, fabricación y progresión conectados.
 4. Base visible y especialistas NPC.
 5. Regiones, biomas y campaña.
