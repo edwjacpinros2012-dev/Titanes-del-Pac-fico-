@@ -12,7 +12,7 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 - Escena 3D inicial con movimiento, cámara y recolección básica.
 - Recursos de metal, energía y cristales.
 - Mejora de base y evolución demostrativa.
-- Titán Alfa con escena visual de primitivas, controlador y estadísticas.
+- Titán Alfa integrado en la escena principal, con escena visual provisional, controlador y estadísticas.
 - Escenas provisionales de centro de mando, generador y nodos de recursos.
 - Inventario, fabricación por recetas y sistema de guardado.
 - Construcción, energía de base e investigación.
@@ -35,7 +35,7 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 - `web/`: página informativa de lanzamiento.
 
 ## Estado real
-Los módulos nuevos de fabricación, clima, energía, expediciones y habilidades están creados como sistemas independientes y todavía necesitan conectarse al HUD y al flujo principal. La escena visual del Titán Alfa usa geometría provisional, no un modelo GLB final. Siguen pendientes modelos 3D finales, texturas, rig, animaciones, biomas completos, IA avanzada, integración completa y multijugador.
+Los módulos de fabricación, clima, energía, expediciones y habilidades están creados como sistemas independientes y todavía necesitan conectarse al HUD y al flujo principal. La escena visual del Titán Alfa usa geometría provisional, no un modelo GLB final. Siguen pendientes modelos 3D finales, texturas, rig, animaciones, biomas completos, IA avanzada, integración completa y multijugador.
 
 No se ha verificado la compilación de todos los scripts en una ejecución local de Godot. Abre el proyecto y revisa errores antes de considerar una función lista.
 
