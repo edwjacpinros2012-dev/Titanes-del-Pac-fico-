@@ -11,7 +11,7 @@
 | Contratos y recompensas | Tres contratos automáticos con créditos y datos de investigación; falta prueba local |
 | Reconocimiento aéreo | Dos helicópteros visuales salen, exploran y regresan con recursos; falta prueba local |
 | Ecosistema de criaturas | Ocho criaturas provisionales se desplazan y se registran al acercarse; modelos finales e IA avanzada pendientes |
-| Catálogo de colosos | Doce especies originales documentadas en JSON
+| Catálogo de colosos | Doce especies originales documentadas en JSON |
 | Inventario | Lógica básica creada |
 | Fabricación | Gestor y datos de recetas creados; estación/UI pendientes |
 | Energía de base | Gestor creado; conexión con edificios pendientes |
