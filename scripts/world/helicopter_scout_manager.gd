@@ -8,6 +8,7 @@ signal scouting_started
 @export var orbit_radius: float = 13.0
 
 var is_active: bool = false
+var is_returning: bool = false
 var elapsed: float = 0.0
 var target_center: Vector3 = Vector3.ZERO
 var helicopters: Array[Node3D] = []
@@ -22,14 +23,21 @@ func _process(delta: float) -> void:
 		return
 	elapsed += delta
 	for index in range(helicopters.size()):
-		var angle := elapsed * 0.8 + float(index) * PI
-		var offset := Vector3(cos(angle) * orbit_radius, 10.0 + sin(elapsed * 1.8), sin(angle) * orbit_radius)
-		var destination := target_center + offset
-		helicopters[index].global_position = helicopters[index].global_position.lerp(destination, clampf(delta * 2.5, 0.0, 1.0))
-		helicopters[index].rotation.y = -angle
+		if is_returning:
+			var home_position := Vector3(float(index) * 3.0, 4.0, -8.0)
+			helicopters[index].global_position = helicopters[index].global_position.move_toward(home_position, delta * 8.0)
+		else:
+			var angle := elapsed * 0.8 + float(index) * PI
+			var offset := Vector3(cos(angle) * orbit_radius, 10.0 + sin(elapsed * 1.8), sin(angle) * orbit_radius)
+			var destination := target_center + offset
+			helicopters[index].global_position = helicopters[index].global_position.lerp(destination, clampf(delta * 2.5, 0.0, 1.0))
+			helicopters[index].rotation.y = -angle
 		rotors[index].rotate_y(delta * 18.0)
-	if elapsed >= flight_duration:
+	if not is_returning and elapsed >= flight_duration:
+		is_returning = true
+	if is_returning and helicopters[0].global_position.distance_to(Vector3(0.0, 4.0, -8.0)) < 1.5:
 		is_active = false
+		is_returning = false
 		_set_helicopters_visible(false)
 		scouting_completed.emit({"metal": 3, "energia": 1, "research_data": 3})
 
@@ -37,6 +45,7 @@ func dispatch_scout(center: Vector3) -> bool:
 	if is_active:
 		return false
 	is_active = true
+	is_returning = false
 	elapsed = 0.0
 	target_center = center + Vector3(0.0, 0.0, -7.0)
 	for index in range(helicopters.size()):
