@@ -13,11 +13,15 @@ var chapters: Array[Dictionary] = [
 ]
 func add_experience(amount: int) -> bool:
  if amount <= 0: return false
- player_level += amount
+ return set_player_level(player_level + amount)
+
+func set_player_level(value: int) -> bool:
+ player_level = maxi(1,value)
  if player_level >= 35: jaeger_generation = 5
  elif player_level >= 20: jaeger_generation = 4
  elif player_level >= 10: jaeger_generation = 3
  elif player_level >= 5: jaeger_generation = 2
+ else: jaeger_generation = 1
  var selected: Dictionary = chapters[0]
  for chapter in chapters:
   if player_level >= int(chapter["level"]): selected = chapter
