@@ -35,11 +35,17 @@ func _process(delta: float) -> void:
 		rotors[index].rotate_y(delta * 18.0)
 	if not is_returning and elapsed >= flight_duration:
 		is_returning = true
-	if is_returning and helicopters[0].global_position.distance_to(Vector3(0.0, 4.0, -8.0)) < 1.5:
-		is_active = false
-		is_returning = false
-		_set_helicopters_visible(false)
-		scouting_completed.emit({"metal": 3, "energia": 1, "research_data": 3})
+	if is_returning:
+		var all_helicopters_home := true
+		for index in range(helicopters.size()):
+			var home_position := Vector3(float(index) * 3.0, 4.0, -8.0)
+			if helicopters[index].global_position.distance_to(home_position) >= 1.5:
+				all_helicopters_home = false
+		if all_helicopters_home:
+			is_active = false
+			is_returning = false
+			_set_helicopters_visible(false)
+			scouting_completed.emit({"metal": 3, "energia": 1, "research_data": 3})
 
 func dispatch_scout(center: Vector3) -> bool:
 	if is_active:
@@ -55,6 +61,8 @@ func dispatch_scout(center: Vector3) -> bool:
 	return true
 
 func get_status_text() -> String:
+	if is_active and is_returning:
+		return "HELICÓPTEROS: regresando a la base"
 	if is_active:
 		return "HELICÓPTEROS: reconocimiento en curso (%.0f s)" % maxf(0.0, flight_duration - elapsed)
 	return "HELICÓPTEROS: en plataforma | H: enviar reconocimiento"
