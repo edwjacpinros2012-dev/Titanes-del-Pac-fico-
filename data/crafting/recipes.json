@@ -1,0 +1,8 @@
+{
+  "recipes": [
+    {"id":"alloy_plate","name":"Placa de aleación","ingredients":{"metal":3,"energy":1},"outputs":{"alloy_plate":1},"research":"","seconds":2},
+    {"id":"reinforced_frame","name":"Armazón reforzado","ingredients":{"metal":8,"alloy_plate":2},"outputs":{"reinforced_frame":1},"research":"improved_harvesting","seconds":5},
+    {"id":"crystal_cell","name":"Celda de cristal","ingredients":{"crystal":3,"energy":4},"outputs":{"crystal_cell":1},"research":"basic_scanning","seconds":4},
+    {"id":"advanced_core","name":"Núcleo avanzado","ingredients":{"alloy_plate":4,"crystal_cell":2},"outputs":{"advanced_core":1},"research":"titan_resonance","seconds":9}
+  ]
+}
