@@ -75,6 +75,15 @@ func get_tactical_counter_role() -> String:
 		_:
 			return "precision"
 
+func get_tactical_hint() -> String:
+	match get_tactical_counter_role():
+		"flank":
+			return "CONTRAMEDIDA SUGERIDA: FLANQUEO (Q)"
+		"guard":
+			return "CONTRAMEDIDA SUGERIDA: DEFENSA (X)"
+		_:
+			return "CONTRAMEDIDA SUGERIDA: PRECISIÓN (U)"
+
 func get_tactical_bonus() -> int:
 	if selected_tactic == "scan":
 		return 1
@@ -110,7 +119,7 @@ func get_status_text() -> String:
 	var state := "ENCUENTRO ACTIVO" if is_encounter_active else "Amenaza detectada"
 	return "ABISAL: %s | Rol: %s | Amenaza %d | %s | Último resultado: %s\n%s\n%s" % [
 		active_kaiju_name, active_kaiju_role, threat, state, last_outcome,
-		get_preparation_report(), last_tactic_feedback
+		get_preparation_report(), get_tactical_hint() + " | " + last_tactic_feedback
 	]
 
 func _get_tactic_description(tactic_id: String) -> String:
