@@ -22,7 +22,7 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 - Mercado costero con créditos, compra/venta de materiales y existencias limitadas.
 - Contratos de exploración, reconocimiento aéreo y comercio con recompensas.
 - Dos helicópteros de reconocimiento que sobrevuelan el sector y regresan a la base.
-- Ocho entidades Kaiju provisionales móviles para encuentros y observación; son amenazas del mundo, nunca mascotas ni compañeros del jugador.
+- Ocho entidades provisionales del ecosistema y un sistema de encuentros Kaiju inicial; los Kaijus son monstruos enemigos, nunca mascotas ni compañeros del jugador.\n- Encuentros jugables con victoria, éxito parcial, retirada y derrota; recompensas y costes de recuperación.\n- Campaña conectada con capítulos y progresión de Jaeger Mark I–V.\n- Alianzas locales de prueba con rangos, objetivos y chat local filtrado.\n- Guardado de perfil versionado para recursos, créditos, investigación, base, campaña y alianza.
 - Catálogo de doce Kaijus enemigos originales con niveles de amenaza y progresión por campaña.
 - Diseño de campaña: el jugador comienza como recluta con un Jaeger Mark I y una base pequeña; la dificultad aumenta por capítulos y amenaza regional, con victorias, retiradas y derrotas que tienen consecuencias.
 - Diseño de alianzas de jugadores, roles, solicitudes de ingreso, invitaciones, objetivos cooperativos y clasificación.
@@ -49,7 +49,7 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 ## Diseño de guerra, Kaijus y comunidad
 Consulta `docs/GAME_DESIGN_KAIJU_ALLIANCES_ONLINE.md` para la identidad Kaiju/Jaeger, campaña, progresión Mark, alianzas, registro, inicio de sesión y reglas de comunidad. El roster enemigo está en `data/kaiju/kaiju_roster.json`. El esquema SQL inicial está en `backend/supabase/migrations/0001_community_schema.sql`.
 
-**Importante:** cuentas, chat global, alianzas online y multijugador todavía no están conectados a un servicio real. El SQL es una base inicial que requiere configurar un proyecto Supabase, revisar las políticas, añadir funciones de servidor y probar la seguridad. El chat empieza desactivado y debe permanecer así hasta contar con moderación y controles adecuados.
+**Importante:** el sistema de alianzas que ya se puede probar en el prototipo es local. Cuentas, chat global, alianzas online y multijugador todavía no están conectados a un servicio real. El SQL es una base inicial que requiere configurar un proyecto Supabase, revisar las políticas, añadir funciones de servidor y probar la seguridad. El chat empieza desactivado y debe permanecer así hasta contar con moderación y controles adecuados.
 
 ## Estado real
 Los módulos de fabricación, clima, energía, expediciones y habilidades están creados como sistemas independientes y todavía necesitan conectarse al HUD y al flujo principal. La escena visual del Titán Alfa usa geometría provisional, no un modelo GLB final. Siguen pendientes modelos 3D finales, texturas, rig, animaciones, biomas completos, IA avanzada, integración completa y multijugador.
