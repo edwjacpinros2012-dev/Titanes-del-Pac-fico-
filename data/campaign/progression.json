@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "new_player": {
+    "rank": "recruit",
+    "jaeger_id": "jaeger_mark_01",
+    "jaeger_generation": 1,
+    "base_level": 1,
+    "starting_base": ["command_center", "small_hangar", "generator", "workshop"],
+    "starting_resources": {"metal": 80, "energia": 45, "cristal": 12, "credits": 250},
+    "first_enemy": "bruma_abismal",
+    "companion_kaiju": false
+  },
+  "jaeger_generations": [
+    {"id":"mark_01","name":"Mark I","unlock_level":1,"role":"starter","upgrade_focus":"reliability_and_basic_modules"},
+    {"id":"mark_02","name":"Mark II","unlock_level":5,"role":"improved_frame","upgrade_focus":"mobility_and_energy_efficiency"},
+    {"id":"mark_03","name":"Mark III","unlock_level":10,"role":"specialist_frame","upgrade_focus":"modular_specialization"},
+    {"id":"mark_04","name":"Mark IV","unlock_level":20,"role":"advanced_frame","upgrade_focus":"team_synergy"},
+    {"id":"mark_05","name":"Mark V","unlock_level":35,"role":"elite_frame","upgrade_focus":"rare_technology"}
+  ],
+  "chapters": [
+    {"id":"first_contact","name":"Primer contacto","level":1,"threat_tier":"I","objectives":["learn_jaeger_controls","scan_first_rift","defend_coastal_outpost"],"failure_effects":["minor_jaeger_damage","small_supply_loss"]},
+    {"id":"coastal_front","name":"Frente costero","level":5,"threat_tier":"II","objectives":["expand_hangar","complete_first_expedition","repel_kaiju_incursion"],"failure_effects":["repair_cost","temporary_sector_pressure"]},
+    {"id":"deep_frontier","name":"Frontera abisal","level":12,"threat_tier":"III","objectives":["unlock_deep_ocean_region","research_kaiju_pattern","protect_research_station"],"failure_effects":["lost_mission_rewards","regional_alert_increase"]},
+    {"id":"world_crisis","name":"Crisis mundial","level":22,"threat_tier":"IV","objectives":["coordinate_alliance_event","defend_two_regions","upgrade_jaeger_generation"],"failure_effects":["temporary_region_loss","alliance_score_penalty"]},
+    {"id":"breach_origin","name":"Origen de la brecha","level":35,"threat_tier":"V","objectives":["prepare_global_defense","complete_colossal_event","resolve_campaign_finale"],"failure_effects":["campaign_recovery_operation","high_repair_cost"]}
+  ],
+  "difficulty_model": {
+    "factors": ["campaign_chapter", "region_threat", "jaeger_generation", "mission_type", "player_preparation"],
+    "principles": ["no_guaranteed_victory", "telegraph_major_threats", "allow_retreat", "provide_recovery_path"],
+    "never_scale_only_by": ["enemy_health"],
+    "persistent_world": "Sector states may advance while offline, but offline damage is capped and the player receives a return briefing."
+  },
+  "outcome_states": ["victory", "partial_success", "retreat", "defeat", "objective_lost"],
+  "recovery": {
+    "main_progress_permanent_loss": false,
+    "repair_uses_resources": true,
+    "lost_sector_can_be_recovered": true,
+    "retry_available": true
+  }
+}
