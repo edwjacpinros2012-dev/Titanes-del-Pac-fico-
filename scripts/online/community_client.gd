@@ -28,7 +28,9 @@ func sign_up(email: String, password: String) -> Dictionary:
 func register_profile(handle: String, display_name: String) -> bool:
 	if access_token.is_empty() or handle.length() < 3 or handle.length() > 20:
 		return false
-	if not handle.replace("_","").isalnum():
+	var handle_regex := RegEx.new()
+	handle_regex.compile("^[A-Za-z0-9_]{3,20}$")
+	if handle_regex.search(handle) == null:
 		return false
 	var payload := {"user_id":user_id,"handle":handle,"display_name":display_name.substr(0,24),"global_chat_enabled":false}
 	var result := await _request(HTTPClient.METHOD_POST, "/rest/v1/player_profiles", payload, true)
