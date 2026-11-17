@@ -47,6 +47,7 @@ if ($UseNewFolder) {
         $tempZip = Join-Path $env:TEMP ("titanes-" + [guid]::NewGuid().ToString("N") + ".zip")
         $tempDir = Join-Path $env:TEMP ("titanes-" + [guid]::NewGuid().ToString("N"))
         try {
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             Invoke-WebRequest -Uri $ZipUrl -OutFile $tempZip -UseBasicParsing
             Expand-Archive -Path $tempZip -DestinationPath $tempDir -Force
             $extracted = Get-ChildItem -Path $tempDir -Directory | Select-Object -First 1
