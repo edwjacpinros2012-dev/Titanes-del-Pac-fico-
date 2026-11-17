@@ -560,7 +560,8 @@ func _save_local_profile() -> void:
 		"jaeger_generation": campaign.jaeger_generation if campaign else 1,
 		"alliance_name": alliance_manager.alliance_name if alliance_manager else "",
 		"alliance_tag": alliance_manager.alliance_tag if alliance_manager else "",
-		"alliance_rank": alliance_manager.rank if alliance_manager else "Sin alianza"
+		"alliance_rank": alliance_manager.rank if alliance_manager else "Sin alianza",
+		"alliance_state": alliance_manager.export_state() if alliance_manager else {}
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -575,15 +576,11 @@ func _load_local_profile() -> void:
 	if trade_manager:
 		trade_manager.credits = int(snapshot.get("credits", trade_manager.credits))
 	if campaign:
-		campaign.player_level = int(snapshot.get("campaign_level", 1))
-		campaign.jaeger_generation = int(snapshot.get("jaeger_generation", 1))
+		campaign.set_player_level(int(snapshot.get("campaign_level", 1)))
 	if kaiju_war and campaign:
 		kaiju_war.set_progression(campaign.player_level, campaign.jaeger_generation)
-	if alliance_manager and str(snapshot.get("alliance_name", "")) != "":
-		alliance_manager.alliance_name = str(snapshot["alliance_name"])
-		alliance_manager.alliance_tag = str(snapshot.get("alliance_tag", ""))
-		alliance_manager.rank = str(snapshot.get("alliance_rank", "Recluta"))
-		alliance_manager.members = [{"name":"Tú","rank":alliance_manager.rank,"contribution":0}]
+	if alliance_manager and typeof(snapshot.get("alliance_state", {})) == TYPE_DICTIONARY and not snapshot.get("alliance_state", {}).is_empty():
+		alliance_manager.import_state(snapshot["alliance_state"])
 	_update_hud()
 
 func _notification(what: int) -> void:
