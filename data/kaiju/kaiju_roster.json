@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "identity": {
+    "faction": "kaiju",
+    "role": "enemy_threat",
+    "player_controlled": false,
+    "companion": false,
+    "description": "Los Kaijus son monstruos colosales enemigos que emergen de brechas y amenazan regiones humanas."
+  },
+  "threat_tiers": [
+    {"id":"I","name":"Contacto","recommended_campaign_level":1},
+    {"id":"II","name":"Incursión","recommended_campaign_level":5},
+    {"id":"III","name":"Asedio","recommended_campaign_level":12},
+    {"id":"IV","name":"Cataclismo","recommended_campaign_level":22},
+    {"id":"V","name":"Extinción","recommended_campaign_level":35}
+  ],
+  "kaiju": [
+    {"id":"bruma_abismal","name":"Bruma Abismal","tier":"I","role":"stalker","habitat":"fosa_neblinosa","behavior":"acecha y aparece en incursiones cortas","research_reward":2,"boss":false},
+    {"id":"rompeolas","name":"Rompeolas","tier":"II","role":"siege","habitat":"costa_rocallosa","behavior":"presiona defensas costeras y altera rutas","research_reward":4,"boss":false},
+    {"id":"vigia_de_basalto","name":"Vigía de Basalto","tier":"II","role":"armored","habitat":"islas_volcanicas","behavior":"protege su zona y resiste encuentros prolongados","research_reward":4,"boss":false},
+    {"id":"mantarraya_trueno","name":"Mantarraya Trueno","tier":"I","role":"swift","habitat":"mar_abierto","behavior":"realiza apariciones rápidas y cambia de sector","research_reward":2,"boss":false},
+    {"id":"coral_rey","name":"Coral Rey","tier":"III","role":"territorial","habitat":"arrecife_profundo","behavior":"altera el entorno y protege un nido ficticio","research_reward":6,"boss":true},
+    {"id":"taladro_de_fosa","name":"Taladro de Fosa","tier":"III","role":"burrower","habitat":"placa_abismal","behavior":"se desplaza bajo el lecho oceánico y emerge en puntos variables","research_reward":6,"boss":false},
+    {"id":"tortuga_muralla","name":"Tortuga Muralla","tier":"II","role":"armored","habitat":"plataforma_costera","behavior":"avanza lentamente y bloquea rutas marítimas","research_reward":4,"boss":false},
+    {"id":"serpiente_termica","name":"Serpiente Térmica","tier":"III","role":"ambusher","habitat":"aguas_geotermicas","behavior":"se oculta en zonas de vapor y cambia de profundidad","research_reward":6,"boss":false},
+    {"id":"caminante_de_sal","name":"Caminante de Sal","tier":"I","role":"scavenger","habitat":"salinas","behavior":"recorre zonas secas buscando minerales","research_reward":2,"boss":false},
+    {"id":"polilla_de_niebla","name":"Polilla de Niebla","tier":"II","role":"disruptor","habitat":"archipielago_nublado","behavior":"reduce visibilidad y se desplaza entre islas","research_reward":4,"boss":false},
+    {"id":"cangrejo_faro","name":"Cangrejo Faro","tier":"I","role":"territorial","habitat":"costa_bioluminiscente","behavior":"defiende su territorio y atrae otras criaturas","research_reward":2,"boss":false},
+    {"id":"anguila_cristal","name":"Anguila Cristal","tier":"IV","role":"alpha","habitat":"abismo_cristalino","behavior":"lidera encuentros de varias amenazas y cambia el ritmo del evento","research_reward":10,"boss":true}
+  ],
+  "scaling_rules": {
+    "increase_by":["chapter","region_threat","player_jaeger_generation","mission_objective"],
+    "avoid":["guaranteed_victory","unbounded_enemy_health_scaling"],
+    "loss_consequences":["repair_cost","supply_loss","temporary_sector_pressure","mission_retry_or_recovery"],
+    "protection":"Nunca eliminar permanentemente el progreso principal por una derrota aislada."
+  }
+}
