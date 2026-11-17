@@ -20,6 +20,7 @@ var campaign: CampaignManager
 var alliance_manager: AllianceManager
 var base_development: BaseDevelopmentManager
 var base_label: Label
+var platform_input: PlatformInput
 var kaiju_label: Label
 var alliance_label: Label
 var community_client: CommunityClient
@@ -162,12 +163,44 @@ func _setup_input() -> void:
 	_add_key("market_sell_metal", KEY_4)
 	_add_key("market_sell_energy", KEY_5)
 	_add_key("market_sell_crystal", KEY_6)
+	_add_gamepad_axis("move_left", JOY_AXIS_LEFT_X, -1.0)
+	_add_gamepad_axis("move_right", JOY_AXIS_LEFT_X, 1.0)
+	_add_gamepad_axis("move_forward", JOY_AXIS_LEFT_Y, -1.0)
+	_add_gamepad_axis("move_back", JOY_AXIS_LEFT_Y, 1.0)
+	_add_gamepad_button("collect", JOY_BUTTON_A)
+	_add_gamepad_button("kaiju_engage", JOY_BUTTON_X)
+	_add_gamepad_button("evolve_titan", JOY_BUTTON_Y)
+	_add_gamepad_button("kaiju_retreat", JOY_BUTTON_B)
 
 func _add_key(action: String, keycode: Key) -> void:
 	if not InputMap.has_action(action):
 		InputMap.add_action(action)
+	for existing in InputMap.action_get_events(action):
+		if existing is InputEventKey and existing.physical_keycode == keycode:
+			return
 	var event := InputEventKey.new()
 	event.physical_keycode = keycode
+	InputMap.action_add_event(action, event)
+
+func _add_gamepad_axis(action: String, axis: JoyAxis, axis_value: float) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	for existing in InputMap.action_get_events(action):
+		if existing is InputEventJoypadMotion and existing.axis == axis and is_equal_approx(existing.axis_value, axis_value):
+			return
+	var event := InputEventJoypadMotion.new()
+	event.axis = axis
+	event.axis_value = axis_value
+	InputMap.action_add_event(action, event)
+
+func _add_gamepad_button(action: String, button_index: JoyButton) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	for existing in InputMap.action_get_events(action):
+		if existing is InputEventJoypadButton and existing.button_index == button_index:
+			return
+	var event := InputEventJoypadButton.new()
+	event.button_index = button_index
 	InputMap.action_add_event(action, event)
 
 func _create_world() -> void:
@@ -465,15 +498,50 @@ func _evolve_titan() -> void:
 		_show_status("Para evolucionar necesitas " + str(cost_crystal) + " cristal y " + str(cost_energy) + " energía")
 	_update_hud()
 
+func _on_platform_action(action_name: String) -> void:
+	match action_name:
+		"collect":
+			_try_collect_nearby(true)
+		"upgrade_base":
+			_upgrade_base()
+		"base_select_next":
+			if base_development:
+				base_development.select_next_facility(base_level)
+				_show_status(base_development.get_selected_facility_text(resources, base_level))
+		"base_upgrade_selected":
+			_upgrade_selected_facility()
+		"evolve_titan":
+			_evolve_titan()
+		"market_toggle":
+			market_open = not market_open
+			if market_label:
+				market_label.visible = market_open
+			_show_status("Canal comercial abierto." if market_open else "Canal comercial cerrado.")
+		"kaiju_engage":
+			if kaiju_war:
+				if not kaiju_war.is_encounter_active:
+					kaiju_war.begin_encounter()
+					_show_status("Amenaza localizada. Pulsa combatir otra vez para resolver el encuentro.")
+				else:
+					kaiju_war.resolve_battle("engage")
+		"kaiju_retreat":
+			if kaiju_war:
+				kaiju_war.resolve_battle("retreat")
+
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var panel := PanelContainer.new()
-	panel.position = Vector2(18, 18)
-	panel.custom_minimum_size = Vector2(470, 370)
+	panel.position = Vector2(12, 12)
+	panel.custom_minimum_size = Vector2(440, 0)
+	panel.size = Vector2(440, 340)
 	layer.add_child(panel)
+	var scroll := ScrollContainer.new()
+	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel.add_child(scroll)
 	var column := VBoxContainer.new()
-	panel.add_child(column)
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(column)
 	var heading := Label.new()
 	heading.text = "TITANES DEL PACÍFICO"
 	heading.add_theme_font_size_override("font_size", 22)
@@ -511,9 +579,13 @@ func _create_hud() -> void:
 	help.add_theme_font_size_override("font_size", 13)
 	column.add_child(help)
 	status_label = Label.new()
-	status_label.position = Vector2(20, 390)
+	status_label.position = Vector2(12, 360)
 	status_label.add_theme_font_size_override("font_size", 18)
 	layer.add_child(status_label)
+	platform_input = PlatformInput.new()
+	platform_input.name = "PlatformInput"
+	platform_input.action_tapped.connect(_on_platform_action)
+	layer.add_child(platform_input)
 	_create_online_panel(layer)
 
 func _update_hud() -> void:
@@ -626,6 +698,8 @@ func _notification(what: int) -> void:
 		_save_local_profile()
 
 func _create_online_panel(layer: CanvasLayer) -> void:
+	if OS.has_feature("mobile") or DisplayServer.is_touchscreen_available():
+		return
 	var panel := PanelContainer.new()
 	panel.position = Vector2(850, 18)
 	panel.custom_minimum_size = Vector2(410, 650)
