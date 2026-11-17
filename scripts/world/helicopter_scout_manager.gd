@@ -1,7 +1,7 @@
 extends Node3D
 class_name HelicopterScoutManager
 
-signal scouting_completed(reward: Dictionary)
+signal scouting_completed(reward: Dictionary, scan_center: Vector3)
 signal scouting_started
 
 @export var flight_duration: float = 12.0
@@ -45,7 +45,7 @@ func _process(delta: float) -> void:
 			is_active = false
 			is_returning = false
 			_set_helicopters_visible(false)
-			scouting_completed.emit({"metal": 3, "energia": 1, "research_data": 3})
+			scouting_completed.emit({"metal": 3, "energia": 1, "research_data": 3}, target_center)
 
 func dispatch_scout(center: Vector3) -> bool:
 	if is_active:
