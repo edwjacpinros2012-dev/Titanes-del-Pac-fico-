@@ -54,6 +54,23 @@ func sign_out() -> void:
 	user_email = ""
 	auth_changed.emit(false, "Sesión cerrada.")
 
+func create_online_alliance(alliance_name: String, tag: String, description: String = "") -> String:
+	if access_token.is_empty(): return ""
+	var result := await _request(HTTPClient.METHOD_POST, "/rest/v1/rpc/create_alliance", {"p_name":alliance_name,"p_tag":tag.to_upper(),"p_description":description})
+	if int(result.get("status",0)) == 200:
+		return str(result.get("data","")).trim_prefix('"').trim_suffix('"')
+	return ""
+
+func request_alliance_join(alliance_id: String) -> bool:
+	if access_token.is_empty() or alliance_id.is_empty(): return false
+	var result := await _request(HTTPClient.METHOD_POST, "/rest/v1/rpc/request_join_alliance", {"p_alliance_id":alliance_id})
+	return int(result.get("status",0)) == 200
+
+func fetch_public_alliances() -> Array:
+	if access_token.is_empty(): return []
+	var result := await _request(HTTPClient.METHOD_GET, "/rest/v1/alliances?select=id,name,tag,description&is_public=eq.true&order=name.asc&limit=30", {})
+	return result.get("data",[]) if typeof(result.get("data")) == TYPE_ARRAY else []
+
 func fetch_global_chat() -> Array:
 	if access_token.is_empty(): return []
 	var result := await _request(HTTPClient.METHOD_GET, "/rest/v1/chat_messages?select=id,sender_id,body,created_at&channel=eq.global&moderation_state=eq.visible&order=created_at.desc&limit=40", {})
