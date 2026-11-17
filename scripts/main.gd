@@ -219,15 +219,16 @@ func _on_rift_stabilized(_index: int, reward: Dictionary) -> void:
 	_update_hud()
 	_show_status("¡Brecha estabilizada! Recompensas: +5 metal, +3 energía, +2 cristal.")
 
-func _on_scouting_completed(reward: Dictionary) -> void:
+func _on_scouting_completed(reward: Dictionary, scan_center: Vector3) -> void:
 	for resource_id in reward.keys():
 		if resource_id == "research_data":
 			research_data += int(reward[resource_id])
 		else:
 			resources[resource_id] = int(resources.get(resource_id, 0)) + int(reward[resource_id])
+	var discovered := creature_manager.reveal_nearby(scan_center, 30.0) if creature_manager else 0
 	contract_manager.register_action("scout")
 	_update_hud()
-	_show_status("Reconocimiento completado: llegaron materiales y datos de investigación.")
+	_show_status("Reconocimiento completado: %d especies detectadas y materiales recuperados." % discovered)
 
 func _on_contract_completed(title: String, reward: Dictionary) -> void:
 	for reward_id in reward.keys():
