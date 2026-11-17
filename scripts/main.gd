@@ -592,7 +592,7 @@ func _notification(what: int) -> void:
 func _create_online_panel(layer: CanvasLayer) -> void:
 	var panel := PanelContainer.new()
 	panel.position = Vector2(850, 18)
-	panel.custom_minimum_size = Vector2(400, 390)
+	panel.custom_minimum_size = Vector2(410, 650)
 	layer.add_child(panel)
 	var column := VBoxContainer.new()
 	panel.add_child(column)
@@ -696,6 +696,8 @@ func _on_online_signup_pressed() -> void:
 func _on_online_login_pressed() -> void:
 	var result: Dictionary = await community_client.sign_in(online_email.text, online_password.text)
 	if int(result.get("status",0)) == 200:
+		if not online_handle.text.strip_edges().is_empty():
+			await community_client.register_profile(online_handle.text, online_handle.text)
 		online_status_label.text = "Sesión iniciada: " + community_client.user_email
 	else:
 		online_status_label.text = str(result.get("error","No se pudo iniciar sesión."))
