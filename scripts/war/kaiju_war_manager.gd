@@ -7,6 +7,7 @@ signal battle_resolved(outcome: String, rewards: Dictionary, consequences: Dicti
 var player: Node3D
 var jaeger_level: int = 1
 var research_power_bonus: int = 0
+var damage_power_penalty: int = 0
 var campaign_level: int = 1
 var active_kaiju_id := "bruma_abismal"
 var active_kaiju_name := "Bruma Abismal"
@@ -39,6 +40,9 @@ func set_progression(level: int, generation: int) -> void:
 
 func set_research_power_bonus(value: int) -> void:
 	research_power_bonus = clampi(value, 0, 5)
+
+func set_damage_penalty(value: int) -> void:
+	damage_power_penalty = clampi(value, 0, 5)
 
 func begin_encounter() -> bool:
 	if is_encounter_active:
@@ -81,7 +85,7 @@ func get_tactical_bonus() -> int:
 	return -1
 
 func get_player_power() -> int:
-	return 3 + jaeger_level * 2 + int(campaign_level / 3) + research_power_bonus
+	return maxi(1, 3 + jaeger_level * 2 + int(campaign_level / 3) + research_power_bonus - damage_power_penalty)
 
 func get_kaiju_power() -> int:
 	return threat * 5
