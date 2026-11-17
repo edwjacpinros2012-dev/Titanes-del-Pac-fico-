@@ -1,0 +1,9 @@
+{
+  "resources": [
+    {"id":"metal","name":"Metal","rarity":"common","regions":["aurora_coast","verdant_expanse"]},
+    {"id":"energy","name":"Energía","rarity":"common","regions":["aurora_coast","ember_ridge"]},
+    {"id":"crystal","name":"Cristal","rarity":"uncommon","regions":["verdant_expanse","abyssal_trench"]},
+    {"id":"rare_alloy","name":"Aleación rara","rarity":"rare","regions":["ember_ridge"]},
+    {"id":"deep_crystal","name":"Cristal abisal","rarity":"epic","regions":["abyssal_trench"]}
+  ]
+}
