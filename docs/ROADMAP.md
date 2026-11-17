@@ -1,7 +1,7 @@
 # Ruta de desarrollo
 
 ## Objetivo
-Juego 3D original de exploración, supervivencia ligera, recolección, fabricación, construcción y evolución de titanes. Motor: Godot 4.
+Juego 3D original de guerra Jaeger contra Kaijus: el jugador empieza con un Mark I y una base pequeña, explora, investiga, construye y progresa mientras los monstruos amenazan regiones. Motor: Godot 4.
 
 ## Hitos
 - [x] Repositorio y prototipo inicial.
@@ -22,7 +22,15 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 - [ ] Integrar investigación, misiones y progresión en una campaña.
 - [ ] Guardado/carga unificado para todos los sistemas.
 - [ ] Pruebas en Godot, optimización y exportación web.
-- [ ] Multijugador después de estabilizar la experiencia individual.
+- [x] Definir identidad correcta: Kaijus como monstruos enemigos; el jugador pilota Jaegers.
+- [x] Diseñar campaña progresiva Mark I en adelante, dificultad regional y consecuencias de derrota recuperables.
+- [x] Documentar diseño de alianzas, roles, invitaciones y objetivos cooperativos.
+- [x] Crear esquema SQL inicial para perfiles, alianzas, chat moderado, bloqueos y denuncias.
+- [ ] Configurar backend real de cuentas y autenticación.
+- [ ] Implementar creación/búsqueda de alianzas y solicitudes de ingreso online.
+- [ ] Implementar chat global/de alianza con moderación, bloqueo, denuncias y controles de privacidad.
+- [ ] Implementar servidor autoritativo, sincronización y multijugador real.
+- [ ] Multijugador después de estabilizar y probar la experiencia individual.
 
 ## Regla de producción
 Un sistema solo se marca como terminado cuando está integrado en escenas, probado manualmente en Godot y documentado. Tener un script o una escena provisional no equivale a tener una característica finalizada.
