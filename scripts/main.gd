@@ -610,6 +610,15 @@ func _on_platform_action(action_name: String) -> void:
 		"kaiju_retreat":
 			if kaiju_war:
 				kaiju_war.resolve_battle("retreat")
+		"tactic_flank":
+			if kaiju_war and kaiju_war.select_tactic("flank"):
+				_show_status("TÁCTICA: FLANQUEO. " + kaiju_war.last_tactic_feedback)
+		"tactic_guard":
+			if kaiju_war and kaiju_war.select_tactic("guard"):
+				_show_status("TÁCTICA: DEFENSA. " + kaiju_war.last_tactic_feedback)
+		"tactic_precision":
+			if kaiju_war and kaiju_war.select_tactic("precision"):
+				_show_status("TÁCTICA: PRECISIÓN. " + kaiju_war.last_tactic_feedback)
 		"tech_select_next":
 			_select_next_technology()
 		"tech_research":
