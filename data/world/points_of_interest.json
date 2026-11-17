@@ -1,0 +1,8 @@
+{
+  "points_of_interest": [
+    {"id":"broken_beacon","name":"Baliza averiada","region":"aurora_coast","reward":{"crystal":2},"research":""},
+    {"id":"overgrown_station","name":"Estación cubierta","region":"verdant_expanse","reward":{"alloy_plate":2},"research":"basic_scanning"},
+    {"id":"thermal_vent","name":"Respiradero térmico","region":"ember_ridge","reward":{"rare_alloy":3},"research":"improved_harvesting"},
+    {"id":"abyss_archive","name":"Archivo abisal","region":"abyssal_trench","reward":{"deep_crystal":2},"research":"titan_resonance"}
+  ]
+}
