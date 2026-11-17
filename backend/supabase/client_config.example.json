@@ -1,0 +1,5 @@
+{
+  "supabase_url": "",
+  "supabase_anon_key": "",
+  "notes": "Rellena estos campos con la URL del proyecto y la clave anon/public. Nunca coloques aquí service_role ni secretos."
+}
