@@ -119,3 +119,16 @@ func _set_phase(next_phase: String) -> void:
 		return
 	phase = next_phase
 	phase_changed.emit(phase)
+
+func export_state() -> Dictionary:
+	return {
+		"version": 1,
+		"last_result": last_result.duplicate(true)
+	}
+
+func import_state(data: Dictionary) -> void:
+	phase = PHASE_BASE
+	current_mission.clear()
+	objective_progress.clear()
+	var saved_result: Variant = data.get("last_result", {})
+	last_result = saved_result.duplicate(true) if saved_result is Dictionary else {}
