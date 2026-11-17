@@ -3,8 +3,8 @@
 | Área | Estado real |
 |---|---|
 | Prototipo 3D ejecutable descrito en README | Código creado; pendiente de prueba local en Godot |
-| Titán Alfa visual | Nueva escena de primitivas, no modelo final |
-| Controlador de titán | Script creado; integración de escena pendiente |
+| Titán Alfa visual | Escena provisional integrada en la escena principal; no es modelo final |
+| Controlador de titán | Script creado e instancia integrado en escena principal; falta probarlo en Godot |
 | Inventario | Lógica básica creada |
 | Fabricación | Gestor y datos de recetas creados; estación/UI pendientes |
 | Energía de base | Gestor creado; conexión con edificios pendientes |
