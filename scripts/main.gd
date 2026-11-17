@@ -766,7 +766,8 @@ func _save_local_profile() -> void:
 		"alliance_rank": alliance_manager.rank if alliance_manager else "Sin alianza",
 		"alliance_state": alliance_manager.export_state() if alliance_manager else {},
 		"technology_state": technology_tree.export_state() if technology_tree else {},
-		"warfront_state": warfront_state.export_state() if warfront_state else {}
+		"warfront_state": warfront_state.export_state() if warfront_state else {},
+		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {}
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -797,6 +798,10 @@ func _load_local_profile() -> void:
 		var saved_warfront: Variant = snapshot.get("warfront_state", {})
 		if saved_warfront is Dictionary:
 			warfront_state.import_state(saved_warfront)
+	if kaiju_war:
+		var saved_kaiju: Variant = snapshot.get("kaiju_war_state", {})
+		if saved_kaiju is Dictionary and not saved_kaiju.is_empty():
+			kaiju_war.import_state(saved_kaiju)
 	if kaiju_war and campaign:
 		kaiju_war.set_progression(campaign.player_level, campaign.jaeger_generation)
 	if alliance_manager and typeof(snapshot.get("alliance_state", {})) == TYPE_DICTIONARY and not snapshot.get("alliance_state", {}).is_empty():
