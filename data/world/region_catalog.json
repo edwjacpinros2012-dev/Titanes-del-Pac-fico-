@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "regions": [
+    {"id":"aurora_coast","display_name":"Costa de la Aurora","unlock":{"campaign_level":1,"titan_generation":1},"biome_tags":["coastal","temperate","starter"],"hazards":["storm_surge","low_visibility"],"resources":["metal","energy","coastal_alloy"],"threat_pressure_start":8,"recommended_threat_tier":1,"points_of_interest":["defense_hangar","old_lighthouse","salvage_bay"],"region_goal":"Secure the coastal perimeter and restore the first supply route."},
+    {"id":"emerald_jungle","display_name":"Selva Esmeralda","unlock":{"campaign_level":3,"titan_generation":2},"biome_tags":["jungle","humid","dense_vegetation"],"hazards":["dense_fog","unstable_ground","signal_interference"],"resources":["crystal","bio_samples","rare_alloy"],"threat_pressure_start":28,"recommended_threat_tier":3,"points_of_interest":["research_canopy","abandoned_relay","river_crossing"],"region_goal":"Map the ecosystem and establish a protected research corridor."},
+    {"id":"igneous_range","display_name":"Cordillera Ígnea","unlock":{"campaign_level":6,"titan_generation":3},"biome_tags":["volcanic","mountain","geothermal"],"hazards":["heat","ashfall","rockfall"],"resources":["geothermal_core","tungsten_alloy","crystal"],"threat_pressure_start":48,"recommended_threat_tier":5,"points_of_interest":["geothermal_plant","ridge_observatory","deep_mine"],"region_goal":"Recover geothermal technology and stabilize the mountain facilities."},
+    {"id":"abyssal_trench","display_name":"Fosa Abisal","unlock":{"campaign_level":10,"titan_generation":4},"biome_tags":["deep_ocean","abyssal","endgame"],"hazards":["extreme_pressure","darkness","deep_current"],"resources":["abyssal_crystal","ancient_data","high_density_alloy"],"threat_pressure_start":68,"recommended_threat_tier":8,"points_of_interest":["trench_gate","submerged_archive","rift_nexus"],"region_goal":"Investigate the source of the breaches and prevent a regional collapse."}
+  ]
+}
