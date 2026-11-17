@@ -1,0 +1,18 @@
+{
+  "catalog_version": 1,
+  "design_rule": "Criaturas originales. La clasificación describe su papel ecológico y de exploración, no reproduce monstruos de otras franquicias.",
+  "creatures": [
+    {"id":"bruma_abismal","name":"Bruma Abismal","class":"coloso abisal","region":"fosa_abismal","temperament":"territorial","behavior":"Se desplaza entre fosas y genera niebla bioluminiscente que dificulta la orientación.","research_reward":5},
+    {"id":"rompeolas","name":"Rompeolas","class":"coloso costero","region":"costa_aurora","temperament":"migratorio","behavior":"Sigue corrientes cálidas y deja minerales en las playas durante sus migraciones.","research_reward":3},
+    {"id":"vigia_basalto","name":"Vigía de Basalto","class":"coloso volcánico","region":"cordillera_ignea","temperament":"pasivo","behavior":"Permanece inmóvil sobre acantilados y cambia de posición cuando sube la temperatura.","research_reward":4},
+    {"id":"mantarraya_trueno","name":"Mantarraya Trueno","class":"coloso aéreo-marino","region":"costa_aurora","temperament":"curioso","behavior":"Planea sobre el océano y produce pulsos eléctricos naturales visibles desde lejos.","research_reward":4},
+    {"id":"coral_rey","name":"Coral Rey","class":"coloso arrecife","region":"arrecife_esmeralda","temperament":"protector","behavior":"Protege jardines de coral y modifica el crecimiento de recursos del arrecife.","research_reward":4},
+    {"id":"taladro_de_fosa","name":"Taladro de Fosa","class":"coloso excavador","region":"fosa_abismal","temperament":"evasivo","behavior":"Excava túneles submarinos que conectan cavernas y depósitos raros.","research_reward":6},
+    {"id":"tortuga_muralla","name":"Tortuga Muralla","class":"coloso ancestral","region":"arrecife_esmeralda","temperament":"pacifico","behavior":"Transporta pequeños ecosistemas sobre su caparazón y migra lentamente.","research_reward":3},
+    {"id":"serpiente_termica","name":"Serpiente Térmica","class":"coloso volcánico","region":"cordillera_ignea","temperament":"territorial","behavior":"Nada alrededor de respiraderos geotérmicos y deja rastros térmicos detectables.","research_reward":5},
+    {"id":"caminante_de_sal","name":"Caminante de Sal","class":"coloso terrestre","region":"llanura_salina","temperament":"migratorio","behavior":"Cruza salares durante tormentas y descubre depósitos cristalinos al pasar.","research_reward":4},
+    {"id":"polilla_de_niebla","name":"Polilla de Niebla","class":"fauna gigante","region":"selva_esmeralda","temperament":"nocturno","behavior":"Aparece al anochecer y transporta polen luminiscente entre árboles gigantes.","research_reward":2},
+    {"id":"cangrejo_faro","name":"Cangrejo Faro","class":"fauna gigante","region":"costa_aurora","temperament":"curioso","behavior":"Se reúne alrededor de fuentes de energía y refleja luz con su caparazón.","research_reward":2},
+    {"id":"anguila_cristal","name":"Anguila Cristal","class":"fauna abisal","region":"fosa_abismal","temperament":"evasivo","behavior":"Se oculta en grietas y puede detectarse por destellos a gran profundidad.","research_reward":3}
+  ]
+}
