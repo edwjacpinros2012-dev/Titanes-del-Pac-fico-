@@ -16,6 +16,7 @@ var contract_manager: ContractManager
 var helicopter_manager: HelicopterScoutManager
 var creature_manager: CreatureEcosystemManager
 var kaiju_war: KaijuWarManager
+var damage_model: CentinelDamageModel
 var warfront_state: WarfrontStateManager
 var campaign: CampaignManager
 var alliance_manager: AllianceManager
@@ -78,6 +79,9 @@ func _process(delta: float) -> void:
 		var tech_mobility := technology_tree.get_mobility_multiplier() if technology_tree else 1.0
 		player.set("research_speed_multiplier", tech_mobility)
 		player.set("sync_multiplier", 1.35 if pilot_sync.is_synchronized else 1.0)
+		player.set("damage_speed_multiplier", damage_model.get_mobility_multiplier() if damage_model else 1.0)
+	if kaiju_war and damage_model:
+		kaiju_war.set_damage_penalty(damage_model.get_power_penalty())
 	if objective_label and rift_manager:
 		objective_label.text = rift_manager.get_objective_text()
 	if sync_label and pilot_sync:
@@ -140,6 +144,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_show_status("TÁCTICA: PRECISIÓN. " + kaiju_war.last_tactic_feedback)
 	if event.is_action_pressed("kaiju_retreat") and kaiju_war:
 		kaiju_war.resolve_battle("retreat")
+	if event.is_action_pressed("repair_titan") and damage_model:
+		var repaired := damage_model.repair_with_resources(resources)
+		_show_status("Reparación completada: %d puntos. Se consumieron metal y energía." % repaired if repaired > 0 else "Faltan metal y energía o el Centinela ya está reparado.")
+		_update_hud()
 	if event.is_action_pressed("alliance_join") and alliance_manager:
 		if alliance_manager.join_demo_alliance():
 			_show_status("Te has unido a Guardianes del Abismo. Alianza de demostración local.")
@@ -328,6 +336,10 @@ func _create_gameplay_systems() -> void:
 	add_child(kaiju_war)
 	kaiju_war.set_player_target(player)
 	kaiju_war.battle_resolved.connect(_on_kaiju_battle_resolved)
+
+	damage_model = CentinelDamageModel.new()
+	damage_model.name = "CentinelDamageModel"
+	add_child(damage_model)
 
 	warfront_state = WarfrontStateManager.new()
 	warfront_state.name = "WarfrontStateManager"
@@ -610,6 +622,11 @@ func _on_platform_action(action_name: String) -> void:
 		"kaiju_retreat":
 			if kaiju_war:
 				kaiju_war.resolve_battle("retreat")
+		"repair_titan":
+			if damage_model:
+				var repaired := damage_model.repair_with_resources(resources)
+				_show_status("Reparación completada: %d puntos." % repaired if repaired > 0 else "Faltan recursos o el Centinela ya está reparado.")
+				_update_hud()
 		"tactic_flank":
 			if kaiju_war and kaiju_war.select_tactic("flank"):
 				_show_status("TÁCTICA: FLANQUEO. " + kaiju_war.last_tactic_feedback)
@@ -733,6 +750,8 @@ func _on_kaiju_battle_resolved(outcome: String, rewards: Dictionary, consequence
 			_add_resource(key, int(rewards[key]))
 	if warfront_state:
 		warfront_state.apply_battle_result(outcome, int(consequences.get("sector_pressure", 0)))
+	if damage_model:
+		damage_model.apply_battle_result(outcome, int(consequences.get("threat", 1)), str(consequences.get("tactic", "scan")), str(consequences.get("enemy_role", "stalker")))
 	var repair_cost := int(consequences.get("repair", 0))
 	var supply_loss := int(consequences.get("supply_loss", 0))
 	if repair_cost > 0:
@@ -788,7 +807,8 @@ func _save_local_profile() -> void:
 		"alliance_state": alliance_manager.export_state() if alliance_manager else {},
 		"technology_state": technology_tree.export_state() if technology_tree else {},
 		"warfront_state": warfront_state.export_state() if warfront_state else {},
-		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {}
+		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {},
+		"damage_model_state": damage_model.export_state() if damage_model else {}
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -823,6 +843,10 @@ func _load_local_profile() -> void:
 		var saved_kaiju: Variant = snapshot.get("kaiju_war_state", {})
 		if saved_kaiju is Dictionary and not saved_kaiju.is_empty():
 			kaiju_war.import_state(saved_kaiju)
+	if damage_model:
+		var saved_damage: Variant = snapshot.get("damage_model_state", {})
+		if saved_damage is Dictionary and not saved_damage.is_empty():
+			damage_model.import_state(saved_damage)
 	if kaiju_war and campaign:
 		kaiju_war.set_progression(campaign.player_level, campaign.jaeger_generation)
 	if alliance_manager and typeof(snapshot.get("alliance_state", {})) == TYPE_DICTIONARY and not snapshot.get("alliance_state", {}).is_empty():
