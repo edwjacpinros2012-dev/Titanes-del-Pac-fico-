@@ -31,7 +31,11 @@ Juego 3D original de guerra de robots gigantes contra monstruos colosales. El ju
 - [ ] Implementar enlace Google Play Games Services y probarlo en Android.
 - [ ] Implementar alianzas online con validación de permisos en servidor.
 - [ ] Mantener chat desactivado hasta contar con moderación y controles de privacidad probados.
+- [x] Añadir capa inicial de entrada para teclado, mando y controles táctiles.
+- [x] Preparar ajustes generales de escalado, orientación horizontal y renderer compatible.
+- [ ] Ajustar cada panel del HUD a móvil/tableta y validar resoluciones.
 - [ ] Exportar e instalar Android en dispositivos reales.
+- [ ] Exportar y probar Web, Windows, Linux y macOS.
 - [ ] Preparar política de privacidad, ficha, clasificación y formularios de Play Console.
 - [ ] Completar pruebas cerradas y solicitar acceso a producción.
 - [ ] Enviar a revisión de Google y esperar su decisión.
