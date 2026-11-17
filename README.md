@@ -79,3 +79,11 @@ Documentación:
 - `docs/ORIGINALITY_AND_IP.md`
 - `docs/ROADMAP.md`
 - `docs/CONTENT_STATUS.md`
+
+## Exportar e instalar
+
+- Android APK: `scripts/build_android.ps1`
+- Android/Web/Windows/Linux: `scripts/build_all.ps1`
+- Instalar APK en un Android conectado por ADB: `scripts/install_android.ps1`
+
+Lee `docs/ANDROID_BUILD.md`, `docs/PLATFORM_TARGETS.md` y `docs/QA_TEST_MATRIX.md` antes de exportar. La configuración prepara los destinos, pero las exportaciones requieren plantillas y SDK locales y pruebas en dispositivos reales.
