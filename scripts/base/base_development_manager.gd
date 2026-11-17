@@ -82,6 +82,10 @@ var facility_levels: Dictionary = {
 var selected_index := 1
 var production_seconds := 0.0
 var total_production_cycles := 0
+var technology_storage_bonus := 0
+var technology_repair_discount := 0.0
+var technology_scouting_bonus := 0.0
+var technology_production_multiplier := 1.0
 
 func get_facility_level(facility_id: String) -> int:
 	return int(facility_levels.get(facility_id, 0))
@@ -157,7 +161,7 @@ func advance_production(delta: float, inventory: Dictionary) -> int:
 			var level := get_facility_level(str(facility_id))
 			if resource_id.is_empty() or rate <= 0 or level <= 0:
 				continue
-			var amount := rate * level
+			var amount := roundi(float(rate * level) * technology_production_multiplier)
 			if resource_id == "research_data":
 				research_generated.emit(amount)
 				generated_total += amount
@@ -190,15 +194,21 @@ func get_selected_facility_text(inventory: Dictionary, base_level: int) -> Strin
 
 
 func get_storage_capacity() -> int:
-	return 250 + get_facility_level("warehouse") * 250
+	return 250 + get_facility_level("warehouse") * 250 + technology_storage_bonus
 
 func get_repair_discount() -> float:
 	var hangar_bonus := float(get_facility_level("hangar")) * 0.04
 	var repair_bonus := float(get_facility_level("repair_bay")) * 0.10
-	return clampf(hangar_bonus + repair_bonus, 0.0, 0.60)
+	return clampf(hangar_bonus + repair_bonus + technology_repair_discount, 0.0, 0.60)
 
 func get_scouting_radius(base_radius: float = 30.0) -> float:
-	return base_radius + float(get_facility_level("radar")) * 8.0 + float(get_facility_level("airfield")) * 4.0
+	return base_radius + float(get_facility_level("radar")) * 8.0 + float(get_facility_level("airfield")) * 4.0 + technology_scouting_bonus
+
+func set_technology_effects(storage_bonus: int, repair_bonus: float, scouting_bonus: float, production_multiplier: float) -> void:
+	technology_storage_bonus = maxi(0, storage_bonus)
+	technology_repair_discount = clampf(repair_bonus, 0.0, 0.30)
+	technology_scouting_bonus = maxf(0.0, scouting_bonus)
+	technology_production_multiplier = clampf(production_multiplier, 1.0, 1.5)
 
 func get_facility_effects_text() -> String:
 	return "Almacén: %d por recurso | Descuento reparación: %d%% | Radio de reconocimiento: %d m" % [
