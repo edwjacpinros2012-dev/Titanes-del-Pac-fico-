@@ -7,6 +7,10 @@ var player: CharacterBody3D
 var camera: Camera3D
 var hud: Label
 var status_label: Label
+var objective_label: Label
+var sync_label: Label
+var pilot_sync: PilotSyncManager
+var rift_manager: PacificRiftManager
 var resources := {"metal": 0, "energia": 0, "cristal": 0}
 var base_level := 1
 var titan_level := 1
@@ -17,6 +21,7 @@ func _ready() -> void:
 	_setup_input()
 	_create_world()
 	_create_player()
+	_create_gameplay_systems()
 	_create_hud()
 	_spawn_resources()
 	_update_hud()
@@ -28,6 +33,12 @@ func _process(delta: float) -> void:
 		camera.global_position = camera.global_position.lerp(target, min(delta * 4.0, 1.0))
 		camera.look_at(player.global_position + Vector3(0, 1, 0), Vector3.UP)
 	_try_collect_nearby()
+	if pilot_sync and player:
+		player.set("sync_multiplier", 1.35 if pilot_sync.is_synchronized else 1.0)
+	if objective_label and rift_manager:
+		objective_label.text = rift_manager.get_objective_text()
+	if sync_label and pilot_sync:
+		sync_label.text = pilot_sync.get_status_text()
 
 func _physics_process(_delta: float) -> void:
 	# El movimiento ahora pertenece al controlador del Titán Alfa.
@@ -53,6 +64,8 @@ func _setup_input() -> void:
 	_add_key("collect", KEY_E)
 	_add_key("upgrade_base", KEY_B)
 	_add_key("evolve_titan", KEY_T)
+	_add_key("sync_pilots", KEY_F)
+	_add_key("stabilize_rift", KEY_R)
 
 func _add_key(action: String, keycode: Key) -> void:
 	if not InputMap.has_action(action):
@@ -115,6 +128,30 @@ func _create_player() -> void:
 	player.name = "TitanAlfa"
 	player.position = Vector3(0, 0, 2)
 	add_child(player)
+
+func _create_gameplay_systems() -> void:
+	pilot_sync = PilotSyncManager.new()
+	pilot_sync.name = "PilotSyncManager"
+	add_child(pilot_sync)
+	pilot_sync.synchronization_started.connect(_on_synchronization_started)
+	pilot_sync.synchronization_ended.connect(_on_synchronization_ended)
+
+	rift_manager = PacificRiftManager.new()
+	rift_manager.name = "PacificRiftManager"
+	add_child(rift_manager)
+	rift_manager.rift_stabilized.connect(_on_rift_stabilized)
+
+func _on_synchronization_started() -> void:
+	_show_status("¡Enlace de pilotos sincronizado! Movilidad mejorada temporalmente.")
+
+func _on_synchronization_ended() -> void:
+	_show_status("El enlace de pilotos volvió al modo de espera.")
+
+func _on_rift_stabilized(_index: int, reward: Dictionary) -> void:
+	for resource_id in reward.keys():
+		resources[resource_id] = int(resources.get(resource_id, 0)) + int(reward[resource_id])
+	_update_hud()
+	_show_status("¡Brecha estabilizada! Recompensas: +5 metal, +3 energía, +2 cristal.")
 
 func _create_base_visual(pos: Vector3) -> void:
 	var base := MeshInstance3D.new()
@@ -230,8 +267,13 @@ func _create_hud() -> void:
 	hud = Label.new()
 	hud.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(hud)
+	objective_label = Label.new()
+	objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(objective_label)
+	sync_label = Label.new()
+	column.add_child(sync_label)
 	var help := Label.new()
-	help.text = "WASD/Flechas: mover  |  E: recoger\nB: mejorar base  |  T: evolucionar titán"
+	help.text = "WASD/Flechas: mover | E: recoger | B: base | T: evolucionar\nMantén F: sincronizar pilotos | Mantén R: estabilizar brecha"
 	help.add_theme_font_size_override("font_size", 13)
 	column.add_child(help)
 	status_label = Label.new()
