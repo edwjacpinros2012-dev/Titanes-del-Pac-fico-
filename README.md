@@ -18,13 +18,21 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 - Construcción, energía de base e investigación.
 - Clima, ciclo día/noche y eventos del mundo.
 - Expediciones, puntos de interés y registro de descubrimientos.
-- Datos JSON para titanes, habilidades, regiones, recursos, edificios, tecnologías, misiones y recetas.
+- Datos JSON para titanes, habilidades, regiones, recursos, edificios, tecnologías, misiones, recetas, comercio y doce especies originales.
+- Mercado costero con créditos, compra/venta de materiales y existencias limitadas.
+- Contratos de exploración, reconocimiento aéreo y comercio con recompensas.
+- Dos helicópteros de reconocimiento que sobrevuelan el sector y regresan a la base.
+- Ocho criaturas provisionales móviles que pueden ser observadas para obtener datos de investigación.
 
 ## Controles de la escena principal
 - **WASD / flechas:** moverse.
 - **E:** intentar recoger un recurso cercano.
 - **B:** mejorar la base.
 - **T:** evolucionar el titán.
+- **F:** sincronizar pilotos.
+- **R:** estabilizar una brecha cercana.
+- **H:** enviar helicópteros de reconocimiento.
+- **C:** abrir/cerrar el mercado; con el mercado abierto, 1-3 compra y 4-6 vende.
 
 ## Estructura
 - `assets/`: futuros modelos, texturas, audio e interfaz.
