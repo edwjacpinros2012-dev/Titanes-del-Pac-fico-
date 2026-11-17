@@ -85,7 +85,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			market_label.visible = market_open
 		_show_status("Canal comercial abierto." if market_open else "Canal comercial cerrado.")
 	if event.is_action_pressed("kaiju_engage") and kaiju_war:
-		kaiju_war.resolve_battle("engage")
+		if not kaiju_war.is_encounter_active:
+			kaiju_war.begin_encounter()
+			_show_status("¡Kaiju localizado! Pulsa J otra vez para resolver el enfrentamiento.")
+		else:
+			kaiju_war.resolve_battle("engage")
 	if event.is_action_pressed("kaiju_retreat") and kaiju_war:
 		kaiju_war.resolve_battle("retreat")
 	if event.is_action_pressed("alliance_join") and alliance_manager:
@@ -455,7 +459,7 @@ func _create_hud() -> void:
 	market_label.visible = false
 	column.add_child(market_label)
 	var help := Label.new()
-	help.text = "WASD: mover | E: recoger | B: base | T: evolucionar | F: enlace\nR: estabilizar brecha | H: helicópteros | C: mercado\nMercado abierto: 1-3 comprar | 4-6 vender"
+	help.text = "WASD: mover | E: recoger | B: base | T: mejorar Jaeger | F: enlace\nR: brecha | H: reconocimiento | J: enfrentar Kaiju | G: retirarse\nK: unirse a alianza demo | P: crear alianza | F5: guardar | C: mercado\nMercado: 1-3 comprar | 4-6 vender"
 	help.add_theme_font_size_override("font_size", 13)
 	column.add_child(help)
 	status_label = Label.new()
