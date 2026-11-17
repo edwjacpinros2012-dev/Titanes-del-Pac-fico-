@@ -3,6 +3,7 @@ extends SceneTree
 const GameStateScript = preload("res://scripts/core/game_state.gd")
 const SaveManagerScript = preload("res://scripts/core/save_manager.gd")
 const ThreatDirectorScript = preload("res://scripts/world/threat_director.gd")
+const MissionRunManagerScript = preload("res://scripts/missions/mission_run_manager.gd")
 
 func _initialize() -> void:
 	call_deferred("_run_tests")
@@ -11,6 +12,7 @@ func _run_tests() -> void:
 	_test_game_state()
 	_test_save_manager()
 	_test_threat_director()
+	_test_mission_run_manager()
 	print("TITANES_TESTS: all core tests passed")
 	quit(0)
 
@@ -54,3 +56,37 @@ func _test_threat_director() -> void:
 	assert(prepared["preparation_notes"].is_empty())
 	assert(is_equal_approx(director.apply_outcome(50.0, "victory"), 36.0))
 	assert(is_equal_approx(director.apply_outcome(50.0, "defeat"), 59.0))
+
+func _test_mission_run_manager() -> void:
+	var manager = MissionRunManagerScript.new()
+	var mission := {
+		"id": "aurora_first_contact",
+		"objectives": [
+			{"id": "reach_beacon", "target": 1, "optional": false},
+			{"id": "scan_tracks", "target": 3, "optional": true}
+		]
+	}
+	assert(manager.start_mission(mission, {"tier": 1}))
+	assert(manager.phase == "deployment")
+	assert(not manager.start_mission(mission))
+	assert(manager.begin_operation())
+	assert(not manager.record_objective_progress("missing", 1))
+	assert(manager.record_objective_progress("reach_beacon", 1))
+	assert(manager.record_objective_progress("scan_tracks", 9))
+	var result: Dictionary = manager.resolve_mission("victory", {"metal": 10, "energy": 5})
+	assert(result["outcome"] == "victory")
+	assert(int(result["rewards"]["metal"]) == 10)
+	assert(manager.phase == "debrief")
+	assert(not manager.begin_operation())
+	assert(manager.return_to_base())
+	assert(manager.phase == "base")
+	assert(not manager.return_to_base())
+
+	var incomplete := {"id": "incomplete_test", "objectives": [{"id": "mandatory", "target": 2, "optional": false}]}
+	assert(manager.start_mission(incomplete))
+	assert(manager.begin_operation())
+	var partial: Dictionary = manager.resolve_mission("victory", {"metal": 10})
+	assert(partial["outcome"] == "partial")
+	assert(int(partial["rewards"]["metal"]) == 6)
+	assert(manager.return_to_base())
+	manager.free()
