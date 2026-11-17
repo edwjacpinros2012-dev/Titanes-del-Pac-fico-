@@ -88,3 +88,11 @@ Documentación:
 - Instalar APK en un Android conectado por ADB: `scripts/install_android.ps1`
 
 Lee `docs/ANDROID_BUILD.md`, `docs/PLATFORM_TARGETS.md` y `docs/QA_TEST_MATRIX.md` antes de exportar. La configuración prepara los destinos, pero las exportaciones requieren plantillas y SDK locales y pruebas en dispositivos reales.
+
+
+## Preparar Windows sin tener Godot instalado
+
+- [Guía de primeros pasos](docs/PRIMEROS_PASOS_SIN_GODOT.md)
+- [Script de preparación automática para Windows](tools/preparar_proyecto_windows.ps1)
+
+El script descarga el proyecto en Documentos sin sobrescribir una carpeta existente. Godot debe descargarse desde el sitio oficial; el script no instala software ni requiere permisos de administrador.
