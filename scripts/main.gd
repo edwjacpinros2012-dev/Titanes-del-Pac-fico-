@@ -189,6 +189,7 @@ func _setup_input() -> void:
 	_add_key("scout_helicopters", KEY_H)
 	_add_key("kaiju_engage", KEY_J)
 	_add_key("kaiju_retreat", KEY_G)
+	_add_key("repair_titan", KEY_Y)
 	_add_key("tactic_flank", KEY_Q)
 	_add_key("tactic_guard", KEY_X)
 	_add_key("tactic_precision", KEY_U)
