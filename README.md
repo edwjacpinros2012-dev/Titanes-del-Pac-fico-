@@ -22,7 +22,7 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 - Mercado costero con créditos, compra/venta de materiales y existencias limitadas.
 - Contratos de exploración, reconocimiento aéreo y comercio con recompensas.
 - Dos helicópteros de reconocimiento que sobrevuelan el sector y regresan a la base.
-- Ocho criaturas provisionales móviles que pueden ser observadas para obtener datos de investigación.
+- Ocho criaturas provisionales móviles que pueden ser observadas a pie o detectadas por los helicópteros para obtener datos de investigación.
 
 ## Controles de la escena principal
 - **WASD / flechas:** moverse.
@@ -50,4 +50,4 @@ No se ha verificado la compilación de todos los scripts en una ejecución local
 ## Publicación web
 Vercel aloja la página informativa de `web/`. La versión jugable del navegador requiere exportar el juego desde Godot con la plantilla Web y publicar esos archivos exportados. No se presenta la página informativa como juego web terminado.
 
-Consulta `docs/REFERENCE_RESEARCH.md`, `docs/EXPANSION_PLAN.md`, `docs/CONTENT_STATUS.md`, `docs/ROADMAP.md` y `docs/ART_PIPELINE.md`.
+Consulta `docs/REFERENCE_RESEARCH.md`, `docs/EXPANSION_SYSTEMS_02.md`, `docs/EXPANSION_PLAN.md`, `docs/CONTENT_STATUS.md`, `docs/ROADMAP.md` y `docs/ART_PIPELINE.md`.
