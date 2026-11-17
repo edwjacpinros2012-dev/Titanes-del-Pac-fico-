@@ -391,6 +391,14 @@ func _create_gameplay_systems() -> void:
 	community_client.request_failed.connect(_on_online_error)
 
 
+func _get_titan_condition_ratio() -> float:
+	if damage_model == null or damage_model.systems.is_empty():
+		return 1.0
+	var total := 0.0
+	for value in damage_model.systems.values():
+		total += float(value)
+	return clampf(total / (float(damage_model.systems.size()) * 100.0), 0.0, 1.0)
+
 func _begin_kaiju_operation() -> void:
 	if kaiju_war == null or mission_run == null:
 		_show_status("El sistema de operaciones no está disponible.")
@@ -410,7 +418,7 @@ func _begin_kaiju_operation() -> void:
 		"threat": kaiju_war.threat,
 		"pilot_level": campaign.player_level if campaign else 1,
 		"titan_generation": campaign.jaeger_generation if campaign else 1,
-		"titan_condition": damage_model.get_condition_ratio() if damage_model else 1.0
+		"titan_condition": _get_titan_condition_ratio()
 	}
 	if not mission_run.start_mission(mission, threat_brief) or not mission_run.begin_operation():
 		kaiju_war.resolve_battle("retreat")
