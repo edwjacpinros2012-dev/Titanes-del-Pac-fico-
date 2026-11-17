@@ -1,0 +1,33 @@
+{
+  "status": "preparation_only",
+  "store_name": "GUARDIANES DEL UMBRAL",
+  "store_name_status": "provisional_not_cleared",
+  "application_id": "com.example.guardianesdelumbral",
+  "application_id_status": "placeholder_replace_before_release",
+  "distribution": {
+    "free_download": true,
+    "in_app_purchases": false,
+    "subscriptions": false,
+    "ads": false,
+    "google_play_billing": false
+  },
+  "platform_services": {
+    "google_play_games_services": "planned_not_integrated",
+    "achievements": "planned",
+    "leaderboards": "planned"
+  },
+  "account_system": {
+    "game_account_provider": "supabase_auth",
+    "google_play_games_identity_link": "planned_server_verified",
+    "cloud_saves": "schema_foundation_only"
+  },
+  "release_gates": [
+    "clear_game_name_and_trademarks",
+    "configure_final_application_id",
+    "configure_android_export_and_signing",
+    "test_on_real_android_devices",
+    "configure_privacy_policy_and_data_safety",
+    "complete_play_console_testing_requirements",
+    "obtain_google_review_approval"
+  ]
+}
