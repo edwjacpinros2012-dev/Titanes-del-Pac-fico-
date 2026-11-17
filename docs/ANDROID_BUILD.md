@@ -10,11 +10,13 @@ La orientación inicial es horizontal. El proyecto usa renderizador Compatibilit
 
 ## Requisitos
 
-1. Instala Godot 4.3 o posterior y sus plantillas de exportación de la misma versión.
-2. Instala Android SDK y OpenJDK siguiendo la documentación oficial de exportación Android de Godot.
-3. Configura las rutas de Android SDK/JDK en Editor > Editor Settings > Export > Android.
-4. Abre el proyecto y confirma que aparece el preset Android en Project > Export.
-5. En Windows PowerShell, desde la carpeta del proyecto, ejecuta:
+1. Instala Godot 4.3 y las plantillas de exportación que coincidan exactamente con esa versión.
+2. Instala OpenJDK 17.
+3. Instala Android Studio y los componentes Android SDK requeridos por la guía de Godot 4.3 (Platform-Tools, Build-Tools, Platform, Command-line Tools, NDK y CMake).
+4. En Godot abre Editor > Editor Settings > Export > Android y configura Java SDK Path y Android Sdk Path.
+5. Sigue la guía oficial de Godot 4.3: https://docs.godotengine.org/es/4.3/tutorials/export/exporting_for_android.html
+6. Abre el proyecto y confirma que aparece el preset Android en Project > Export.
+7. En Windows PowerShell, desde la carpeta del proyecto, ejecuta:
 
 ```powershell
 .\scripts\build_android.ps1
