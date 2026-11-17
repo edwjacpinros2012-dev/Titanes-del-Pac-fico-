@@ -1,0 +1,21 @@
+{
+  "project": "Titanes del Pacífico",
+  "system": "Enlace de pilotos",
+  "notes": "Personajes originales. La sincronización representa coordinación, confianza y trabajo en equipo.",
+  "pairs": [
+    {
+      "pair_id": "pair_aurora",
+      "pilot_a": "Lina Torres",
+      "pilot_b": "Mateo Ríos",
+      "titan_id": "titan_alpha",
+      "sync_bonus": "Aumenta temporalmente la movilidad y la eficiencia de exploración."
+    },
+    {
+      "pair_id": "pair_northstar",
+      "pilot_a": "Noa Vega",
+      "pilot_b": "Izan Cruz",
+      "titan_id": "titan_boreal",
+      "sync_bonus": "Mejora temporalmente la resistencia ambiental."
+    }
+  ]
+}
