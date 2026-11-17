@@ -17,6 +17,9 @@ func _ready() -> void:
 func _ensure_action(action_name: String, keycode: Key) -> void:
 	if not InputMap.has_action(action_name):
 		InputMap.add_action(action_name)
+	for existing in InputMap.action_get_events(action_name):
+		if existing is InputEventKey and existing.physical_keycode == keycode:
+			return
 	var key_event := InputEventKey.new()
 	key_event.physical_keycode = keycode
 	InputMap.action_add_event(action_name, key_event)
