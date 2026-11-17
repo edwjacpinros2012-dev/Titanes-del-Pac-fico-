@@ -75,9 +75,23 @@ func fetch_global_chat() -> Array:
 	if access_token.is_empty(): return []
 	var result := await _request(HTTPClient.METHOD_GET, "/rest/v1/chat_messages?select=id,sender_id,body,created_at&channel=eq.global&moderation_state=eq.visible&order=created_at.desc&limit=40", {})
 	if int(result.get("status",0)) == 200 and typeof(result.get("data")) == TYPE_ARRAY:
-		chat_received.emit(result["data"])
-		return result["data"]
+		var blocked := await fetch_blocked_user_ids()
+		var visible: Array = []
+		for message in result["data"]:
+			if str(message.get("sender_id","")) not in blocked:
+				visible.append(message)
+		chat_received.emit(visible)
+		return visible
 	return []
+
+func fetch_blocked_user_ids() -> Array[String]:
+	var blocked: Array[String] = []
+	if access_token.is_empty(): return blocked
+	var result := await _request(HTTPClient.METHOD_GET, "/rest/v1/player_blocks?select=blocked_id", {})
+	if int(result.get("status",0)) == 200 and typeof(result.get("data")) == TYPE_ARRAY:
+		for row in result["data"]:
+			blocked.append(str(row.get("blocked_id","")))
+	return blocked
 
 func send_chat_message(body: String, channel: String = "global", alliance_id: String = "") -> bool:
 	var clean := body.strip_edges()
