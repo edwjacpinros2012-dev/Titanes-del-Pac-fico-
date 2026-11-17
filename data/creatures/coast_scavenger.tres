@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CreatureDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/creatures/creature_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+creature_id = "coast_scavenger"
+display_name = "Carroñero costero"
+temperament = "neutral"
+health = 35.0
+movement_speed = 2.5
+detection_range = 8.0
+drops = {"metal": 1}
