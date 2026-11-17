@@ -19,6 +19,7 @@ var npc_manager: NpcPopulationManager
 var npc_label: Label
 var kaiju_war: KaijuWarManager
 var mission_run: MissionRunManager
+var threat_director: ThreatDirector
 var damage_model: CentinelDamageModel
 var warfront_state: WarfrontStateManager
 var campaign: CampaignManager
@@ -352,6 +353,7 @@ func _create_gameplay_systems() -> void:
 	kaiju_war.battle_resolved.connect(_on_kaiju_battle_resolved)
 
 	mission_run = MissionRunManager.new()
+	threat_director = ThreatDirector.new()
 	mission_run.phase_changed.connect(_on_mission_phase_changed)
 	mission_run.mission_resolved.connect(_on_mission_resolved)
 
@@ -414,17 +416,26 @@ func _begin_kaiju_operation() -> void:
 		"title": "Defensa regional",
 		"objectives": [{"id": "repel_threat", "target": 1, "optional": false}]
 	}
-	var threat_brief := {
-		"threat": kaiju_war.threat,
+	var threat_context := {
 		"pilot_level": campaign.player_level if campaign else 1,
 		"titan_generation": campaign.jaeger_generation if campaign else 1,
-		"titan_condition": _get_titan_condition_ratio()
+		"titan_condition": _get_titan_condition_ratio(),
+		"pilot_sync": 1.0 if pilot_sync and pilot_sync.is_synchronized else 0.0,
+		"base_support": clampf(float(base_level) / 5.0, 0.0, 1.0),
+		"intelligence": clampf(float(research_data) / 100.0, 0.0, 1.0),
+		"regional_pressure": float(warfront_state.pressure) * 10.0 if warfront_state else 0.0,
+		"mission_risk": clampf(float(kaiju_war.threat) / 5.0, 0.0, 1.0)
 	}
+	var threat_brief: Dictionary = threat_director.build_threat_brief(threat_context) if threat_director else {}
 	if not mission_run.start_mission(mission, threat_brief) or not mission_run.begin_operation():
 		kaiju_war.resolve_battle("retreat")
 		_show_status("No se pudo registrar la operación; se canceló el despliegue.")
 		return
-	_show_status("Operación iniciada: Defensa regional. Revisa el informe y completa el objetivo.")
+	_show_status("DESPLIEGUE | Riesgo %s | Nivel %d. %s" % [
+		str(threat_brief.get("warning", "Sin datos")).to_upper(),
+		int(threat_brief.get("tier", 1)),
+		" ".join(threat_brief.get("preparation_notes", []))
+	])
 
 func _on_mission_phase_changed(phase: String) -> void:
 	if phase == "deployment":
@@ -435,7 +446,11 @@ func _on_mission_phase_changed(phase: String) -> void:
 func _on_mission_resolved(result: Dictionary) -> void:
 	var outcome_text := str(result.get("outcome", ""))
 	var rewards: Dictionary = result.get("rewards", {})
-	_show_status("INFORME: %s | Recompensas ajustadas: %s" % [outcome_text.to_upper(), str(rewards)])
+	var brief: Dictionary = result.get("threat_brief", {})
+	_show_status("INFORME: %s | Riesgo previo: %s (%d/10) | Recompensas: %s" % [
+		outcome_text.to_upper(), str(brief.get("warning", "N/D")),
+		int(brief.get("tier", 0)), str(rewards)
+	])
 
 func _on_base_research_generated(amount: int) -> void:
 	research_data += amount
