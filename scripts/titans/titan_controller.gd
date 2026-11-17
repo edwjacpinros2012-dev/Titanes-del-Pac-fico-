@@ -7,6 +7,19 @@ class_name TitanController
 
 var input_enabled := true
 
+func _ready() -> void:
+	_ensure_action("move_left", KEY_A)
+	_ensure_action("move_right", KEY_D)
+	_ensure_action("move_forward", KEY_W)
+	_ensure_action("move_back", KEY_S)
+
+func _ensure_action(action_name: String, keycode: Key) -> void:
+	if not InputMap.has_action(action_name):
+		InputMap.add_action(action_name)
+	var key_event := InputEventKey.new()
+	key_event.physical_keycode = keycode
+	InputMap.action_add_event(action_name, key_event)
+
 func _physics_process(delta: float) -> void:
 	if not input_enabled:
 		velocity.x = move_toward(velocity.x, 0.0, acceleration * delta)
