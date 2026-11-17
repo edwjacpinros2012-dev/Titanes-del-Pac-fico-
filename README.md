@@ -22,7 +22,11 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 - Mercado costero con créditos, compra/venta de materiales y existencias limitadas.
 - Contratos de exploración, reconocimiento aéreo y comercio con recompensas.
 - Dos helicópteros de reconocimiento que sobrevuelan el sector y regresan a la base.
-- Ocho criaturas provisionales móviles que pueden ser observadas a pie o detectadas por los helicópteros para obtener datos de investigación.
+- Ocho entidades Kaiju provisionales móviles para encuentros y observación; son amenazas del mundo, nunca mascotas ni compañeros del jugador.
+- Catálogo de doce Kaijus enemigos originales con niveles de amenaza y progresión por campaña.
+- Diseño de campaña: el jugador comienza como recluta con un Jaeger Mark I y una base pequeña; la dificultad aumenta por capítulos y amenaza regional, con victorias, retiradas y derrotas que tienen consecuencias.
+- Diseño de alianzas de jugadores, roles, solicitudes de ingreso, invitaciones, objetivos cooperativos y clasificación.
+- Esquema inicial de backend Supabase para perfiles, alianzas, chat moderado, bloqueos y denuncias.
 
 ## Controles de la escena principal
 - **WASD / flechas:** moverse.
@@ -42,6 +46,11 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 - `docs/` y `documentation/`: diseño, investigación, arquitectura y seguimiento.
 - `web/`: página informativa de lanzamiento.
 
+## Diseño de guerra, Kaijus y comunidad
+Consulta `docs/GAME_DESIGN_KAIJU_ALLIANCES_ONLINE.md` para la identidad Kaiju/Jaeger, campaña, progresión Mark, alianzas, registro, inicio de sesión y reglas de comunidad. El roster enemigo está en `data/kaiju/kaiju_roster.json`. El esquema SQL inicial está en `backend/supabase/migrations/0001_community_schema.sql`.
+
+**Importante:** cuentas, chat global, alianzas online y multijugador todavía no están conectados a un servicio real. El SQL es una base inicial que requiere configurar un proyecto Supabase, revisar las políticas, añadir funciones de servidor y probar la seguridad. El chat empieza desactivado y debe permanecer así hasta contar con moderación y controles adecuados.
+
 ## Estado real
 Los módulos de fabricación, clima, energía, expediciones y habilidades están creados como sistemas independientes y todavía necesitan conectarse al HUD y al flujo principal. La escena visual del Titán Alfa usa geometría provisional, no un modelo GLB final. Siguen pendientes modelos 3D finales, texturas, rig, animaciones, biomas completos, IA avanzada, integración completa y multijugador.
 
@@ -50,4 +59,4 @@ No se ha verificado la compilación de todos los scripts en una ejecución local
 ## Publicación web
 Vercel aloja la página informativa de `web/`. La versión jugable del navegador requiere exportar el juego desde Godot con la plantilla Web y publicar esos archivos exportados. No se presenta la página informativa como juego web terminado.
 
-Consulta `docs/REFERENCE_RESEARCH.md`, `docs/EXPANSION_SYSTEMS_02.md`, `docs/EXPANSION_PLAN.md`, `docs/CONTENT_STATUS.md`, `docs/ROADMAP.md` y `docs/ART_PIPELINE.md`.
+Consulta `docs/GAME_DESIGN_KAIJU_ALLIANCES_ONLINE.md`, `docs/CONTENT_STATUS.md` y `docs/ROADMAP.md` para el diseño y el estado actualizado.
