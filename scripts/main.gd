@@ -531,10 +531,13 @@ func _on_platform_action(action_name: String) -> void:
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	var viewport_size := get_viewport().get_visible_rect().size
+	var hud_width := minf(440.0, maxf(280.0, viewport_size.x - 24.0))
+	var hud_height := minf(340.0, maxf(150.0, viewport_size.y * 0.48))
 	var panel := PanelContainer.new()
 	panel.position = Vector2(12, 12)
-	panel.custom_minimum_size = Vector2(440, 0)
-	panel.size = Vector2(440, 340)
+	panel.custom_minimum_size = Vector2(hud_width, hud_height)
+	panel.size = Vector2(hud_width, hud_height)
 	layer.add_child(panel)
 	var scroll := ScrollContainer.new()
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -579,7 +582,15 @@ func _create_hud() -> void:
 	help.add_theme_font_size_override("font_size", 13)
 	column.add_child(help)
 	status_label = Label.new()
-	status_label.position = Vector2(12, 360)
+	status_label.anchor_left = 0.02
+	status_label.anchor_top = 0.54
+	status_label.anchor_right = 0.98
+	status_label.anchor_bottom = 0.68
+	status_label.offset_left = 0
+	status_label.offset_top = 0
+	status_label.offset_right = 0
+	status_label.offset_bottom = 0
+	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.add_theme_font_size_override("font_size", 18)
 	layer.add_child(status_label)
 	platform_input = PlatformInput.new()
