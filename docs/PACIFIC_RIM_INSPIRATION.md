@@ -37,3 +37,8 @@ No se reutilizan nombres de robots, criaturas, pilotos, organizaciones, diseños
 
 ## Estado y límites
 Estos sistemas están escritos para Godot 4 y conectados al prototipo principal en esta iteración. Falta ejecutar el proyecto en el editor para verificar sintaxis, físicas y balance. Los marcadores de brecha son geometría provisional; las criaturas, animaciones, modelos finales, voces y cinemáticas siguen pendientes.
+
+## Fuentes consultadas
+- Legendary Pictures, sinopsis oficial de Pacific Rim: https://www.legendary.com/film/pacificrim/
+- Godot 4, documentación oficial sobre entrada del jugador: https://docs.godotengine.org/es/4.x/getting_started/first_3d_game/02.player_input.html
+- Godot 4, documentación oficial sobre recursos y escenas reutilizables: https://docs.godotengine.org/es/4.x/tutorials/scripting/resources.html
