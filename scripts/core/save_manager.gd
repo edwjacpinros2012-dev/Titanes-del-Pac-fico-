@@ -43,3 +43,30 @@ func load_game(state: GameState) -> bool:
 	state.progression_changed.emit()
 	load_completed.emit(true)
 	return true
+
+func save_profile(snapshot: Dictionary) -> bool:
+	var payload := snapshot.duplicate(true)
+	payload["version"] = 2
+	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file == null:
+		push_error("No se pudo guardar el perfil local.")
+		return false
+	file.store_string(JSON.stringify(payload, "\t"))
+	file.close()
+	save_completed.emit()
+	return true
+
+func load_profile() -> Dictionary:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return {}
+	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if file == null:
+		return {}
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	file.close()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {}
+	var version := int(parsed.get("version", 0))
+	if version < 1 or version > 2:
+		return {}
+	return parsed
