@@ -18,6 +18,8 @@ var creature_manager: CreatureEcosystemManager
 var npc_manager: NpcPopulationManager
 var npc_label: Label
 var kaiju_war: KaijuWarManager
+var mission_run: MissionRunManager
+var threat_director: ThreatDirector
 var damage_model: CentinelDamageModel
 var warfront_state: WarfrontStateManager
 var campaign: CampaignManager
@@ -135,8 +137,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_show_status("Canal comercial abierto." if market_open else "Canal comercial cerrado.")
 	if event.is_action_pressed("kaiju_engage") and kaiju_war:
 		if not kaiju_war.is_encounter_active:
-			kaiju_war.begin_encounter()
-			_show_status("¡Abisal localizado! Analiza su rol y elige táctica antes de resolver.")
+			_begin_kaiju_operation()
 		else:
 			kaiju_war.resolve_battle("engage")
 	if event.is_action_pressed("tactic_flank") and kaiju_war:
@@ -351,6 +352,11 @@ func _create_gameplay_systems() -> void:
 	kaiju_war.set_player_target(player)
 	kaiju_war.battle_resolved.connect(_on_kaiju_battle_resolved)
 
+	mission_run = MissionRunManager.new()
+	threat_director = ThreatDirector.new()
+	mission_run.phase_changed.connect(_on_mission_phase_changed)
+	mission_run.mission_resolved.connect(_on_mission_resolved)
+
 	damage_model = CentinelDamageModel.new()
 	damage_model.name = "CentinelDamageModel"
 	add_child(damage_model)
@@ -385,6 +391,66 @@ func _create_gameplay_systems() -> void:
 	add_child(community_client)
 	community_client.auth_changed.connect(_on_online_auth_changed)
 	community_client.request_failed.connect(_on_online_error)
+
+
+func _get_titan_condition_ratio() -> float:
+	if damage_model == null or damage_model.systems.is_empty():
+		return 1.0
+	var total := 0.0
+	for value in damage_model.systems.values():
+		total += float(value)
+	return clampf(total / (float(damage_model.systems.size()) * 100.0), 0.0, 1.0)
+
+func _begin_kaiju_operation() -> void:
+	if kaiju_war == null or mission_run == null:
+		_show_status("El sistema de operaciones no está disponible.")
+		return
+	if mission_run.phase != "base":
+		_show_status("Regresa a la base antes de iniciar otra operación.")
+		return
+	if not kaiju_war.begin_encounter():
+		return
+	var operation_id := "kaiju_operation_%d" % kaiju_war.encounter_count
+	var mission := {
+		"id": operation_id,
+		"title": "Defensa regional",
+		"objectives": [{"id": "repel_threat", "target": 1, "optional": false}]
+	}
+	var threat_context := {
+		"pilot_level": campaign.player_level if campaign else 1,
+		"titan_generation": campaign.jaeger_generation if campaign else 1,
+		"titan_condition": _get_titan_condition_ratio(),
+		"pilot_sync": 1.0 if pilot_sync and pilot_sync.is_synchronized else 0.0,
+		"base_support": clampf(float(base_level) / 5.0, 0.0, 1.0),
+		"intelligence": clampf(float(research_data) / 100.0, 0.0, 1.0),
+		"regional_pressure": float(warfront_state.pressure) * 10.0 if warfront_state else 0.0,
+		"mission_risk": clampf(float(kaiju_war.threat) / 5.0, 0.0, 1.0)
+	}
+	var threat_brief: Dictionary = threat_director.build_threat_brief(threat_context) if threat_director else {}
+	if not mission_run.start_mission(mission, threat_brief) or not mission_run.begin_operation():
+		kaiju_war.resolve_battle("retreat")
+		_show_status("No se pudo registrar la operación; se canceló el despliegue.")
+		return
+	_show_status("DESPLIEGUE | Riesgo %s | Nivel %d. %s" % [
+		str(threat_brief.get("warning", "Sin datos")).to_upper(),
+		int(threat_brief.get("tier", 1)),
+		" ".join(threat_brief.get("preparation_notes", []))
+	])
+
+func _on_mission_phase_changed(phase: String) -> void:
+	if phase == "deployment":
+		_show_status("Preparando despliegue...")
+	elif phase == "debrief":
+		_show_status("Informe de operación listo. Regresando a la base.")
+
+func _on_mission_resolved(result: Dictionary) -> void:
+	var outcome_text := str(result.get("outcome", ""))
+	var rewards: Dictionary = result.get("rewards", {})
+	var brief: Dictionary = result.get("threat_brief", {})
+	_show_status("INFORME: %s | Riesgo previo: %s (%d/10) | Recompensas: %s" % [
+		outcome_text.to_upper(), str(brief.get("warning", "N/D")),
+		int(brief.get("tier", 0)), str(rewards)
+	])
 
 func _on_base_research_generated(amount: int) -> void:
 	research_data += amount
@@ -643,8 +709,7 @@ func _on_platform_action(action_name: String) -> void:
 		"kaiju_engage":
 			if kaiju_war:
 				if not kaiju_war.is_encounter_active:
-					kaiju_war.begin_encounter()
-					_show_status("Abisal localizado. Revisa su rol, elige táctica y pulsa J para resolver.")
+					_begin_kaiju_operation()
 				else:
 					kaiju_war.resolve_battle("engage")
 		"kaiju_retreat":
@@ -795,13 +860,21 @@ func _material(color: Color, glow: bool = false) -> StandardMaterial3D:
 	return material
 
 func _on_kaiju_battle_resolved(outcome: String, rewards: Dictionary, consequences: Dictionary) -> void:
-	for key in rewards.keys():
+	var mission_rewards := rewards.duplicate(true)
+	if mission_run and mission_run.phase == "active":
+		if outcome == "victory":
+			mission_run.record_objective_progress("repel_threat", 1)
+		var normalized_outcome := "partial" if outcome == "partial_success" else outcome
+		var mission_result: Dictionary = mission_run.resolve_mission(normalized_outcome, rewards)
+		if mission_result.has("rewards"):
+			mission_rewards = mission_result["rewards"]
+	for key in mission_rewards.keys():
 		if key == "credits":
-			trade_manager.add_credits(int(rewards[key]))
+			trade_manager.add_credits(int(mission_rewards[key]))
 		elif key == "research_data":
-			research_data += int(rewards[key])
+			research_data += int(mission_rewards[key])
 		else:
-			_add_resource(key, int(rewards[key]))
+			_add_resource(key, int(mission_rewards[key]))
 	if warfront_state:
 		warfront_state.apply_battle_result(outcome, int(consequences.get("sector_pressure", 0)))
 	if damage_model:
@@ -834,6 +907,8 @@ func _on_kaiju_battle_resolved(outcome: String, rewards: Dictionary, consequence
 		_show_status("DERROTA. El Kaiju sigue activo. Has perdido suministros y debes reparar el Jaeger.")
 	if campaign and kaiju_war:
 		kaiju_war.set_progression(campaign.player_level, campaign.jaeger_generation)
+	if mission_run and mission_run.phase == "debrief":
+		mission_run.return_to_base()
 	_update_hud()
 	_save_local_profile()
 
@@ -867,7 +942,8 @@ func _save_local_profile() -> void:
 		"warfront_state": warfront_state.export_state() if warfront_state else {},
 		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {},
 		"damage_model_state": damage_model.export_state() if damage_model else {},
-		"npc_state": npc_manager.export_state() if npc_manager else {}
+		"npc_state": npc_manager.export_state() if npc_manager else {},
+		"mission_run_state": mission_run.export_state() if mission_run else {}
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -894,6 +970,10 @@ func _load_local_profile() -> void:
 			technology_tree.import_state(saved_technology)
 	if campaign:
 		campaign.set_player_level(int(snapshot.get("campaign_level", 1)))
+	if mission_run:
+		var saved_mission_run: Variant = snapshot.get("mission_run_state", {})
+		if saved_mission_run is Dictionary:
+			mission_run.import_state(saved_mission_run)
 	if warfront_state:
 		var saved_warfront: Variant = snapshot.get("warfront_state", {})
 		if saved_warfront is Dictionary:

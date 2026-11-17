@@ -80,6 +80,8 @@ Documentación:
 - `docs/ABC_MASTER_AUDIT.md` — auditoría completa A–Z, estado real y prioridades de cierre.
 - `docs/ROADMAP.md`
 - `docs/CONTENT_STATUS.md`
+- `docs/COMPETITIVE_ANALYSIS_AND_PRODUCT_GAPS.md` — comparación de sistemas con referencias de diseño y brechas de producción.
+- `docs/VERTICAL_SLICE_SPEC.md` — contrato del primer ciclo de misión jugable.
 
 ## Exportar e instalar
 

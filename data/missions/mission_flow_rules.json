@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "phases": ["base", "deployment", "active", "debrief"],
+  "valid_outcomes": ["victory", "partial", "retreat", "defeat"],
+  "reward_multipliers": {
+    "victory": 1.0,
+    "partial": 0.65,
+    "retreat": 0.2,
+    "defeat": 0.0
+  },
+  "rules": {
+    "victory_requires_mandatory_objectives": true,
+    "incomplete_victory_downgrades_to_partial": true,
+    "optional_objectives_block_victory": false,
+    "mission_must_return_to_base_before_next_deployment": true,
+    "negative_rewards_are_clamped_to_zero": true
+  }
+}

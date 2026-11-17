@@ -1,52 +1,38 @@
 # Ruta de desarrollo
 
 ## Objetivo
-Juego 3D original de guerra de robots gigantes contra monstruos colosales. El jugador empieza como recluta con un Mark I y una base pequeña, explora, investiga, construye y progresa mientras las amenazas presionan regiones. Motor: Godot 4.
+Juego 3D original de exploración, supervivencia, recolección, fabricación, construcción y guerra de robots gigantes contra monstruos colosales. El jugador comienza como recluta con un Mark I y una base pequeña. Godot 4.3.
 
-## Hitos
-- [x] Repositorio y prototipo inicial.
-- [x] Arquitectura modular y datos configurables.
-- [x] Controlador y escena visual provisional del Titán Alfa.
-- [x] Lógica inicial de inventario, guardado, recetas y fabricación.
-- [x] Lógica inicial de energía, construcción, clima, expediciones y descubrimientos.
-- [x] Mercado interno con créditos ficticios, contratos y recompensas de juego.
-- [x] Reconocimiento aéreo con helicópteros y regreso a base.
-- [x] Ecosistema inicial y catálogo de doce Kaijus enemigos originales.
-- [x] Encuentros con victoria, retirada, derrota y recuperación.
-- [x] Diseño de campaña progresiva Mark I–V.
-- [x] Diseño de alianzas, roles e interacción cooperativa.
-- [x] Esquema SQL inicial para perfiles, alianzas, chat, bloqueos y denuncias.
-- [x] Migración base para guardado en nube, progreso regional y vínculo de identidad Google Play Games (sin escritura directa desde el cliente).
-- [x] Política de producto: descarga gratuita, sin compras dentro de la aplicación, suscripciones, anuncios ni Billing.
-- [x] Guía de publicación gratuita y lista de verificación de Google Play.
-- [x] Guía de originalidad y revisión de propiedad intelectual.
-- [ ] Corregir e integrar todos los sistemas en la escena principal y HUD.
-- [ ] Probar el árbol tecnológico y el guardado/restauración de cada mejora en Godot y dispositivos.
-- [x] Añadir gestión lógica de diez instalaciones de base, requisitos, costes y producción pasiva local (pendiente de prueba en Godot).
-- [x] Añadir árbol de nueve tecnologías con tres ramas, requisitos, costes de investigación y efectos sobre exploración, logística, producción, mantenimiento, movilidad y encuentros.
-- [x] Añadir presión enemiga persistente en la primera línea costera: retiradas/derrotas pueden hacer perder el sector y las victorias permiten reconquistarlo.
-- [x] Añadir diagnóstico documentado de derrota, equilibrio y brechas del proyecto.
-- [x] Primera integración de capacidad de almacén, producción de investigación, descuento de reparaciones y radio de reconocimiento (validación funcional en dispositivo pendiente).
-- [x] Añadir autosalvado periódico y al suspender/cerrar; [ ] ampliar cobertura de guardado y probar restauración completa en dispositivo.
-- [ ] Producir modelos 3D finales, rig y animaciones.
-- [ ] Crear biomas jugables completos e IA avanzada.
-- [ ] Configurar backend real, Auth, funciones de servidor y políticas RLS.
-- [ ] Implementar guardado en nube validado por servidor.
-- [ ] Implementar enlace Google Play Games Services y probarlo en Android.
-- [ ] Implementar alianzas online con validación de permisos en servidor.
-- [ ] Mantener chat desactivado hasta contar con moderación y controles de privacidad probados.
-- [x] Añadir capa inicial de entrada para teclado, mando y controles táctiles.
-- [x] Preparar ajustes generales de escalado, orientación horizontal y renderer compatible.
-- [x] Añadir flujo de GitHub Actions para importar y ejecutar el proyecto en modo headless con Godot 4.3.
-- [ ] Ajustar cada panel del HUD a móvil/tableta y validar resoluciones.
-- [x] Añadir presets y scripts iniciales para Android, Web, Windows y Linux (exportación real pendiente de SDK/plantillas).
-- [ ] Instalar y probar Android en dispositivos reales; probar Web, Windows, Linux, macOS e iOS con sus exportaciones específicas.
-- [ ] Preparar política de privacidad, ficha, clasificación y formularios de Play Console.
-- [ ] Completar pruebas cerradas y solicitar acceso a producción.
-- [ ] Enviar a revisión de Google y esperar su decisión.
+## Nuevo bloque de producción
+- [x] Director de amenaza multidimensional desacoplado: preparación, condición del Centinela, sincronización, apoyo, inteligencia, presión regional y riesgo.
+- [x] Catálogo de cuatro regiones con desbloqueos, biomas, peligros, recursos y objetivos.
+- [x] Reglas de balance y diez niveles de amenaza legibles.
+- [x] Guía visual y contratos de integración.
+- [x] Guardado local con archivo temporal, copia de seguridad y recuperación.
+- [x] Pruebas headless de recursos, guardado y director de amenaza.
+- [x] Investigación comparativa con The Planet Crafter, Animal Crossing: New Horizons y demos oficiales de Godot.
+- [x] Gestor modular del ciclo de misión: despliegue, operación, objetivos, informe y regreso a base.
+- [x] Integrar el gestor de misión con el flujo de encuentros, resultados, recompensas y guardado del informe.\n- [ ] Integrar objetivos de exploración del mapa y reparación dentro del ciclo de misión.
+- [x] Conectar el director de amenaza al informe de despliegue y al resultado de misión.\n- [ ] Mostrar avisos de preparación persistentes en el HUD y calibrar su efecto sobre encuentros.
+- [ ] Completar restauración de todos los gestores.
+- [ ] Construir y validar el primer encuentro 3D en tiempo real.
+- [ ] Completar IA por estados y navegación de un Abisal.
+- [ ] Conectar daño lógico con partes visuales del Centinela.
+- [ ] Integrar catálogo regional en mapa y desbloqueos de campaña.
+- [ ] Completar pantallas de hangar, inventario, investigación y resultados.
+- [ ] Añadir especialistas asignables y relaciones individuales de NPC.
+- [ ] Validar exportaciones y rendimiento en dispositivos reales.
 
-## Economía
-La moneda y el mercado son exclusivamente sistemas ficticios de juego. No se implementarán compras con dinero real, microtransacciones, suscripciones, anuncios ni Google Play Billing.
+## Orden obligatorio
+1. Integridad de guardado y pruebas.
+2. Ciclo jugable: salida, exploración, amenaza, operación, resultado, reparación y guardado.
+3. Hangar, fabricación y progresión conectados.
+4. Base visible y especialistas NPC.
+5. Regiones, biomas y campaña.
+6. Backend online solo después de estabilizar el modo individual.
+7. Arte, audio, accesibilidad, optimización y exportación.
 
-## Reglas de producción
-Un sistema solo se marca como terminado cuando está integrado, probado manualmente en Godot y documentado. Un esquema SQL no equivale a un backend desplegado; un archivo de configuración no equivale a una integración Android; una solicitud de publicación no equivale a aprobación.
+## Reglas de producto
+La economía es ficticia. No habrá compras con dinero real, microtransacciones, suscripciones, anuncios ni Google Play Billing. Chat global debe permanecer desactivado hasta tener moderación y privacidad verificadas.
+
+Un sistema solo se considera terminado cuando está integrado, probado manualmente en Godot y documentado. Presets no equivalen a exportaciones; esquemas SQL no equivalen a backend desplegado; archivos no equivalen a funciones verificadas.
