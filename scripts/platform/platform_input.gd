@@ -7,7 +7,8 @@ const BUTTON_SIZE := Vector2(48, 48)
 const GAME_ACTIONS := [
 	["E", "collect"], ["J", "kaiju_engage"], ["G", "kaiju_retreat"],
 	["T", "evolve_titan"], ["B", "upgrade_base"], ["V", "base_select_next"],
-	["N", "base_upgrade_selected"], ["C", "market_toggle"]
+	["N", "base_upgrade_selected"], ["C", "market_toggle"],
+	["O", "tech_select_next"], ["I", "tech_research"]
 ]
 
 func _ready() -> void:
@@ -45,7 +46,7 @@ func _build_touch_controls() -> void:
 	actions_panel.anchor_bottom = 0.98
 	add_child(actions_panel)
 	var actions_grid := GridContainer.new()
-	actions_grid.columns = 3
+	actions_grid.columns = 4
 	actions_grid.add_theme_constant_override("h_separation", 3)
 	actions_grid.add_theme_constant_override("v_separation", 3)
 	actions_panel.add_child(actions_grid)
