@@ -26,7 +26,7 @@ var creature_label: Label
 var market_label: Label
 var market_open: bool = false
 var research_data: int = 0
-var resources := {"metal": 0, "energia": 0, "cristal": 0}
+var resources := {"metal": 80, "energia": 45, "cristal": 12}
 var base_level := 1
 var titan_level := 1
 var collected_nodes: Array[Node3D] = []
