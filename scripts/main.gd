@@ -27,6 +27,10 @@ var online_password: LineEdit
 var online_handle: LineEdit
 var online_chat_input: LineEdit
 var online_chat_log: Label
+var online_alliance_name: LineEdit
+var online_alliance_tag: LineEdit
+var online_alliance_id: LineEdit
+var online_alliance_log: Label
 var contracts_label: Label
 var helicopter_label: Label
 var creature_label: Label
@@ -620,6 +624,33 @@ func _create_online_panel(layer: CanvasLayer) -> void:
 	login.text = "Iniciar sesión"
 	login.pressed.connect(_on_online_login_pressed)
 	auth_row.add_child(login)
+	var alliance_title := Label.new()
+	alliance_title.text = "ALIANZAS ONLINE"
+	column.add_child(alliance_title)
+	online_alliance_name = LineEdit.new()
+	online_alliance_name.placeholder_text = "Nombre de alianza"
+	column.add_child(online_alliance_name)
+	online_alliance_tag = LineEdit.new()
+	online_alliance_tag.placeholder_text = "Etiqueta (2-5 letras)"
+	column.add_child(online_alliance_tag)
+	var alliance_create_button := Button.new()
+	alliance_create_button.text = "Crear alianza online"
+	alliance_create_button.pressed.connect(_on_online_alliance_create)
+	column.add_child(alliance_create_button)
+	online_alliance_id = LineEdit.new()
+	online_alliance_id.placeholder_text = "ID de alianza para solicitar ingreso"
+	column.add_child(online_alliance_id)
+	var alliance_join_button := Button.new()
+	alliance_join_button.text = "Solicitar ingreso"
+	alliance_join_button.pressed.connect(_on_online_alliance_join)
+	column.add_child(alliance_join_button)
+	var alliance_refresh_button := Button.new()
+	alliance_refresh_button.text = "Buscar alianzas públicas"
+	alliance_refresh_button.pressed.connect(_on_online_alliance_refresh)
+	column.add_child(alliance_refresh_button)
+	online_alliance_log = Label.new()
+	online_alliance_log.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(online_alliance_log)
 	var chat_title := Label.new()
 	chat_title.text = "CHAT GLOBAL MODERADO"
 	column.add_child(chat_title)
@@ -691,3 +722,22 @@ func _on_online_chat_refresh() -> void:
 	for message in messages:
 		lines.append(str(message.get("body","")))
 	online_chat_log.text = "\n".join(lines) if not lines.is_empty() else "No hay mensajes visibles o todavía no hay conexión."
+
+func _on_online_alliance_create() -> void:
+	var alliance_id: String = await community_client.create_online_alliance(online_alliance_name.text, online_alliance_tag.text.to_upper())
+	if not alliance_id.is_empty():
+		online_alliance_log.text = "Alianza creada. ID: " + alliance_id
+		online_alliance_id.text = alliance_id
+	else:
+		online_alliance_log.text = "No se pudo crear. Inicia sesión, configura SQL 0002 y revisa que no pertenezcas a otra alianza."
+
+func _on_online_alliance_join() -> void:
+	var ok: bool = await community_client.request_alliance_join(online_alliance_id.text.strip_edges())
+	online_alliance_log.text = "Solicitud enviada al liderazgo." if ok else "No se pudo enviar la solicitud. Comprueba el ID, tu sesión y que no estés en otra alianza."
+
+func _on_online_alliance_refresh() -> void:
+	var alliances: Array = await community_client.fetch_public_alliances()
+	var lines: PackedStringArray = []
+	for alliance in alliances:
+		lines.append("[%s] %s — %s" % [str(alliance.get("tag","")),str(alliance.get("name","")),str(alliance.get("id",""))])
+	online_alliance_log.text = "\n".join(lines) if not lines.is_empty() else "No se encontraron alianzas o falta iniciar sesión."
