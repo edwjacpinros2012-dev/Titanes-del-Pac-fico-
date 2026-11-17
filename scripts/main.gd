@@ -14,8 +14,10 @@ var rift_manager: PacificRiftManager
 var trade_manager: TradeManager
 var contract_manager: ContractManager
 var helicopter_manager: HelicopterScoutManager
+var creature_manager: CreatureEcosystemManager
 var contracts_label: Label
 var helicopter_label: Label
+var creature_label: Label
 var market_label: Label
 var market_open: bool = false
 var research_data: int = 0
@@ -51,6 +53,8 @@ func _process(delta: float) -> void:
 		contracts_label.text = contract_manager.get_summary_text()
 	if helicopter_label and helicopter_manager:
 		helicopter_label.text = helicopter_manager.get_status_text()
+	if creature_label and creature_manager:
+		creature_label.text = creature_manager.get_status_text()
 	if market_label and market_open and trade_manager:
 		market_label.text = trade_manager.get_market_text()
 
@@ -190,6 +194,17 @@ func _create_gameplay_systems() -> void:
 	helicopter_manager.name = "HelicopterScoutManager"
 	add_child(helicopter_manager)
 	helicopter_manager.scouting_completed.connect(_on_scouting_completed)
+
+	creature_manager = CreatureEcosystemManager.new()
+	creature_manager.name = "CreatureEcosystemManager"
+	add_child(creature_manager)
+	creature_manager.set_player_target(player)
+	creature_manager.creature_observed.connect(_on_creature_observed)
+
+func _on_creature_observed(display_name: String, research_reward: int) -> void:
+	research_data += research_reward
+	_update_hud()
+	_show_status("Nueva especie registrada: " + display_name + " | +" + str(research_reward) + " datos de investigación.")
 
 func _on_synchronization_started() -> void:
 	_show_status("¡Enlace de pilotos sincronizado! Movilidad mejorada temporalmente.")
@@ -371,6 +386,8 @@ func _create_hud() -> void:
 	column.add_child(sync_label)
 	helicopter_label = Label.new()
 	column.add_child(helicopter_label)
+	creature_label = Label.new()
+	column.add_child(creature_label)
 	contracts_label = Label.new()
 	contracts_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(contracts_label)
