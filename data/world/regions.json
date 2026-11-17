@@ -1,0 +1,8 @@
+{
+  "regions": [
+    {"id":"aurora_coast","name":"Costa de la Aurora","unlocked_by_default":true,"resources":["metal","energy"],"threat_level":1},
+    {"id":"verdant_expanse","name":"Selva Esmeralda","unlocked_by_default":false,"resources":["metal","crystal"],"threat_level":2},
+    {"id":"ember_ridge","name":"Cordillera Ígnea","unlocked_by_default":false,"resources":["rare_alloy","energy"],"threat_level":3},
+    {"id":"abyssal_trench","name":"Fosa Abisal","unlocked_by_default":false,"resources":["deep_crystal"],"threat_level":4}
+  ]
+}
