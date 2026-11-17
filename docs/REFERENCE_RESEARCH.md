@@ -43,3 +43,19 @@ Aplicación original: red eléctrica simplificada para edificios, recetas de fab
 
 ## Alcance de esta investigación
 Las fuentes son referencias de diseño, no pruebas de que nuestro juego ya tenga esas funciones. Las funciones descritas en este repositorio deben integrarse y probarse en Godot antes de considerarse terminadas.
+
+
+## Ampliación de investigación: sistemas conectados
+Fuentes consultadas:
+- Pacific Rim, Legendary Pictures: https://www.legendary.com/film/pacificrim/
+- Subnautica, página oficial de Steam: https://store.steampowered.com/app/264710/Subnautica/
+- Grounded, página oficial de Obsidian: https://grounded.obsidian.net/game
+- No Man's Sky, Atlas Rises: https://www.nomanssky.com/atlas-rises-update/
+- No Man's Sky, Foundation: https://www.nomanssky.com/foundation-update/
+
+Aplicación al proyecto:
+- Biomas y recursos regionales inspiran la progresión por zonas.
+- Criaturas con temperamentos y hábitats inspiran un ecosistema que se observa y registra.
+- Contratos y economía local inspiran el mercado costero y las recompensas.
+- Bases, depósitos y exploración automatizada inspiran las expediciones y los helicópteros de reconocimiento.
+- Las brechas y el enlace de pilotos se mantienen como ideas generales de ciencia ficción, con nombres, historia y diseños originales.
