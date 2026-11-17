@@ -354,7 +354,7 @@ func _on_scouting_completed(reward: Dictionary, scan_center: Vector3) -> void:
 		if resource_id == "research_data":
 			research_data += int(reward[resource_id])
 		else:
-			resources[resource_id] = int(resources.get(resource_id, 0)) + int(reward[resource_id])
+			_add_resource(resource_id, int(reward[resource_id]))
 	var scan_radius := base_development.get_scouting_radius(30.0) if base_development else 30.0
 	var discovered := creature_manager.reveal_nearby(scan_center, scan_radius) if creature_manager else 0
 	contract_manager.register_action("scout")
