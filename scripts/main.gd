@@ -391,6 +391,8 @@ func _on_base_research_generated(amount: int) -> void:
 	_update_hud()
 
 func _on_creature_observed(display_name: String, research_reward: int) -> void:
+	if npc_manager:
+		npc_manager.register_action("observe")
 	if alliance_manager:
 		alliance_manager.register_objective("research")
 	research_data += research_reward
@@ -548,6 +550,8 @@ func _try_collect_nearby(show_message: bool = false) -> void:
 func _upgrade_base() -> void:
 	if base_development and base_development.upgrade_facility("command_hub", resources, base_level):
 		base_level = base_development.get_facility_level("command_hub")
+		if npc_manager:
+			npc_manager.register_base_upgrade()
 		_show_status("Centro de mando mejorado. Base nivel %d." % base_level)
 	else:
 		_show_status(base_development.get_selected_facility_text(resources, base_level) if base_development else "Sistema de base no disponible.")
@@ -561,6 +565,8 @@ func _upgrade_selected_facility() -> void:
 		_upgrade_base()
 		return
 	if base_development.upgrade_facility(facility_id, resources, base_level):
+		if npc_manager:
+			npc_manager.register_base_upgrade()
 		_show_status("Instalación mejorada: " + base_development.get_facility_name(facility_id))
 	else:
 		_show_status(base_development.get_selected_facility_text(resources, base_level))
@@ -647,6 +653,8 @@ func _on_platform_action(action_name: String) -> void:
 		"repair_titan":
 			if damage_model:
 				var repaired := damage_model.repair_with_resources(resources)
+				if repaired > 0 and npc_manager:
+					npc_manager.register_action("repair")
 				_show_status("Reparación completada: %d puntos." % repaired if repaired > 0 else "Faltan recursos o el Centinela ya está reparado.")
 				_update_hud()
 		"tactic_flank":
@@ -658,6 +666,8 @@ func _on_platform_action(action_name: String) -> void:
 		"tactic_precision":
 			if kaiju_war and kaiju_war.select_tactic("precision"):
 				_show_status("TÁCTICA: PRECISIÓN. " + kaiju_war.last_tactic_feedback)
+		"talk_npc":
+			_interact_with_npc()
 		"tech_select_next":
 			_select_next_technology()
 		"tech_research":
