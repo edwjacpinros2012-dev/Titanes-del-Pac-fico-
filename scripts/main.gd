@@ -518,7 +518,7 @@ func _upgrade_selected_facility() -> void:
 func _select_next_technology() -> void:
 	if technology_tree:
 		var selected_id := technology_tree.select_next()
-		_show_status("Tecnología seleccionada: " + str(technology_tree.TECHNOLOGIES[selected_id]["name"]))
+		_show_status("Tecnología seleccionada: " + technology_tree.get_technology_name(selected_id))
 
 func _research_selected_technology() -> void:
 	if technology_tree == null:
@@ -531,7 +531,7 @@ func _research_selected_technology() -> void:
 	_apply_technology_effects()
 	_update_hud()
 	_save_local_profile()
-	_show_status("Investigación completada: " + str(technology_tree.TECHNOLOGIES[technology_tree.get_selected_id()]["name"]))
+	_show_status("Investigación completada: " + technology_tree.get_technology_name(technology_tree.get_selected_id()))
 
 func _on_technology_unlocked(_technology_id: String) -> void:
 	_apply_technology_effects()
