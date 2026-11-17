@@ -24,6 +24,8 @@ Juego 3D original de guerra de robots gigantes contra monstruos colosales. El ju
 - [ ] Probar el árbol tecnológico y el guardado/restauración de cada mejora en Godot y dispositivos.
 - [x] Añadir gestión lógica de diez instalaciones de base, requisitos, costes y producción pasiva local (pendiente de prueba en Godot).
 - [x] Añadir árbol de nueve tecnologías con tres ramas, requisitos, costes de investigación y efectos sobre exploración, logística, producción, mantenimiento, movilidad y encuentros.
+- [x] Añadir presión enemiga persistente en la primera línea costera: retiradas/derrotas pueden hacer perder el sector y las victorias permiten reconquistarlo.
+- [x] Añadir diagnóstico documentado de derrota, equilibrio y brechas del proyecto.
 - [x] Primera integración de capacidad de almacén, producción de investigación, descuento de reparaciones y radio de reconocimiento (validación funcional en dispositivo pendiente).
 - [x] Añadir autosalvado periódico y al suspender/cerrar; [ ] ampliar cobertura de guardado y probar restauración completa en dispositivo.
 - [ ] Producir modelos 3D finales, rig y animaciones.
