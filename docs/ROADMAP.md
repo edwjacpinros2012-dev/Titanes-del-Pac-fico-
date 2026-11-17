@@ -13,7 +13,7 @@ Juego 3D original de exploración, supervivencia, recolección, fabricación, co
 - [x] Investigación comparativa con The Planet Crafter, Animal Crossing: New Horizons y demos oficiales de Godot.
 - [x] Gestor modular del ciclo de misión: despliegue, operación, objetivos, informe y regreso a base.
 - [x] Integrar el gestor de misión con el flujo de encuentros, resultados, recompensas y guardado del informe.\n- [ ] Integrar objetivos de exploración del mapa y reparación dentro del ciclo de misión.
-- [ ] Integrar el director de amenaza en el gestor real de encuentros y HUD.
+- [x] Conectar el director de amenaza al informe de despliegue y al resultado de misión.\n- [ ] Mostrar avisos de preparación persistentes en el HUD y calibrar su efecto sobre encuentros.
 - [ ] Completar restauración de todos los gestores.
 - [ ] Construir y validar el primer encuentro 3D en tiempo real.
 - [ ] Completar IA por estados y navegación de un Abisal.
