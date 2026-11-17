@@ -58,6 +58,7 @@ func _ready() -> void:
 	_create_gameplay_systems()
 	_create_hud()
 	_load_local_profile()
+	_apply_technology_effects()
 	_spawn_resources()
 	_update_hud()
 
@@ -75,7 +76,7 @@ func _process(delta: float) -> void:
 	if pilot_sync and player:
 		var tech_mobility := technology_tree.get_mobility_multiplier() if technology_tree else 1.0
 		player.set("research_speed_multiplier", tech_mobility)
-		player.set("sync_multiplier", (1.35 if pilot_sync.is_synchronized else 1.0) * tech_mobility)
+		player.set("sync_multiplier", 1.35 if pilot_sync.is_synchronized else 1.0)
 	if objective_label and rift_manager:
 		objective_label.text = rift_manager.get_objective_text()
 	if sync_label and pilot_sync:
@@ -93,8 +94,6 @@ func _process(delta: float) -> void:
 	if alliance_label and alliance_manager:
 		alliance_label.text = alliance_manager.get_summary()
 	if base_development:
-		if technology_tree:
-			_apply_technology_effects()
 		if base_development.advance_production(delta, resources) > 0:
 			_update_hud()
 	if base_label and base_development:
