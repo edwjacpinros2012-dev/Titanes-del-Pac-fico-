@@ -33,7 +33,9 @@ func join_demo_alliance() -> bool:
  return true
 func add_contribution(amount: int) -> void:
  if alliance_name.is_empty() or members.is_empty(): return
- members.back()["contribution"] = int(members.back().get("contribution",0)) + maxi(0,amount)
+ var last_member: Dictionary = members[members.size() - 1]
+ last_member["contribution"] = int(last_member.get("contribution",0)) + maxi(0,amount)
+ members[members.size() - 1] = last_member
  alliance_changed.emit(get_summary())
 func register_objective(action: String) -> void:
  var map := {"scout":"scout_sector","research":"research_kaiju","defense":"support_defense"}
