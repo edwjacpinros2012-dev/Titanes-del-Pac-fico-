@@ -2,10 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/titans/titan_controller.gd" id="1_controller"]
 [ext_resource type="Resource" path="res://data/characters/titan_alpha_stats.tres" id="2_stats"]
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
-radius = 0.75
-height = 3.2
+[ext_resource type="PackedScene" path="res://scenes/characters/titans/titan_alpha_visual.tscn" id="3_visual"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_body"]
 radius = 0.75
@@ -15,9 +12,9 @@ height = 3.2
 script = ExtResource("1_controller")
 stats = ExtResource("2_stats")
 
-[node name="Visual" type="MeshInstance3D" parent="."]
-position = Vector3(0, 1.6, 0)
-mesh = SubResource("CapsuleMesh_body")
+[node name="TitanVisual" parent="." instance=ExtResource("3_visual")]
+position = Vector3(0, 0, 0)
+scale = Vector3(0.8, 0.8, 0.8)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 position = Vector3(0, 1.6, 0)
