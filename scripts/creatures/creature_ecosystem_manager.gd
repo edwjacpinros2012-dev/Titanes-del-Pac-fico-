@@ -44,6 +44,20 @@ func _process(delta: float) -> void:
 			creature_observed.emit(str(entry["name"]), int(entry["research"]))
 		roamers[index] = entry
 
+func reveal_nearby(center: Vector3, radius: float) -> int:
+	var newly_observed := 0
+	for index in range(roamers.size()):
+		var entry: Dictionary = roamers[index]
+		var creature: Node3D = entry["node"]
+		if bool(entry["observed"]) or creature.global_position.distance_to(center) > radius:
+			continue
+		entry["observed"] = true
+		roamers[index] = entry
+		observed_count += 1
+		newly_observed += 1
+		creature_observed.emit(str(entry["name"]), int(entry["research"]))
+	return newly_observed
+
 func get_status_text() -> String:
 	return "ECOSISTEMA: %d/%d especies observadas" % [observed_count, roamers.size()]
 
