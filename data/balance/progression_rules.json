@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "design_rules": {"difficulty_must_not_depend_only_on_titan_level":true,"show_threat_tier_before_mission":true,"always_offer_recovery_path_after_defeat":true,"avoid_unannounced_level_spikes":true},
+  "readiness_inputs": {"pilot_level_weight":0.24,"titan_generation_weight":0.34,"titan_condition_weight":2.0,"pilot_sync_weight":1.2,"base_support_weight":1.1,"intelligence_weight":0.8},
+  "regional_pressure": {"minimum":0,"maximum":100,"victory_delta":-14,"partial_success_delta":-5,"retreat_delta":3,"defeat_delta":9},
+  "threat_tiers": [
+    {"tier":1,"label":"Exploración","expected_preparation":"Basic repairs and starter equipment"},
+    {"tier":2,"label":"Vigilancia","expected_preparation":"Working sensors and supply reserve"},
+    {"tier":3,"label":"Incidente","expected_preparation":"Pilot synchronization and basic research"},
+    {"tier":4,"label":"Amenaza regional","expected_preparation":"Specialized module and reconnaissance"},
+    {"tier":5,"label":"Operación mayor","expected_preparation":"Upgraded hangar and repair reserve"},
+    {"tier":6,"label":"Crisis","expected_preparation":"Specialized build and ally support"},
+    {"tier":7,"label":"Alerta máxima","expected_preparation":"Advanced research and complete readiness"},
+    {"tier":8,"label":"Catastrófica","expected_preparation":"Endgame preparation and regional intelligence"},
+    {"tier":9,"label":"Extinción regional","expected_preparation":"Multiple systems coordinated"},
+    {"tier":10,"label":"Evento límite","expected_preparation":"Full campaign preparation and optional allies"}
+  ]
+}
