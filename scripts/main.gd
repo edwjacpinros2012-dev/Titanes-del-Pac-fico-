@@ -19,6 +19,8 @@ var kaiju_war: KaijuWarManager
 var campaign: CampaignManager
 var alliance_manager: AllianceManager
 var base_development: BaseDevelopmentManager
+var technology_tree: TechnologyTreeManager
+var technology_label: Label
 var base_label: Label
 var platform_input: PlatformInput
 var kaiju_label: Label
@@ -71,7 +73,9 @@ func _process(delta: float) -> void:
 		camera.look_at(player.global_position + Vector3(0, 1, 0), Vector3.UP)
 	_try_collect_nearby()
 	if pilot_sync and player:
-		player.set("sync_multiplier", 1.35 if pilot_sync.is_synchronized else 1.0)
+		var tech_mobility := technology_tree.get_mobility_multiplier() if technology_tree else 1.0
+		player.set("research_speed_multiplier", tech_mobility)
+		player.set("sync_multiplier", (1.35 if pilot_sync.is_synchronized else 1.0) * tech_mobility)
 	if objective_label and rift_manager:
 		objective_label.text = rift_manager.get_objective_text()
 	if sync_label and pilot_sync:
@@ -89,10 +93,14 @@ func _process(delta: float) -> void:
 	if alliance_label and alliance_manager:
 		alliance_label.text = alliance_manager.get_summary()
 	if base_development:
+		if technology_tree:
+			_apply_technology_effects()
 		if base_development.advance_production(delta, resources) > 0:
 			_update_hud()
 	if base_label and base_development:
 		base_label.text = base_development.get_status_text()
+	if technology_label and technology_tree:
+		technology_label.text = technology_tree.get_selected_text(research_data)
 
 func _physics_process(_delta: float) -> void:
 	# El movimiento ahora pertenece al controlador del Titán Alfa.
@@ -131,6 +139,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			_show_status("Alianza local creada: Vanguardia del Pacífico.")
 	if event.is_action_pressed("save_profile"):
 		_save_local_profile()
+	if event.is_action_pressed("tech_select_next"):
+		_select_next_technology()
+	if event.is_action_pressed("tech_research"):
+		_research_selected_technology()
 	if event.is_action_pressed("scout_helicopters"):
 		if helicopter_manager and player:
 			if helicopter_manager.dispatch_scout(player.global_position):
@@ -163,6 +175,8 @@ func _setup_input() -> void:
 	_add_key("alliance_join", KEY_K)
 	_add_key("alliance_create", KEY_P)
 	_add_key("save_profile", KEY_F5)
+	_add_key("tech_select_next", KEY_O)
+	_add_key("tech_research", KEY_I)
 	_add_key("market_buy_metal", KEY_1)
 	_add_key("market_buy_energy", KEY_2)
 	_add_key("market_buy_crystal", KEY_3)
@@ -313,6 +327,11 @@ func _create_gameplay_systems() -> void:
 	add_child(alliance_manager)
 	alliance_manager.alliance_changed.connect(_on_alliance_changed)
 	alliance_manager.message_added.connect(_on_alliance_message)
+
+	technology_tree = TechnologyTreeManager.new()
+	technology_tree.name = "TechnologyTreeManager"
+	add_child(technology_tree)
+	technology_tree.technology_unlocked.connect(_on_technology_unlocked)
 
 	base_development = BaseDevelopmentManager.new()
 	base_development.name = "BaseDevelopmentManager"
@@ -497,6 +516,42 @@ func _upgrade_selected_facility() -> void:
 		_show_status(base_development.get_selected_facility_text(resources, base_level))
 	_update_hud()
 
+func _select_next_technology() -> void:
+	if technology_tree:
+		var selected_id := technology_tree.select_next()
+		_show_status("Tecnología seleccionada: " + str(technology_tree.TECHNOLOGIES[selected_id]["name"]))
+
+func _research_selected_technology() -> void:
+	if technology_tree == null:
+		return
+	var cost := technology_tree.research_selected(research_data)
+	if cost < 0:
+		_show_status(technology_tree.get_selected_text(research_data))
+		return
+	research_data -= cost
+	_apply_technology_effects()
+	_update_hud()
+	_save_local_profile()
+	_show_status("Investigación completada: " + str(technology_tree.TECHNOLOGIES[technology_tree.get_selected_id()]["name"]))
+
+func _on_technology_unlocked(_technology_id: String) -> void:
+	_apply_technology_effects()
+
+func _apply_technology_effects() -> void:
+	if technology_tree == null:
+		return
+	if base_development:
+		base_development.set_technology_effects(
+			technology_tree.get_storage_bonus(),
+			technology_tree.get_repair_discount_bonus(),
+			technology_tree.get_scouting_bonus(),
+			technology_tree.get_production_multiplier()
+		)
+	if kaiju_war:
+		kaiju_war.set_research_power_bonus(technology_tree.get_combat_preparation_bonus())
+	if player:
+		player.set("research_speed_multiplier", technology_tree.get_mobility_multiplier())
+
 func _evolve_titan() -> void:
 	var cost_crystal := titan_level * 5
 	var cost_energy := titan_level * 6
@@ -539,6 +594,10 @@ func _on_platform_action(action_name: String) -> void:
 		"kaiju_retreat":
 			if kaiju_war:
 				kaiju_war.resolve_battle("retreat")
+		"tech_select_next":
+			_select_next_technology()
+		"tech_research":
+			_research_selected_technology()
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -577,6 +636,9 @@ func _create_hud() -> void:
 	kaiju_label = Label.new()
 	kaiju_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(kaiju_label)
+	technology_label = Label.new()
+	technology_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(technology_label)
 	alliance_label = Label.new()
 	alliance_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(alliance_label)
@@ -590,7 +652,7 @@ func _create_hud() -> void:
 	market_label.visible = false
 	column.add_child(market_label)
 	var help := Label.new()
-	help.text = "WASD: mover | E: recoger | B: mejorar centro de mando | T: mejorar Jaeger\nV: elegir instalación | N: mejorar instalación | F: enlace | R: brecha\nH: helicópteros | J: enfrentar Kaiju | G: retirarse | F5: guardar\nK/P: alianza local | C: mercado | Mercado: 1-3 comprar, 4-6 vender"
+	help.text = "WASD: mover | E: recoger | B: mejorar centro de mando | T: mejorar Jaeger\nV: elegir instalación | N: mejorar instalación | F: enlace | R: brecha\nH: helicópteros | J: enfrentar Kaiju | G: retirarse | F5: guardar\nK/P: alianza local | C: mercado | O: tecnología siguiente | I: investigar"
 	help.add_theme_font_size_override("font_size", 13)
 	column.add_child(help)
 	status_label = Label.new()
@@ -696,7 +758,8 @@ func _save_local_profile() -> void:
 		"alliance_name": alliance_manager.alliance_name if alliance_manager else "",
 		"alliance_tag": alliance_manager.alliance_tag if alliance_manager else "",
 		"alliance_rank": alliance_manager.rank if alliance_manager else "Sin alianza",
-		"alliance_state": alliance_manager.export_state() if alliance_manager else {}
+		"alliance_state": alliance_manager.export_state() if alliance_manager else {},
+		"technology_state": technology_tree.export_state() if technology_tree else {}
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -717,6 +780,10 @@ func _load_local_profile() -> void:
 	research_data = int(snapshot.get("research_data", research_data))
 	if trade_manager:
 		trade_manager.credits = int(snapshot.get("credits", trade_manager.credits))
+	if technology_tree:
+		var saved_technology: Variant = snapshot.get("technology_state", {})
+		if typeof(saved_technology) == TYPE_DICTIONARY:
+			technology_tree.import_state(saved_technology)
 	if campaign:
 		campaign.set_player_level(int(snapshot.get("campaign_level", 1)))
 	if kaiju_war and campaign:
