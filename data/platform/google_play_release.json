@@ -1,16 +1,62 @@
 {
   "status": "preparation_only",
-  "store_name": "GUARDIANES DEL UMBRAL",
-  "store_name_status": "provisional_not_cleared",
+  "working_title": "GUARDIANES DEL UMBRAL",
+  "title_status": "provisional_not_cleared",
   "application_id": "com.example.guardianesdelumbral",
   "application_id_status": "placeholder_replace_before_release",
-  "distribution": {
+  "distribution_policy": {
     "free_download": true,
+    "payments_enabled": false,
+    "donations_enabled": false,
     "in_app_purchases": false,
     "subscriptions": false,
     "ads": false,
-    "google_play_billing": false
+    "google_play_billing": false,
+    "external_paid_unlocks": false
   },
+  "planned_channels": [
+    {
+      "id": "itch_io",
+      "priority": 1,
+      "status": "planned",
+      "format": "android_apk",
+      "pricing": "free_no_payments",
+      "url": "https://itch.io/docs/creators/getting-started",
+      "guardian_consent_required_for_minor_publisher": true
+    },
+    {
+      "id": "uptodown",
+      "priority": 2,
+      "status": "evaluate",
+      "format": "android_package",
+      "url": "https://support.uptodown.com/hc/es/articles/4424141383181-Gu%C3%ADa-b%C3%A1sica-para-registrarse-y-publicar-apps"
+    },
+    {
+      "id": "amazon_appstore",
+      "priority": 3,
+      "status": "evaluate",
+      "url": "https://developer.amazon.com/docs/app-submission/publish-app-login-and-add-app.html"
+    },
+    {
+      "id": "samsung_galaxy_store",
+      "priority": 4,
+      "status": "evaluate",
+      "url": "https://developer.samsung.com/galaxy-store/prepare.html"
+    },
+    {
+      "id": "huawei_appgallery",
+      "priority": 5,
+      "status": "evaluate",
+      "url": "https://developer.huawei.com/consumer/en/appgallery/"
+    },
+    {
+      "id": "google_play",
+      "priority": 6,
+      "status": "later_optional",
+      "format": "android_app_bundle",
+      "url": "https://play.google.com/console/about/"
+    }
+  ],
   "platform_services": {
     "google_play_games_services": "planned_not_integrated",
     "achievements": "planned",
@@ -22,12 +68,14 @@
     "cloud_saves": "schema_foundation_only"
   },
   "release_gates": [
+    "adult_guardian_reviews_platform_terms_and_consent",
     "clear_game_name_and_trademarks",
     "configure_final_application_id",
-    "configure_android_export_and_signing",
-    "test_on_real_android_devices",
-    "configure_privacy_policy_and_data_safety",
-    "complete_play_console_testing_requirements",
-    "obtain_google_review_approval"
+    "configure_android_export_templates_sdk_and_jdk",
+    "sign_apk_securely_and_keep_keystore_out_of_repository",
+    "test_apk_on_real_android_devices",
+    "create_original_icon_screenshots_and_store_description",
+    "publish_privacy_policy_matching_actual_data_collection",
+    "submit_to_selected_store_and_pass_review"
   ]
 }
