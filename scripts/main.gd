@@ -126,9 +126,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("kaiju_engage") and kaiju_war:
 		if not kaiju_war.is_encounter_active:
 			kaiju_war.begin_encounter()
-			_show_status("¡Kaiju localizado! Pulsa J otra vez para resolver el enfrentamiento.")
+			_show_status("¡Abisal localizado! Analiza su rol y elige táctica antes de resolver.")
 		else:
 			kaiju_war.resolve_battle("engage")
+	if event.is_action_pressed("tactic_flank") and kaiju_war:
+		if kaiju_war.select_tactic("flank"):
+			_show_status("TÁCTICA: FLANQUEO. " + kaiju_war.last_tactic_feedback)
+	if event.is_action_pressed("tactic_guard") and kaiju_war:
+		if kaiju_war.select_tactic("guard"):
+			_show_status("TÁCTICA: DEFENSA. " + kaiju_war.last_tactic_feedback)
+	if event.is_action_pressed("tactic_precision") and kaiju_war:
+		if kaiju_war.select_tactic("precision"):
+			_show_status("TÁCTICA: PRECISIÓN. " + kaiju_war.last_tactic_feedback)
 	if event.is_action_pressed("kaiju_retreat") and kaiju_war:
 		kaiju_war.resolve_battle("retreat")
 	if event.is_action_pressed("alliance_join") and alliance_manager:
@@ -172,6 +181,9 @@ func _setup_input() -> void:
 	_add_key("scout_helicopters", KEY_H)
 	_add_key("kaiju_engage", KEY_J)
 	_add_key("kaiju_retreat", KEY_G)
+	_add_key("tactic_flank", KEY_Q)
+	_add_key("tactic_guard", KEY_X)
+	_add_key("tactic_precision", KEY_U)
 	_add_key("alliance_join", KEY_K)
 	_add_key("alliance_create", KEY_P)
 	_add_key("save_profile", KEY_F5)
