@@ -42,7 +42,7 @@ Si Git ya está instalado, abre PowerShell y ejecuta:
 
 ```powershell
 cd "$env:USERPROFILE\Documents"
-git clone https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-.git titan es-del-pacifico
+git clone https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-.git titanes-del-pacifico
 ```
 
 Si PowerShell informa que Git no existe, utiliza el método Download ZIP. No necesitas instalar Git para empezar.
