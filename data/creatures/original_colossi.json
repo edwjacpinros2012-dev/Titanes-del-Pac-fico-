@@ -1,0 +1,29 @@
+{
+  "region": "aurora_coast",
+  "creatures": [
+    {
+      "id": "bruma_abismal",
+      "name": "Bruma Abismal",
+      "size_class": "colosal",
+      "habitat": "fosas oceánicas",
+      "behavior": "Se acerca a las brechas activas y altera la visibilidad de la costa.",
+      "gameplay_role": "Evento ambiental de exploración; requiere estabilizar la brecha cercana."
+    },
+    {
+      "id": "rompeolas",
+      "name": "Rompeolas",
+      "size_class": "gigante",
+      "habitat": "arrecifes profundos",
+      "behavior": "Se desplaza lentamente entre arrecifes y deja depósitos minerales.",
+      "gameplay_role": "Criatura territorial que señala rutas de recursos."
+    },
+    {
+      "id": "vigia_basalto",
+      "name": "Vigía de Basalto",
+      "size_class": "grande",
+      "habitat": "acantilados volcánicos",
+      "behavior": "Permanece inmóvil durante largos periodos y reacciona a cambios de energía.",
+      "gameplay_role": "Encuentro de observación e investigación para desbloquear tecnología."
+    }
+  ]
+}
