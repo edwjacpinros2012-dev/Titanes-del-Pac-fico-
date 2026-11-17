@@ -6,6 +6,7 @@ signal battle_resolved(outcome: String, rewards: Dictionary, consequences: Dicti
 
 var player: Node3D
 var jaeger_level: int = 1
+var research_power_bonus: int = 0
 var campaign_level: int = 1
 var active_kaiju_id := "bruma_abismal"
 var active_kaiju_name := "Bruma Abismal"
@@ -28,6 +29,9 @@ func set_progression(level: int, generation: int) -> void:
 	campaign_level = maxi(1, level)
 	jaeger_level = maxi(1, generation)
 
+func set_research_power_bonus(value: int) -> void:
+	research_power_bonus = clampi(value, 0, 5)
+
 func begin_encounter() -> bool:
 	if is_encounter_active:
 		return false
@@ -41,7 +45,7 @@ func begin_encounter() -> bool:
 func resolve_battle(action: String = "engage") -> Dictionary:
 	if not is_encounter_active:
 		return {}
-	var player_power := 3 + jaeger_level * 2 + campaign_level / 3
+	var player_power := 3 + jaeger_level * 2 + campaign_level / 3 + research_power_bonus
 	var kaiju_power := threat * 5
 	var rewards := {"credits": 0, "metal": 0, "energia": 0, "cristal": 0, "research_data": 0}
 	var consequences := {"repair": 0, "supply_loss": 0, "sector_pressure": 0}
