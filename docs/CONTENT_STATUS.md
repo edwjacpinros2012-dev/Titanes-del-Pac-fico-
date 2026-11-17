@@ -11,7 +11,7 @@
 | Contratos y recompensas | Tres contratos automáticos con créditos y datos de investigación; falta prueba local |
 | Reconocimiento aéreo | Dos helicópteros visuales salen, exploran y regresan con recursos; falta prueba local |
 | Ecosistema de criaturas | Ocho criaturas provisionales se desplazan y pueden descubrirse a pie o por reconocimiento aéreo; modelos finales e IA avanzada pendientes |
-| Catálogo de colosos | Doce especies originales documentadas en JSON |
+| Catálogo de colosos/Kaijus | Doce especies originales; roster enemigo y niveles de amenaza en `data/kaiju/kaiju_roster.json` |
 | Inventario | Lógica básica creada |
 | Fabricación | Gestor y datos de recetas creados; estación/UI pendientes |
 | Energía de base | Gestor creado; conexión con edificios pendientes |
@@ -20,7 +20,12 @@
 | Criaturas | Datos y comportamiento inicial; arte final pendiente |
 | Biomas finales | Pendientes |
 | Animaciones | Pendientes |
-| Multijugador | No iniciado |
+| Identidad Kaiju/Jaeger y campaña progresiva | Diseño documentado; todavía no integrado al loop principal |
+| Alianzas | Diseño y esquema de datos inicial; sin servicio online ni interfaz |
+| Registro e inicio de sesión | Esquema preparado; proveedor Auth sin configurar |
+| Chat global y de alianza | Tablas y políticas iniciales; acceso desactivado por defecto, sin moderación desplegada |
+| Bloqueos y denuncias | Esquema inicial; flujo de revisión y apelación pendiente |
+| Multijugador | No iniciado; requiere servidor y validación autoritativa |
 | Exportación web del juego | Pendiente |
 
 Este documento evita confundir archivos de arquitectura con características ya integradas y verificadas.
