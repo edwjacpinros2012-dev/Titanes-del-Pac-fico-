@@ -77,6 +77,7 @@ Google Play requiere una cuenta de desarrollador y revisión de la aplicación. 
 Documentación:
 - `docs/ANDROID_FREE_RELEASE.md`
 - `docs/ORIGINALITY_AND_IP.md`
+- `docs/ABC_MASTER_AUDIT.md` — auditoría completa A–Z, estado real y prioridades de cierre.
 - `docs/ROADMAP.md`
 - `docs/CONTENT_STATUS.md`
 
