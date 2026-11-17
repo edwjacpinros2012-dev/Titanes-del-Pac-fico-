@@ -20,6 +20,13 @@ var campaign: CampaignManager
 var alliance_manager: AllianceManager
 var kaiju_label: Label
 var alliance_label: Label
+var community_client: CommunityClient
+var online_status_label: Label
+var online_email: LineEdit
+var online_password: LineEdit
+var online_handle: LineEdit
+var online_chat_input: LineEdit
+var online_chat_log: Label
 var contracts_label: Label
 var helicopter_label: Label
 var creature_label: Label
@@ -249,6 +256,12 @@ func _create_gameplay_systems() -> void:
 	alliance_manager.alliance_changed.connect(_on_alliance_changed)
 	alliance_manager.message_added.connect(_on_alliance_message)
 
+	community_client = CommunityClient.new()
+	community_client.name = "CommunityClient"
+	add_child(community_client)
+	community_client.auth_changed.connect(_on_online_auth_changed)
+	community_client.request_failed.connect(_on_online_error)
+
 func _on_creature_observed(display_name: String, research_reward: int) -> void:
 	if alliance_manager:
 		alliance_manager.register_objective("research")
@@ -466,6 +479,7 @@ func _create_hud() -> void:
 	status_label.position = Vector2(20, 390)
 	status_label.add_theme_font_size_override("font_size", 18)
 	layer.add_child(status_label)
+	_create_online_panel(layer)
 
 func _update_hud() -> void:
 	if not hud:
@@ -570,3 +584,110 @@ func _load_local_profile() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE:
 		_save_local_profile()
+
+func _create_online_panel(layer: CanvasLayer) -> void:
+	var panel := PanelContainer.new()
+	panel.position = Vector2(850, 18)
+	panel.custom_minimum_size = Vector2(400, 390)
+	layer.add_child(panel)
+	var column := VBoxContainer.new()
+	panel.add_child(column)
+	var title := Label.new()
+	title.text = "CUENTA Y COMUNIDAD ONLINE"
+	title.add_theme_font_size_override("font_size", 17)
+	column.add_child(title)
+	online_status_label = Label.new()
+	online_status_label.text = "Backend sin configurar. Completa client_config.example.json."
+	online_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(online_status_label)
+	online_email = LineEdit.new()
+	online_email.placeholder_text = "Correo electrónico"
+	column.add_child(online_email)
+	online_password = LineEdit.new()
+	online_password.placeholder_text = "Contraseña (mínimo 10 caracteres)"
+	online_password.secret = true
+	column.add_child(online_password)
+	online_handle = LineEdit.new()
+	online_handle.placeholder_text = "Usuario público (3-20 caracteres)"
+	column.add_child(online_handle)
+	var auth_row := HBoxContainer.new()
+	column.add_child(auth_row)
+	var signup := Button.new()
+	signup.text = "Crear cuenta"
+	signup.pressed.connect(_on_online_signup_pressed)
+	auth_row.add_child(signup)
+	var login := Button.new()
+	login.text = "Iniciar sesión"
+	login.pressed.connect(_on_online_login_pressed)
+	auth_row.add_child(login)
+	var chat_title := Label.new()
+	chat_title.text = "CHAT GLOBAL MODERADO"
+	column.add_child(chat_title)
+	online_chat_log = Label.new()
+	online_chat_log.text = "Los mensajes se publican solo después de revisión del servidor."
+	online_chat_log.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	online_chat_log.custom_minimum_size = Vector2(360, 90)
+	column.add_child(online_chat_log)
+	online_chat_input = LineEdit.new()
+	online_chat_input.placeholder_text = "Mensaje (máximo 240 caracteres)"
+	column.add_child(online_chat_input)
+	var chat_row := HBoxContainer.new()
+	column.add_child(chat_row)
+	var send := Button.new()
+	send.text = "Enviar mensaje"
+	send.pressed.connect(_on_online_chat_send)
+	chat_row.add_child(send)
+	var refresh := Button.new()
+	refresh.text = "Actualizar chat"
+	refresh.pressed.connect(_on_online_chat_refresh)
+	chat_row.add_child(refresh)
+	var config_file := FileAccess.open("res://backend/supabase/client_config.example.json", FileAccess.READ)
+	if config_file:
+		var config: Variant = JSON.parse_string(config_file.get_as_text())
+		config_file.close()
+		if typeof(config) == TYPE_DICTIONARY:
+			community_client.configure(str(config.get("supabase_url","")),str(config.get("supabase_anon_key","")))
+	if community_client._configured():
+		online_status_label.text = "Backend configurado. Puedes registrar o iniciar sesión."
+	else:
+		online_status_label.text = "Falta configurar Supabase. El chat online permanece inactivo."
+
+func _on_online_signup_pressed() -> void:
+	var result: Dictionary = await community_client.sign_up(online_email.text, online_password.text)
+	if int(result.get("status",0)) in [200,201] and not community_client.access_token.is_empty():
+		var profile_ok: bool = await community_client.register_profile(online_handle.text, online_handle.text)
+		online_status_label.text = "Cuenta creada y perfil registrado." if profile_ok else "Cuenta creada. Confirma el correo o revisa el usuario público."
+	elif int(result.get("status",0)) in [200,201]:
+		online_status_label.text = "Cuenta creada. Revisa tu correo para confirmar y luego inicia sesión."
+	else:
+		online_status_label.text = str(result.get("error","No se pudo crear la cuenta."))
+
+func _on_online_login_pressed() -> void:
+	var result: Dictionary = await community_client.sign_in(online_email.text, online_password.text)
+	if int(result.get("status",0)) == 200:
+		online_status_label.text = "Sesión iniciada: " + community_client.user_email
+	else:
+		online_status_label.text = str(result.get("error","No se pudo iniciar sesión."))
+
+func _on_online_auth_changed(is_authenticated: bool, message: String) -> void:
+	if online_status_label:
+		online_status_label.text = message if is_authenticated else message
+
+func _on_online_error(message: String) -> void:
+	if online_status_label:
+		online_status_label.text = message
+
+func _on_online_chat_send() -> void:
+	var sent: bool = await community_client.send_chat_message(online_chat_input.text)
+	if sent:
+		online_chat_input.clear()
+		online_status_label.text = "Mensaje enviado a revisión. Solo aparecerá si es aprobado."
+	else:
+		online_status_label.text = "No se pudo enviar. Comprueba tu sesión y los permisos de chat."
+
+func _on_online_chat_refresh() -> void:
+	var messages: Array = await community_client.fetch_global_chat()
+	var lines: PackedStringArray = []
+	for message in messages:
+		lines.append(str(message.get("body","")))
+	online_chat_log.text = "\n".join(lines) if not lines.is_empty() else "No hay mensajes visibles o todavía no hay conexión."
