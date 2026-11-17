@@ -15,6 +15,8 @@ var trade_manager: TradeManager
 var contract_manager: ContractManager
 var helicopter_manager: HelicopterScoutManager
 var creature_manager: CreatureEcosystemManager
+var npc_manager: NpcPopulationManager
+var npc_label: Label
 var kaiju_war: KaijuWarManager
 var damage_model: CentinelDamageModel
 var warfront_state: WarfrontStateManager
@@ -92,6 +94,8 @@ func _process(delta: float) -> void:
 		helicopter_label.text = helicopter_manager.get_status_text()
 	if creature_label and creature_manager:
 		creature_label.text = creature_manager.get_status_text()
+	if npc_label and npc_manager:
+		npc_label.text = npc_manager.get_status_text()
 	if market_label and market_open and trade_manager:
 		market_label.text = trade_manager.get_market_text()
 	if kaiju_label and kaiju_war:
@@ -113,6 +117,8 @@ func _physics_process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("collect"):
 		_try_collect_nearby(true)
+	if event.is_action_pressed("talk_npc"):
+		_interact_with_npc()
 	if event.is_action_pressed("upgrade_base"):
 		_upgrade_base()
 	if event.is_action_pressed("base_select_next") and base_development:
@@ -146,6 +152,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		kaiju_war.resolve_battle("retreat")
 	if event.is_action_pressed("repair_titan") and damage_model:
 		var repaired := damage_model.repair_with_resources(resources)
+		if repaired > 0 and npc_manager:
+			npc_manager.register_action("repair")
 		_show_status("Reparación completada: %d puntos. Se consumieron metal y energía." % repaired if repaired > 0 else "Faltan metal y energía o el Centinela ya está reparado.")
 		_update_hud()
 	if event.is_action_pressed("alliance_join") and alliance_manager:
@@ -190,6 +198,7 @@ func _setup_input() -> void:
 	_add_key("kaiju_engage", KEY_J)
 	_add_key("kaiju_retreat", KEY_G)
 	_add_key("repair_titan", KEY_Y)
+	_add_key("talk_npc", KEY_Z)
 	_add_key("tactic_flank", KEY_Q)
 	_add_key("tactic_guard", KEY_X)
 	_add_key("tactic_precision", KEY_U)
@@ -332,6 +341,10 @@ func _create_gameplay_systems() -> void:
 	creature_manager.set_player_target(player)
 	creature_manager.creature_observed.connect(_on_creature_observed)
 
+	npc_manager = NpcPopulationManager.new()
+	npc_manager.name = "NpcPopulationManager"
+	add_child(npc_manager)
+
 	kaiju_war = KaijuWarManager.new()
 	kaiju_war.name = "KaijuWarManager"
 	add_child(kaiju_war)
@@ -394,6 +407,8 @@ func _on_rift_stabilized(_index: int, reward: Dictionary) -> void:
 	for resource_id in reward.keys():
 		_add_resource(resource_id, int(reward[resource_id]))
 	contract_manager.register_action("rift")
+	if npc_manager:
+		npc_manager.register_action("rift")
 	_update_hud()
 	_show_status("¡Brecha estabilizada! Recompensas: +5 metal, +3 energía, +2 cristal.")
 
@@ -406,6 +421,8 @@ func _on_scouting_completed(reward: Dictionary, scan_center: Vector3) -> void:
 	var scan_radius := base_development.get_scouting_radius(30.0) if base_development else 30.0
 	var discovered := creature_manager.reveal_nearby(scan_center, scan_radius) if creature_manager else 0
 	contract_manager.register_action("scout")
+	if npc_manager:
+		npc_manager.register_action("scout")
 	if alliance_manager:
 		alliance_manager.register_objective("scout")
 	_update_hud()
@@ -428,6 +445,8 @@ func _on_contract_completed(title: String, reward: Dictionary) -> void:
 
 func _on_trade_completed(_good_id: String, _direction: String, _quantity: int) -> void:
 	contract_manager.register_action("trade")
+	if npc_manager:
+		npc_manager.register_action("trade")
 	_update_hud()
 
 func _handle_market_input(event: InputEvent) -> void:
@@ -515,6 +534,8 @@ func _try_collect_nearby(show_message: bool = false) -> void:
 		if player.global_position.distance_to(node.global_position) <= PICKUP_DISTANCE:
 			var kind: String = node.get_meta("resource_type")
 			var amount: int = node.get_meta("resource_amount")
+			if npc_manager:
+				npc_manager.register_action("collect")
 			_add_resource(kind, amount)
 			collected_nodes.erase(node)
 			node.queue_free()
@@ -687,6 +708,9 @@ func _create_hud() -> void:
 	column.add_child(alliance_label)
 	creature_label = Label.new()
 	column.add_child(creature_label)
+	npc_label = Label.new()
+	npc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(npc_label)
 	contracts_label = Label.new()
 	contracts_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(contracts_label)
@@ -695,7 +719,7 @@ func _create_hud() -> void:
 	market_label.visible = false
 	column.add_child(market_label)
 	var help := Label.new()
-	help.text = "WASD: mover | E: recoger | B: mejorar centro de mando | T: mejorar Jaeger\nV: elegir instalación | N: mejorar instalación | F: enlace | R: brecha\nH: helicópteros | J: enfrentar Kaiju | G: retirarse | F5: guardar\nK/P: alianza local | C: mercado | O: tecnología siguiente | I: investigar"
+	help.text = "WASD: mover | E: recoger | B: mejorar centro de mando | T: mejorar Jaeger\nV: elegir instalación | N: mejorar instalación | F: enlace | R: brecha\nH: helicópteros | J: enfrentar Abisal | G: retirarse | Z: hablar con NPC | F5: guardar\nK/P: alianza local | C: mercado | O: tecnología siguiente | I: investigar"
 	help.add_theme_font_size_override("font_size", 13)
 	column.add_child(help)
 	status_label = Label.new()
@@ -732,6 +756,25 @@ func _show_status(message: String) -> void:
 	if status_label:
 		status_label.text = message
 
+func _interact_with_npc() -> void:
+	if npc_manager == null or player == null:
+		return
+	var result: Dictionary = npc_manager.interact_nearest(player)
+	var message := str(result.get("message",""))
+	var reward: Dictionary = result.get("reward",{})
+	for reward_id in reward.keys():
+		if reward_id == "credits":
+			if trade_manager:
+				trade_manager.add_credits(int(reward[reward_id]))
+		elif reward_id == "research_data":
+			research_data += int(reward[reward_id])
+		else:
+			_add_resource(str(reward_id), int(reward[reward_id]))
+	_show_status(message)
+	_update_hud()
+	if not reward.is_empty():
+		_save_local_profile()
+
 func _material(color: Color, glow: bool = false) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
@@ -753,6 +796,10 @@ func _on_kaiju_battle_resolved(outcome: String, rewards: Dictionary, consequence
 		warfront_state.apply_battle_result(outcome, int(consequences.get("sector_pressure", 0)))
 	if damage_model:
 		damage_model.apply_battle_result(outcome, int(consequences.get("threat", 1)), str(consequences.get("tactic", "scan")), str(consequences.get("enemy_role", "stalker")))
+	if npc_manager:
+		npc_manager.register_battle_result(outcome)
+		if outcome == "victory":
+			npc_manager.register_action("victory")
 	var repair_cost := int(consequences.get("repair", 0))
 	var supply_loss := int(consequences.get("supply_loss", 0))
 	if repair_cost > 0:
@@ -809,7 +856,8 @@ func _save_local_profile() -> void:
 		"technology_state": technology_tree.export_state() if technology_tree else {},
 		"warfront_state": warfront_state.export_state() if warfront_state else {},
 		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {},
-		"damage_model_state": damage_model.export_state() if damage_model else {}
+		"damage_model_state": damage_model.export_state() if damage_model else {},
+		"npc_state": npc_manager.export_state() if npc_manager else {}
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -848,6 +896,10 @@ func _load_local_profile() -> void:
 		var saved_damage: Variant = snapshot.get("damage_model_state", {})
 		if saved_damage is Dictionary and not saved_damage.is_empty():
 			damage_model.import_state(saved_damage)
+	if npc_manager:
+		var saved_npc: Variant = snapshot.get("npc_state", {})
+		if saved_npc is Dictionary and not saved_npc.is_empty():
+			npc_manager.import_state(saved_npc)
 	if kaiju_war and campaign:
 		kaiju_war.set_progression(campaign.player_level, campaign.jaeger_generation)
 	if alliance_manager and typeof(snapshot.get("alliance_state", {})) == TYPE_DICTIONARY and not snapshot.get("alliance_state", {}).is_empty():
