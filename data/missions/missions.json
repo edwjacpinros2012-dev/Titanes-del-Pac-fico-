@@ -1,0 +1,6 @@
+{
+  "missions": [
+    {"id":"first_metal","title":"Primeros materiales","objective":"Recolecta 5 unidades de metal","target_resource":"metal","target_amount":5,"reward":{"energy":5}},
+    {"id":"power_up","title":"Energía para la base","objective":"Recolecta 5 unidades de energía","target_resource":"energy","target_amount":5,"reward":{"metal":8}}
+  ]
+}
