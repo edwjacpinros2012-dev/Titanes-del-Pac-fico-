@@ -1,0 +1,7 @@
+{
+  "technologies": [
+    {"id":"basic_scanning","name":"Escaneo básico","cost":{"metal":5,"energy":5},"prerequisites":[]},
+    {"id":"improved_harvesting","name":"Recolección mejorada","cost":{"metal":12,"energy":8},"prerequisites":["basic_scanning"]},
+    {"id":"titan_resonance","name":"Resonancia titánica","cost":{"metal":20,"energy":18,"crystal":8},"prerequisites":["improved_harvesting"]}
+  ]
+}
