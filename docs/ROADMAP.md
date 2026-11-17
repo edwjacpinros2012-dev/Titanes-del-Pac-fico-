@@ -1,18 +1,23 @@
 # Ruta de desarrollo
 
 ## Objetivo
-Juego 3D original de exploración, supervivencia, construcción y evolución. Motor: Godot 4.
+Juego 3D original de exploración, supervivencia ligera, recolección, fabricación, construcción y evolución de titanes. Motor: Godot 4.
 
 ## Hitos
 - [x] Repositorio y prototipo inicial.
-- [ ] Arquitectura modular y datos configurables.
-- [ ] Personaje/titán controlable con animación.
-- [ ] Recolección e inventario persistente.
-- [ ] Construcción por módulos y mejoras de base.
-- [ ] Biomas, criaturas e IA.
-- [ ] Investigación, misiones y progresión.
-- [ ] Guardado/carga y opciones.
-- [ ] Optimización, pruebas y exportación web.
+- [x] Primera arquitectura modular y datos configurables.
+- [x] Controlador, estadísticas y escena visual provisional de Titán Alfa.
+- [x] Lógica inicial de inventario, guardado, recetas y fabricación.
+- [x] Lógica inicial de energía de base y colocación de edificios.
+- [x] Lógica inicial de clima, ciclo horario y eventos.
+- [x] Lógica inicial de expediciones, descubrimientos y puntos de interés.
+- [ ] Conectar todos los sistemas al flujo principal y HUD.
+- [ ] Producir modelos 3D finales, rig y animaciones.
+- [ ] Crear biomas jugables completos y fauna con IA.
+- [ ] Integrar investigación, misiones y progresión en una campaña.
+- [ ] Guardado/carga unificado para todos los sistemas.
+- [ ] Pruebas en Godot, optimización y exportación web.
+- [ ] Multijugador después de estabilizar la experiencia individual.
 
 ## Regla de producción
-No se marca un sistema como terminado hasta que tenga archivos, integración en escenas, pruebas manuales y documentación. Los conceptos visuales no cuentan como modelos 3D integrados.
+Un sistema solo se marca como terminado cuando está integrado en escenas, probado manualmente en Godot y documentado. Tener un script o una escena provisional no equivale a tener una característica finalizada.
