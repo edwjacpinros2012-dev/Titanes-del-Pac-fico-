@@ -1,6 +1,6 @@
 # Titanes del Pacífico
 
-Juego 3D original de exploración, supervivencia ligera, recolección, fabricación, construcción y evolución, desarrollado con Godot 4.
+Juego 3D de exploración, supervivencia, recolección, fabricación, construcción y guerra de robots gigantes contra monstruos colosales, desarrollado con Godot 4. El nombre es provisional y debe pasar una revisión de marcas y originalidad antes de publicarse.
 
 ## Abrir el proyecto
 1. Instala Godot 4.
@@ -8,55 +8,61 @@ Juego 3D original de exploración, supervivencia ligera, recolección, fabricaci
 3. En Godot, pulsa **Importar** y selecciona `project.godot`.
 4. Ejecuta con F6/F5.
 
-## Prototipo y módulos preparados
+## Sistemas y contenido preparados
 - Escena 3D inicial con movimiento, cámara y recolección básica.
-- Recursos de metal, energía y cristales.
-- Mejora de base y evolución demostrativa.
-- Titán Alfa integrado en la escena principal, con escena visual provisional, controlador y estadísticas.
-- Escenas provisionales de centro de mando, generador y nodos de recursos.
-- Inventario, fabricación por recetas y sistema de guardado.
-- Construcción, energía de base e investigación.
-- Clima, ciclo día/noche y eventos del mundo.
-- Expediciones, puntos de interés y registro de descubrimientos.
-- Datos JSON para titanes, habilidades, regiones, recursos, edificios, tecnologías, misiones, recetas, comercio y doce especies originales.
-- Mercado costero con créditos, compra/venta de materiales y existencias limitadas.
-- Contratos de exploración, reconocimiento aéreo y comercio con recompensas.
-- Dos helicópteros de reconocimiento que sobrevuelan el sector y regresan a la base.
-- Ocho entidades provisionales del ecosistema y un sistema de encuentros Kaiju inicial; los Kaijus son monstruos enemigos, nunca mascotas ni compañeros del jugador.\n- Encuentros jugables con victoria, éxito parcial, retirada y derrota; recompensas y costes de recuperación.\n- Campaña conectada con capítulos y progresión de Jaeger Mark I–V.\n- Alianzas locales de prueba con rangos, objetivos y chat local filtrado.\n- Guardado de perfil versionado para recursos, créditos, investigación, base, campaña y alianza.
-- Catálogo de doce Kaijus enemigos originales con niveles de amenaza y progresión por campaña.
-- Diseño de campaña: el jugador comienza como recluta con un Jaeger Mark I y una base pequeña; la dificultad aumenta por capítulos y amenaza regional, con victorias, retiradas y derrotas que tienen consecuencias.
-- Diseño de alianzas de jugadores, roles, solicitudes de ingreso, invitaciones, objetivos cooperativos y clasificación.
-- Esquema inicial de backend Supabase para perfiles, alianzas, chat moderado, bloqueos y denuncias.
+- Recursos, inventario, fabricación, mejoras de base y evolución.
+- Titán Alfa y controlador con arte provisional de primitivas.
+- Construcción, energía, investigación, clima y ciclo día/noche.
+- Expediciones, puntos de interés y descubrimientos.
+- Mercado interno con créditos ficticios, materiales, compra/venta y existencias limitadas.
+- Contratos, recompensas de juego y reconocimiento con helicópteros.
+- Ecosistema inicial y catálogo de doce Kaijus originales: los monstruos son amenazas enemigas, nunca mascotas ni compañeros.
+- Encuentros con victoria, éxito parcial, retirada y derrota, con reparación y recuperación.
+- Campaña y progresión inicial de Jaegers Mark I–V.
+- Alianzas locales de demostración.
+- Esquema inicial Supabase para perfiles, alianzas, chat moderado, bloqueos y denuncias.
+- Base de datos adicional para guardado en nube, vinculación de identidad Google Play Games y progreso regional, con escrituras reservadas al servidor.
 
-## Controles de la escena principal
+## Economía y distribución
+- El juego se prepara como **gratuito para descargar**.
+- No habrá compras dentro de la aplicación, microtransacciones, suscripciones, anuncios ni Google Play Billing.
+- El mercado ficticio dentro del mundo usa créditos obtenidos jugando; no procesa dinero real.
+- Consulta `docs/ANDROID_FREE_RELEASE.md` para el proceso de Google Play.
+- Consulta `data/platform/google_play_release.json` para el estado de preparación. Los valores marcados como provisionales no están listos para publicación.
+
+## Controles principales
 - **WASD / flechas:** moverse.
-- **E:** intentar recoger un recurso cercano.
+- **E:** recoger recurso cercano.
 - **B:** mejorar la base.
 - **T:** evolucionar el titán.
 - **F:** sincronizar pilotos.
-- **R:** estabilizar una brecha cercana.
-- **H:** enviar helicópteros de reconocimiento.
-- **C:** abrir/cerrar el mercado; con el mercado abierto, 1-3 compra y 4-6 vende.
+- **R:** estabilizar una brecha.
+- **H:** enviar helicópteros.
+- **C:** abrir/cerrar mercado interno; con el mercado abierto, 1–3 compra y 4–6 vende con créditos ficticios.
+- **J:** iniciar/resolver encuentro Kaiju; tecla de retirada según configuración del prototipo.
 
 ## Estructura
-- `assets/`: futuros modelos, texturas, audio e interfaz.
-- `scenes/`: escenas Godot para mundo, personajes, base y recursos.
-- `scripts/`: lógica modular del juego.
-- `data/`: contenido configurable en JSON y recursos Godot.
-- `docs/` y `documentation/`: diseño, investigación, arquitectura y seguimiento.
-- `web/`: página informativa de lanzamiento.
+- `assets/`: modelos, texturas, audio e interfaz.
+- `scenes/`: escenas Godot.
+- `scripts/`: lógica modular.
+- `data/`: contenido configurable.
+- `backend/supabase/migrations/`: esquemas SQL iniciales; deben revisarse y aplicarse manualmente en un proyecto propio.
+- `docs/`: diseño, investigación, publicación y estado.
+- `web/`: página informativa; no es todavía una exportación jugable del juego.
 
-## Diseño de guerra, Kaijus y comunidad
-Consulta `docs/GAME_DESIGN_KAIJU_ALLIANCES_ONLINE.md` para la identidad Kaiju/Jaeger, campaña, progresión Mark, alianzas, registro, inicio de sesión y reglas de comunidad. El roster enemigo está en `data/kaiju/kaiju_roster.json`. El esquema SQL inicial está en `backend/supabase/migrations/0001_community_schema.sql`.
+## Cuentas, comunidad y seguridad
+La autenticación y las alianzas online todavía no están conectadas a un servicio real. Supabase Auth y el esquema SQL son una base de arquitectura, no un backend desplegado. El chat global permanece desactivado hasta tener moderación, reportes, bloqueos, controles de privacidad y revisión operativa.
 
-**Importante:** el sistema de alianzas que ya se puede probar en el prototipo es local. Cuentas, chat global, alianzas online y multijugador todavía no están conectados a un servicio real. El SQL es una base inicial que requiere configurar un proyecto Supabase, revisar las políticas, añadir funciones de servidor y probar la seguridad. El chat empieza desactivado y debe permanecer así hasta contar con moderación y controles adecuados.
+Las credenciales privadas y claves de servicio nunca deben guardarse en el cliente Godot ni en GitHub. Las escrituras del progreso en nube y la vinculación de Google Play Games deben validarse desde servidor.
 
 ## Estado real
-Los módulos de fabricación, clima, energía, expediciones y habilidades están creados como sistemas independientes y todavía necesitan conectarse al HUD y al flujo principal. La escena visual del Titán Alfa usa geometría provisional, no un modelo GLB final. Siguen pendientes modelos 3D finales, texturas, rig, animaciones, biomas completos, IA avanzada, integración completa y multijugador.
+No se ha verificado la compilación de todos los scripts en una ejecución local de Godot. Los modelos, rig y animaciones finales, biomas completos, IA avanzada, multijugador, exportación Android y conexión real a backend siguen pendientes. No se debe considerar un módulo terminado solo porque exista su archivo.
 
-No se ha verificado la compilación de todos los scripts en una ejecución local de Godot. Abre el proyecto y revisa errores antes de considerar una función lista.
+## Publicación
+Google Play requiere una cuenta de desarrollador y revisión de la aplicación. El creador menor de 18 años necesita que un padre, madre o tutor adulto gestione la cuenta y los acuerdos. La publicación pública completa tiene una tasa única de registro de desarrollador según las condiciones oficiales vigentes; que el juego sea gratuito no elimina esa tasa. Google, no el equipo del juego, decide la aprobación.
 
-## Publicación web
-Vercel aloja la página informativa de `web/`. La versión jugable del navegador requiere exportar el juego desde Godot con la plantilla Web y publicar esos archivos exportados. No se presenta la página informativa como juego web terminado.
-
-Consulta `docs/GAME_DESIGN_KAIJU_ALLIANCES_ONLINE.md`, `docs/CONTENT_STATUS.md` y `docs/ROADMAP.md` para el diseño y el estado actualizado.
+Documentación:
+- `docs/ANDROID_FREE_RELEASE.md`
+- `docs/ORIGINALITY_AND_IP.md`
+- `docs/ROADMAP.md`
+- `docs/CONTENT_STATUS.md`
