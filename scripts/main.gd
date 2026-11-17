@@ -46,6 +46,8 @@ var base_level := 1
 var titan_level := 1
 var collected_nodes: Array[Node3D] = []
 var world_time := 0.0
+var autosave_elapsed := 0.0
+const AUTOSAVE_INTERVAL := 60.0
 
 func _ready() -> void:
 	_setup_input()
@@ -59,6 +61,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	world_time += delta
+	autosave_elapsed += delta
+	if autosave_elapsed >= AUTOSAVE_INTERVAL:
+		autosave_elapsed = 0.0
+		_save_local_profile()
 	if player and camera:
 		var target := player.global_position + Vector3(0, 13, 17)
 		camera.global_position = camera.global_position.lerp(target, min(delta * 4.0, 1.0))
@@ -311,12 +317,17 @@ func _create_gameplay_systems() -> void:
 	base_development = BaseDevelopmentManager.new()
 	base_development.name = "BaseDevelopmentManager"
 	add_child(base_development)
+	base_development.research_generated.connect(_on_base_research_generated)
 
 	community_client = CommunityClient.new()
 	community_client.name = "CommunityClient"
 	add_child(community_client)
 	community_client.auth_changed.connect(_on_online_auth_changed)
 	community_client.request_failed.connect(_on_online_error)
+
+func _on_base_research_generated(amount: int) -> void:
+	research_data += amount
+	_update_hud()
 
 func _on_creature_observed(display_name: String, research_reward: int) -> void:
 	if alliance_manager:
@@ -333,7 +344,7 @@ func _on_synchronization_ended() -> void:
 
 func _on_rift_stabilized(_index: int, reward: Dictionary) -> void:
 	for resource_id in reward.keys():
-		resources[resource_id] = int(resources.get(resource_id, 0)) + int(reward[resource_id])
+		_add_resource(resource_id, int(reward[resource_id]))
 	contract_manager.register_action("rift")
 	_update_hud()
 	_show_status("¡Brecha estabilizada! Recompensas: +5 metal, +3 energía, +2 cristal.")
@@ -344,7 +355,8 @@ func _on_scouting_completed(reward: Dictionary, scan_center: Vector3) -> void:
 			research_data += int(reward[resource_id])
 		else:
 			resources[resource_id] = int(resources.get(resource_id, 0)) + int(reward[resource_id])
-	var discovered := creature_manager.reveal_nearby(scan_center, 30.0) if creature_manager else 0
+	var scan_radius := base_development.get_scouting_radius(30.0) if base_development else 30.0
+	var discovered := creature_manager.reveal_nearby(scan_center, scan_radius) if creature_manager else 0
 	contract_manager.register_action("scout")
 	if alliance_manager:
 		alliance_manager.register_objective("scout")
@@ -358,7 +370,7 @@ func _on_contract_completed(title: String, reward: Dictionary) -> void:
 		elif reward_id == "research_data":
 			research_data += int(reward[reward_id])
 		else:
-			resources[reward_id] = int(resources.get(reward_id, 0)) + int(reward[reward_id])
+			_add_resource(reward_id, int(reward[reward_id]))
 	_update_hud()
 	if campaign:
 		campaign.add_experience(2)
@@ -455,7 +467,7 @@ func _try_collect_nearby(show_message: bool = false) -> void:
 		if player.global_position.distance_to(node.global_position) <= PICKUP_DISTANCE:
 			var kind: String = node.get_meta("resource_type")
 			var amount: int = node.get_meta("resource_amount")
-			resources[kind] += amount
+			_add_resource(kind, amount)
 			collected_nodes.erase(node)
 			node.queue_free()
 			_update_hud()
@@ -599,6 +611,13 @@ func _create_hud() -> void:
 	layer.add_child(platform_input)
 	_create_online_panel(layer)
 
+func _add_resource(resource_id: String, amount: int) -> void:
+	if amount <= 0:
+		return
+	var capacity := base_development.get_storage_capacity() if base_development else 250
+	var current_amount := int(resources.get(resource_id, 0))
+	resources[resource_id] = mini(capacity, current_amount + amount)
+
 func _update_hud() -> void:
 	if not hud:
 		return
@@ -624,11 +643,13 @@ func _on_kaiju_battle_resolved(outcome: String, rewards: Dictionary, consequence
 		elif key == "research_data":
 			research_data += int(rewards[key])
 		else:
-			resources[key] = int(resources.get(key, 0)) + int(rewards[key])
+			_add_resource(key, int(rewards[key]))
 	var repair_cost := int(consequences.get("repair", 0))
 	var supply_loss := int(consequences.get("supply_loss", 0))
 	if repair_cost > 0:
-		resources["metal"] = maxi(0, int(resources["metal"]) - repair_cost)
+		var repair_discount := base_development.get_repair_discount() if base_development else 0.0
+		var final_repair_cost := roundi(float(repair_cost) * (1.0 - repair_discount))
+		resources["metal"] = maxi(0, int(resources["metal"]) - final_repair_cost)
 	if supply_loss > 0:
 		resources["energia"] = maxi(0, int(resources["energia"]) - supply_loss)
 	if outcome == "victory":
@@ -705,7 +726,7 @@ func _load_local_profile() -> void:
 	_update_hud()
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE or what == NOTIFICATION_APPLICATION_PAUSED:
 		_save_local_profile()
 
 func _create_online_panel(layer: CanvasLayer) -> void:
