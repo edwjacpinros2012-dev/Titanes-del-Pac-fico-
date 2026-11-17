@@ -140,7 +140,7 @@ func resolve_battle(action: String = "engage") -> Dictionary:
 		"player_power": player_power, "base_power": base_power,
 		"kaiju_power": kaiju_power, "power_gap": player_power - kaiju_power,
 		"tactic": selected_tactic, "tactic_bonus": tactic_bonus,
-		"pilot_skill": pilot_skill, "enemy_role": active_kaiju_role,
+		"pilot_skill": pilot_skill, "enemy_role": active_kaiju_role, "threat": threat,
 		"readiness": get_readiness_state()
 	}
 	var outcome := "retreat"
