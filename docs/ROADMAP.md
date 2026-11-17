@@ -22,8 +22,8 @@ Juego 3D original de guerra de robots gigantes contra monstruos colosales. El ju
 - [x] Guía de originalidad y revisión de propiedad intelectual.
 - [ ] Corregir e integrar todos los sistemas en la escena principal y HUD.
 - [x] Añadir gestión lógica de diez instalaciones de base, requisitos, costes y producción pasiva local (pendiente de prueba en Godot).
-- [ ] Integrar capacidad de almacén, energía, reparación y efectos reales de cada instalación.
-- [ ] Unificar guardado local de todos los sistemas y probar restauración.
+- [x] Primera integración de capacidad de almacén, producción de investigación, descuento de reparaciones y radio de reconocimiento (validación funcional en dispositivo pendiente).
+- [x] Añadir autosalvado periódico y al suspender/cerrar; [ ] ampliar cobertura de guardado y probar restauración completa en dispositivo.
 - [ ] Producir modelos 3D finales, rig y animaciones.
 - [ ] Crear biomas jugables completos e IA avanzada.
 - [ ] Configurar backend real, Auth, funciones de servidor y políticas RLS.
@@ -35,8 +35,8 @@ Juego 3D original de guerra de robots gigantes contra monstruos colosales. El ju
 - [x] Preparar ajustes generales de escalado, orientación horizontal y renderer compatible.
 - [x] Añadir flujo de GitHub Actions para importar y ejecutar el proyecto en modo headless con Godot 4.3.
 - [ ] Ajustar cada panel del HUD a móvil/tableta y validar resoluciones.
-- [ ] Exportar e instalar Android en dispositivos reales.
-- [ ] Exportar y probar Web, Windows, Linux y macOS.
+- [x] Añadir presets y scripts iniciales para Android, Web, Windows y Linux (exportación real pendiente de SDK/plantillas).
+- [ ] Instalar y probar Android en dispositivos reales; probar Web, Windows, Linux, macOS e iOS con sus exportaciones específicas.
 - [ ] Preparar política de privacidad, ficha, clasificación y formularios de Play Console.
 - [ ] Completar pruebas cerradas y solicitar acceso a producción.
 - [ ] Enviar a revisión de Google y esperar su decisión.
