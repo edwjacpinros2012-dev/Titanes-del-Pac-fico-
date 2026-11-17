@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/resource_node.gd" id="1_script"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_resource"]
+radius = 0.55
+height = 1.1
+
+[sub_resource type="SphereShape3D" id="SphereShape_resource"]
+radius = 0.6
+
+[node name="ResourceNode" type="StaticBody3D"]
+script = ExtResource("1_script")
+resource_id = "metal"
+amount = 2
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.7, 0)
+mesh = SubResource("SphereMesh_resource")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.7, 0)
+shape = SubResource("SphereShape_resource")
