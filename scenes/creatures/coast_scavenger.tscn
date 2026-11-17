@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/creatures/creature_brain.gd" id="1_brain"]
+[ext_resource type="Resource" path="res://data/creatures/coast_scavenger.tres" id="2_data"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_creature"]
+radius = 0.45
+height = 1.4
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_creature"]
+radius = 0.45
+height = 1.4
+
+[node name="CoastScavenger" type="CharacterBody3D"]
+script = ExtResource("1_brain")
+definition = ExtResource("2_data")
+
+[node name="Visual" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.7, 0)
+mesh = SubResource("CapsuleMesh_creature")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.7, 0)
+shape = SubResource("CapsuleShape_creature")
