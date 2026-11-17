@@ -61,7 +61,12 @@ func _complete_rift(index: int) -> void:
 	active_rift_index = -1
 
 func get_objective_text() -> String:
-	if completed.all(func(value: bool) -> bool: return value):
+	var all_completed := true
+	for is_done in completed:
+		if not is_done:
+			all_completed = false
+			break
+	if all_completed:
 		return "BRECHAS ESTABILIZADAS: sector seguro"
 	if active_rift_index >= 0:
 		return "MANTÉN R PARA ESTABILIZAR: %d%%" % roundi(current_progress * 100.0)
