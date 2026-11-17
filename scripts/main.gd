@@ -29,23 +29,9 @@ func _process(delta: float) -> void:
 		camera.look_at(player.global_position + Vector3(0, 1, 0), Vector3.UP)
 	_try_collect_nearby()
 
-func _physics_process(delta: float) -> void:
-	if not player:
-		return
-	var input_dir := Vector2(
-		Input.get_action_strength("move_right") - Input.get_action_strength("move_left"),
-		Input.get_action_strength("move_back") - Input.get_action_strength("move_forward")
-	)
-	var direction := Vector3(input_dir.x, 0, input_dir.y).normalized()
-	player.velocity.x = direction.x * MOVE_SPEED
-	player.velocity.z = direction.z * MOVE_SPEED
-	if not player.is_on_floor():
-		player.velocity.y -= 24.0 * delta
-	else:
-		player.velocity.y = 0
-	player.move_and_slide()
-	if direction.length() > 0.1:
-		player.rotation.y = lerp_angle(player.rotation.y, atan2(direction.x, direction.z), delta * 10.0)
+func _physics_process(_delta: float) -> void:
+	# El movimiento ahora pertenece al controlador del Titán Alfa.
+	pass
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("collect"):
@@ -118,22 +104,16 @@ func _create_world() -> void:
 	add_child(camera)
 
 func _create_player() -> void:
-	player = CharacterBody3D.new()
-	player.name = "Explorador"
-	player.position = Vector3(0, 1.2, 2)
-	var body_mesh := MeshInstance3D.new()
-	var capsule := CapsuleMesh.new()
-	capsule.radius = 0.48
-	capsule.height = 1.8
-	body_mesh.mesh = capsule
-	body_mesh.material_override = _material(Color(0.12, 0.65, 0.9))
-	player.add_child(body_mesh)
-	var collision := CollisionShape3D.new()
-	var shape := CapsuleShape3D.new()
-	shape.radius = 0.48
-	shape.height = 1.8
-	collision.shape = shape
-	player.add_child(collision)
+	var titan_scene := load("res://scenes/characters/titans/titan_alpha.tscn") as PackedScene
+	if titan_scene == null:
+		push_error("No se pudo cargar la escena de Titán Alfa.")
+		return
+	player = titan_scene.instantiate() as CharacterBody3D
+	if player == null:
+		push_error("La escena de Titán Alfa necesita un CharacterBody3D como raíz.")
+		return
+	player.name = "TitanAlfa"
+	player.position = Vector3(0, 0, 2)
 	add_child(player)
 
 func _create_base_visual(pos: Vector3) -> void:
