@@ -16,6 +16,7 @@ var contract_manager: ContractManager
 var helicopter_manager: HelicopterScoutManager
 var creature_manager: CreatureEcosystemManager
 var kaiju_war: KaijuWarManager
+var warfront_state: WarfrontStateManager
 var campaign: CampaignManager
 var alliance_manager: AllianceManager
 var base_development: BaseDevelopmentManager
@@ -90,7 +91,7 @@ func _process(delta: float) -> void:
 	if market_label and market_open and trade_manager:
 		market_label.text = trade_manager.get_market_text()
 	if kaiju_label and kaiju_war:
-		kaiju_label.text = kaiju_war.get_status_text()
+		kaiju_label.text = kaiju_war.get_status_text() + ("\n" + warfront_state.get_status_text() if warfront_state else "")
 	if alliance_label and alliance_manager:
 		alliance_label.text = alliance_manager.get_summary()
 	if base_development:
@@ -315,6 +316,10 @@ func _create_gameplay_systems() -> void:
 	add_child(kaiju_war)
 	kaiju_war.set_player_target(player)
 	kaiju_war.battle_resolved.connect(_on_kaiju_battle_resolved)
+
+	warfront_state = WarfrontStateManager.new()
+	warfront_state.name = "WarfrontStateManager"
+	add_child(warfront_state)
 
 	campaign = CampaignManager.new()
 	campaign.name = "CampaignManager"
@@ -705,6 +710,8 @@ func _on_kaiju_battle_resolved(outcome: String, rewards: Dictionary, consequence
 			research_data += int(rewards[key])
 		else:
 			_add_resource(key, int(rewards[key]))
+	if warfront_state:
+		warfront_state.apply_battle_result(outcome, int(consequences.get("sector_pressure", 0)))
 	var repair_cost := int(consequences.get("repair", 0))
 	var supply_loss := int(consequences.get("supply_loss", 0))
 	if repair_cost > 0:
@@ -758,7 +765,8 @@ func _save_local_profile() -> void:
 		"alliance_tag": alliance_manager.alliance_tag if alliance_manager else "",
 		"alliance_rank": alliance_manager.rank if alliance_manager else "Sin alianza",
 		"alliance_state": alliance_manager.export_state() if alliance_manager else {},
-		"technology_state": technology_tree.export_state() if technology_tree else {}
+		"technology_state": technology_tree.export_state() if technology_tree else {},
+		"warfront_state": warfront_state.export_state() if warfront_state else {}
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -785,6 +793,10 @@ func _load_local_profile() -> void:
 			technology_tree.import_state(saved_technology)
 	if campaign:
 		campaign.set_player_level(int(snapshot.get("campaign_level", 1)))
+	if warfront_state:
+		var saved_warfront: Variant = snapshot.get("warfront_state", {})
+		if saved_warfront is Dictionary:
+			warfront_state.import_state(saved_warfront)
 	if kaiju_war and campaign:
 		kaiju_war.set_progression(campaign.player_level, campaign.jaeger_generation)
 	if alliance_manager and typeof(snapshot.get("alliance_state", {})) == TYPE_DICTIONARY and not snapshot.get("alliance_state", {}).is_empty():
