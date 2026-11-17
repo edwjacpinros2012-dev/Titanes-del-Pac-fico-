@@ -10,7 +10,7 @@
 | Mercado y comercio | Compra/venta de metal, energía y cristal, existencias y créditos; falta prueba y guardado persistente |
 | Contratos y recompensas | Tres contratos automáticos con créditos y datos de investigación; falta prueba local |
 | Reconocimiento aéreo | Dos helicópteros visuales salen, exploran y regresan con recursos; falta prueba local |
-| Ecosistema de criaturas | Ocho criaturas provisionales se desplazan y se registran al acercarse; modelos finales e IA avanzada pendientes |
+| Ecosistema de criaturas | Ocho criaturas provisionales se desplazan y pueden descubrirse a pie o por reconocimiento aéreo; modelos finales e IA avanzada pendientes |
 | Catálogo de colosos | Doce especies originales documentadas en JSON |
 | Inventario | Lógica básica creada |
 | Fabricación | Gestor y datos de recetas creados; estación/UI pendientes |
