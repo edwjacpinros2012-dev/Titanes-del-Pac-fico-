@@ -36,6 +36,14 @@ func _test_save_manager() -> void:
 	assert(int(loaded.get("credits", 0)) == 150)
 	assert(str(loaded.get("active_contract", "")) == "coastal_patrol")
 	assert(int(loaded.get("version", 0)) == 2)
+	assert(manager.save_profile({"credits": 250, "campaign_level": 3}))
+	var damaged_file := FileAccess.open("user://titanes_save.json", FileAccess.WRITE)
+	assert(damaged_file != null)
+	damaged_file.store_string("{ invalid json")
+	damaged_file.close()
+	var recovered: Dictionary = manager.load_profile()
+	assert(int(recovered.get("credits", 0)) == 150, "corrupt primary save should recover the previous backup")
+	assert(manager.save_profile(recovered), "recovered profile should be writable again")
 	manager.free()
 
 func _test_threat_director() -> void:
