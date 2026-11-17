@@ -11,6 +11,14 @@ var objective_label: Label
 var sync_label: Label
 var pilot_sync: PilotSyncManager
 var rift_manager: PacificRiftManager
+var trade_manager: TradeManager
+var contract_manager: ContractManager
+var helicopter_manager: HelicopterScoutManager
+var contracts_label: Label
+var helicopter_label: Label
+var market_label: Label
+var market_open: bool = false
+var research_data: int = 0
 var resources := {"metal": 0, "energia": 0, "cristal": 0}
 var base_level := 1
 var titan_level := 1
@@ -39,6 +47,12 @@ func _process(delta: float) -> void:
 		objective_label.text = rift_manager.get_objective_text()
 	if sync_label and pilot_sync:
 		sync_label.text = pilot_sync.get_status_text()
+	if contracts_label and contract_manager:
+		contracts_label.text = contract_manager.get_summary_text()
+	if helicopter_label and helicopter_manager:
+		helicopter_label.text = helicopter_manager.get_status_text()
+	if market_label and market_open and trade_manager:
+		market_label.text = trade_manager.get_market_text()
 
 func _physics_process(_delta: float) -> void:
 	# El movimiento ahora pertenece al controlador del Titán Alfa.
@@ -51,6 +65,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		_upgrade_base()
 	if event.is_action_pressed("evolve_titan"):
 		_evolve_titan()
+	if event.is_action_pressed("market_toggle"):
+		market_open = not market_open
+		if market_label:
+			market_label.visible = market_open
+		_show_status("Canal comercial abierto." if market_open else "Canal comercial cerrado.")
+	if event.is_action_pressed("scout_helicopters"):
+		if helicopter_manager and player:
+			if helicopter_manager.dispatch_scout(player.global_position):
+				_show_status("Helicópteros enviados a reconocer el sector.")
+			else:
+				_show_status("Los helicópteros ya están en una misión.")
+	if market_open:
+		_handle_market_input(event)
 
 func _setup_input() -> void:
 	_add_key("move_forward", KEY_W)
@@ -66,6 +93,14 @@ func _setup_input() -> void:
 	_add_key("evolve_titan", KEY_T)
 	_add_key("sync_pilots", KEY_F)
 	_add_key("stabilize_rift", KEY_R)
+	_add_key("market_toggle", KEY_C)
+	_add_key("scout_helicopters", KEY_H)
+	_add_key("market_buy_metal", KEY_1)
+	_add_key("market_buy_energy", KEY_2)
+	_add_key("market_buy_crystal", KEY_3)
+	_add_key("market_sell_metal", KEY_4)
+	_add_key("market_sell_energy", KEY_5)
+	_add_key("market_sell_crystal", KEY_6)
 
 func _add_key(action: String, keycode: Key) -> void:
 	if not InputMap.has_action(action):
@@ -141,6 +176,21 @@ func _create_gameplay_systems() -> void:
 	add_child(rift_manager)
 	rift_manager.rift_stabilized.connect(_on_rift_stabilized)
 
+	trade_manager = TradeManager.new()
+	trade_manager.name = "TradeManager"
+	add_child(trade_manager)
+	trade_manager.trade_completed.connect(_on_trade_completed)
+
+	contract_manager = ContractManager.new()
+	contract_manager.name = "ContractManager"
+	add_child(contract_manager)
+	contract_manager.contract_completed.connect(_on_contract_completed)
+
+	helicopter_manager = HelicopterScoutManager.new()
+	helicopter_manager.name = "HelicopterScoutManager"
+	add_child(helicopter_manager)
+	helicopter_manager.scouting_completed.connect(_on_scouting_completed)
+
 func _on_synchronization_started() -> void:
 	_show_status("¡Enlace de pilotos sincronizado! Movilidad mejorada temporalmente.")
 
@@ -150,8 +200,55 @@ func _on_synchronization_ended() -> void:
 func _on_rift_stabilized(_index: int, reward: Dictionary) -> void:
 	for resource_id in reward.keys():
 		resources[resource_id] = int(resources.get(resource_id, 0)) + int(reward[resource_id])
+	contract_manager.register_action("rift")
 	_update_hud()
 	_show_status("¡Brecha estabilizada! Recompensas: +5 metal, +3 energía, +2 cristal.")
+
+func _on_scouting_completed(reward: Dictionary) -> void:
+	for resource_id in reward.keys():
+		if resource_id == "research_data":
+			research_data += int(reward[resource_id])
+		else:
+			resources[resource_id] = int(resources.get(resource_id, 0)) + int(reward[resource_id])
+	contract_manager.register_action("scout")
+	_update_hud()
+	_show_status("Reconocimiento completado: llegaron materiales y datos de investigación.")
+
+func _on_contract_completed(title: String, reward: Dictionary) -> void:
+	for reward_id in reward.keys():
+		if reward_id == "credits":
+			trade_manager.add_credits(int(reward[reward_id]))
+		elif reward_id == "research_data":
+			research_data += int(reward[reward_id])
+		else:
+			resources[reward_id] = int(resources.get(reward_id, 0)) + int(reward[reward_id])
+	_update_hud()
+	_show_status("Contrato completado: " + title + " | recompensa recibida.")
+
+func _on_trade_completed(_good_id: String, _direction: String, _quantity: int) -> void:
+	contract_manager.register_action("trade")
+	_update_hud()
+
+func _handle_market_input(event: InputEvent) -> void:
+	var completed_trade := false
+	if event.is_action_pressed("market_buy_metal"):
+		completed_trade = trade_manager.buy_good("metal", 3, resources)
+	elif event.is_action_pressed("market_buy_energy"):
+		completed_trade = trade_manager.buy_good("energia", 3, resources)
+	elif event.is_action_pressed("market_buy_crystal"):
+		completed_trade = trade_manager.buy_good("cristal", 2, resources)
+	elif event.is_action_pressed("market_sell_metal"):
+		completed_trade = trade_manager.sell_good("metal", 3, resources)
+	elif event.is_action_pressed("market_sell_energy"):
+		completed_trade = trade_manager.sell_good("energia", 3, resources)
+	elif event.is_action_pressed("market_sell_crystal"):
+		completed_trade = trade_manager.sell_good("cristal", 2, resources)
+	if completed_trade:
+		_show_status(trade_manager.last_message)
+	else:
+		if event.is_action_pressed("market_buy_metal") or event.is_action_pressed("market_buy_energy") or event.is_action_pressed("market_buy_crystal") or event.is_action_pressed("market_sell_metal") or event.is_action_pressed("market_sell_energy") or event.is_action_pressed("market_sell_crystal"):
+			_show_status(trade_manager.last_message)
+	_update_hud()
 
 func _create_base_visual(pos: Vector3) -> void:
 	var base := MeshInstance3D.new()
@@ -256,7 +353,7 @@ func _create_hud() -> void:
 	add_child(layer)
 	var panel := PanelContainer.new()
 	panel.position = Vector2(18, 18)
-	panel.custom_minimum_size = Vector2(340, 170)
+	panel.custom_minimum_size = Vector2(470, 370)
 	layer.add_child(panel)
 	var column := VBoxContainer.new()
 	panel.add_child(column)
@@ -272,19 +369,28 @@ func _create_hud() -> void:
 	column.add_child(objective_label)
 	sync_label = Label.new()
 	column.add_child(sync_label)
+	helicopter_label = Label.new()
+	column.add_child(helicopter_label)
+	contracts_label = Label.new()
+	contracts_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(contracts_label)
+	market_label = Label.new()
+	market_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	market_label.visible = false
+	column.add_child(market_label)
 	var help := Label.new()
-	help.text = "WASD/Flechas: mover | E: recoger | B: base | T: evolucionar\nMantén F: sincronizar pilotos | Mantén R: estabilizar brecha"
+	help.text = "WASD: mover | E: recoger | B: base | T: evolucionar | F: enlace\nR: estabilizar brecha | H: helicópteros | C: mercado\nMercado abierto: 1-3 comprar | 4-6 vender"
 	help.add_theme_font_size_override("font_size", 13)
 	column.add_child(help)
 	status_label = Label.new()
-	status_label.position = Vector2(20, 205)
+	status_label.position = Vector2(20, 390)
 	status_label.add_theme_font_size_override("font_size", 18)
 	layer.add_child(status_label)
 
 func _update_hud() -> void:
 	if not hud:
 		return
-	hud.text = "RECURSOS\nMetal: %d   Energía: %d   Cristal: %d\n\nBASE: nivel %d     TITÁN: nivel %d" % [resources["metal"], resources["energia"], resources["cristal"], base_level, titan_level]
+	hud.text = "RECURSOS\nMetal: %d   Energía: %d   Cristal: %d\nDatos de investigación: %d\nCréditos: %d\nBASE: nivel %d     TITÁN: nivel %d" % [resources["metal"], resources["energia"], resources["cristal"], research_data, trade_manager.credits if trade_manager else 0, base_level, titan_level]
 
 func _show_status(message: String) -> void:
 	if status_label:
