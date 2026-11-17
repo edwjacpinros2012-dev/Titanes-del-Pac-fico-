@@ -100,11 +100,17 @@ alter table public.player_blocks enable row level security;
 alter table public.player_reports enable row level security;
 alter table public.chat_restrictions enable row level security;
 
+-- Clients may edit only public display fields. The chat permission flag is server-managed.
+revoke all on public.player_profiles from anon, authenticated;
+grant select, insert on public.player_profiles to authenticated;
+grant update (handle, display_name) on public.player_profiles to authenticated;
+
 -- Public game identity only; do not add private account fields to this table.
 create policy "profiles_read_authenticated"
   on public.player_profiles for select to authenticated using (true);
 create policy "profiles_insert_self"
-  on public.player_profiles for insert to authenticated with check (auth.uid() = user_id);
+  on public.player_profiles for insert to authenticated
+  with check (auth.uid() = user_id and global_chat_enabled = false);
 create policy "profiles_update_self"
   on public.player_profiles for update to authenticated
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
