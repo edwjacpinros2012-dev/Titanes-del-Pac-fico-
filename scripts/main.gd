@@ -15,6 +15,11 @@ var trade_manager: TradeManager
 var contract_manager: ContractManager
 var helicopter_manager: HelicopterScoutManager
 var creature_manager: CreatureEcosystemManager
+var kaiju_war: KaijuWarManager
+var campaign: CampaignManager
+var alliance_manager: AllianceManager
+var kaiju_label: Label
+var alliance_label: Label
 var contracts_label: Label
 var helicopter_label: Label
 var creature_label: Label
@@ -33,6 +38,7 @@ func _ready() -> void:
 	_create_player()
 	_create_gameplay_systems()
 	_create_hud()
+	_load_local_profile()
 	_spawn_resources()
 	_update_hud()
 
@@ -57,6 +63,10 @@ func _process(delta: float) -> void:
 		creature_label.text = creature_manager.get_status_text()
 	if market_label and market_open and trade_manager:
 		market_label.text = trade_manager.get_market_text()
+	if kaiju_label and kaiju_war:
+		kaiju_label.text = kaiju_war.get_status_text()
+	if alliance_label and alliance_manager:
+		alliance_label.text = alliance_manager.get_summary()
 
 func _physics_process(_delta: float) -> void:
 	# El movimiento ahora pertenece al controlador del Titán Alfa.
@@ -74,6 +84,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		if market_label:
 			market_label.visible = market_open
 		_show_status("Canal comercial abierto." if market_open else "Canal comercial cerrado.")
+	if event.is_action_pressed("kaiju_engage") and kaiju_war:
+		kaiju_war.resolve_battle("engage")
+	if event.is_action_pressed("kaiju_retreat") and kaiju_war:
+		kaiju_war.resolve_battle("retreat")
+	if event.is_action_pressed("alliance_join") and alliance_manager:
+		if alliance_manager.join_demo_alliance():
+			_show_status("Te has unido a Guardianes del Abismo. Alianza de demostración local.")
+	if event.is_action_pressed("alliance_create") and alliance_manager:
+		if alliance_manager.create_alliance("Vanguardia del Pacífico", "VDP"):
+			_show_status("Alianza local creada: Vanguardia del Pacífico.")
+	if event.is_action_pressed("save_profile"):
+		_save_local_profile()
 	if event.is_action_pressed("scout_helicopters"):
 		if helicopter_manager and player:
 			if helicopter_manager.dispatch_scout(player.global_position):
@@ -99,6 +121,11 @@ func _setup_input() -> void:
 	_add_key("stabilize_rift", KEY_R)
 	_add_key("market_toggle", KEY_C)
 	_add_key("scout_helicopters", KEY_H)
+	_add_key("kaiju_engage", KEY_J)
+	_add_key("kaiju_retreat", KEY_G)
+	_add_key("alliance_join", KEY_K)
+	_add_key("alliance_create", KEY_P)
+	_add_key("save_profile", KEY_F5)
 	_add_key("market_buy_metal", KEY_1)
 	_add_key("market_buy_energy", KEY_2)
 	_add_key("market_buy_crystal", KEY_3)
@@ -201,7 +228,26 @@ func _create_gameplay_systems() -> void:
 	creature_manager.set_player_target(player)
 	creature_manager.creature_observed.connect(_on_creature_observed)
 
+	kaiju_war = KaijuWarManager.new()
+	kaiju_war.name = "KaijuWarManager"
+	add_child(kaiju_war)
+	kaiju_war.set_player_target(player)
+	kaiju_war.battle_resolved.connect(_on_kaiju_battle_resolved)
+
+	campaign = CampaignManager.new()
+	campaign.name = "CampaignManager"
+	add_child(campaign)
+	campaign.chapter_changed.connect(_on_campaign_chapter_changed)
+
+	alliance_manager = AllianceManager.new()
+	alliance_manager.name = "AllianceManager"
+	add_child(alliance_manager)
+	alliance_manager.alliance_changed.connect(_on_alliance_changed)
+	alliance_manager.message_added.connect(_on_alliance_message)
+
 func _on_creature_observed(display_name: String, research_reward: int) -> void:
+	if alliance_manager:
+		alliance_manager.register_objective("research")
 	research_data += research_reward
 	_update_hud()
 	_show_status("Nueva especie registrada: " + display_name + " | +" + str(research_reward) + " datos de investigación.")
@@ -227,6 +273,8 @@ func _on_scouting_completed(reward: Dictionary, scan_center: Vector3) -> void:
 			resources[resource_id] = int(resources.get(resource_id, 0)) + int(reward[resource_id])
 	var discovered := creature_manager.reveal_nearby(scan_center, 30.0) if creature_manager else 0
 	contract_manager.register_action("scout")
+	if alliance_manager:
+		alliance_manager.register_objective("scout")
 	_update_hud()
 	_show_status("Reconocimiento completado: %d especies detectadas y materiales recuperados." % discovered)
 
@@ -239,6 +287,10 @@ func _on_contract_completed(title: String, reward: Dictionary) -> void:
 		else:
 			resources[reward_id] = int(resources.get(reward_id, 0)) + int(reward[reward_id])
 	_update_hud()
+	if campaign:
+		campaign.add_experience(2)
+		if kaiju_war:
+			kaiju_war.set_progression(campaign.player_level, campaign.jaeger_generation)
 	_show_status("Contrato completado: " + title + " | recompensa recibida.")
 
 func _on_trade_completed(_good_id: String, _direction: String, _quantity: int) -> void:
@@ -387,6 +439,12 @@ func _create_hud() -> void:
 	column.add_child(sync_label)
 	helicopter_label = Label.new()
 	column.add_child(helicopter_label)
+	kaiju_label = Label.new()
+	kaiju_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(kaiju_label)
+	alliance_label = Label.new()
+	alliance_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(alliance_label)
 	creature_label = Label.new()
 	column.add_child(creature_label)
 	contracts_label = Label.new()
@@ -422,3 +480,89 @@ func _material(color: Color, glow: bool = false) -> StandardMaterial3D:
 		material.emission = color
 		material.emission_energy_multiplier = 1.5
 	return material
+
+func _on_kaiju_battle_resolved(outcome: String, rewards: Dictionary, consequences: Dictionary) -> void:
+	for key in rewards.keys():
+		if key == "credits":
+			trade_manager.add_credits(int(rewards[key]))
+		elif key == "research_data":
+			research_data += int(rewards[key])
+		else:
+			resources[key] = int(resources.get(key, 0)) + int(rewards[key])
+	var repair_cost := int(consequences.get("repair", 0))
+	var supply_loss := int(consequences.get("supply_loss", 0))
+	if repair_cost > 0:
+		resources["metal"] = maxi(0, int(resources["metal"]) - repair_cost)
+	if supply_loss > 0:
+		resources["energia"] = maxi(0, int(resources["energia"]) - supply_loss)
+	if outcome == "victory":
+		if campaign:
+			campaign.add_experience(3)
+		if alliance_manager:
+			alliance_manager.register_objective("defense")
+		_show_status("¡VICTORIA! Kaiju repelido. Recompensas añadidas.")
+	elif outcome == "partial_success":
+		if campaign:
+			campaign.add_experience(1)
+		_show_status("ÉXITO PARCIAL. El Kaiju se retira, pero tu Jaeger necesita reparación.")
+	elif outcome == "retreat":
+		_show_status("RETIRADA TÁCTICA. Conservas tu progreso; el sector sigue bajo amenaza.")
+	else:
+		_show_status("DERROTA. El Kaiju sigue activo. Has perdido suministros y debes reparar el Jaeger.")
+	if campaign and kaiju_war:
+		kaiju_war.set_progression(campaign.player_level, campaign.jaeger_generation)
+	_update_hud()
+	_save_local_profile()
+
+func _on_campaign_chapter_changed(chapter_name: String, level: int) -> void:
+	if kaiju_war and campaign:
+		kaiju_war.set_progression(level, campaign.jaeger_generation)
+	_show_status("Nueva etapa de guerra: " + chapter_name)
+
+func _on_alliance_changed(_summary: String) -> void:
+	_update_hud()
+
+func _on_alliance_message(message: String) -> void:
+	_show_status(message)
+
+func _save_local_profile() -> void:
+	var snapshot := {
+		"version": 1,
+		"resources": resources,
+		"credits": trade_manager.credits if trade_manager else 250,
+		"research_data": research_data,
+		"base_level": base_level,
+		"titan_level": titan_level,
+		"campaign_level": campaign.player_level if campaign else 1,
+		"jaeger_generation": campaign.jaeger_generation if campaign else 1,
+		"alliance_name": alliance_manager.alliance_name if alliance_manager else "",
+		"alliance_tag": alliance_manager.alliance_tag if alliance_manager else "",
+		"alliance_rank": alliance_manager.rank if alliance_manager else "Sin alianza"
+	}
+	SaveSystem.save_profile(snapshot)
+
+func _load_local_profile() -> void:
+	var snapshot: Dictionary = SaveSystem.load_profile()
+	if snapshot.is_empty():
+		return
+	resources = snapshot.get("resources", resources)
+	base_level = int(snapshot.get("base_level", base_level))
+	titan_level = int(snapshot.get("titan_level", titan_level))
+	research_data = int(snapshot.get("research_data", research_data))
+	if trade_manager:
+		trade_manager.credits = int(snapshot.get("credits", trade_manager.credits))
+	if campaign:
+		campaign.player_level = int(snapshot.get("campaign_level", 1))
+		campaign.jaeger_generation = int(snapshot.get("jaeger_generation", 1))
+	if kaiju_war and campaign:
+		kaiju_war.set_progression(campaign.player_level, campaign.jaeger_generation)
+	if alliance_manager and str(snapshot.get("alliance_name", "")) != "":
+		alliance_manager.alliance_name = str(snapshot["alliance_name"])
+		alliance_manager.alliance_tag = str(snapshot.get("alliance_tag", ""))
+		alliance_manager.rank = str(snapshot.get("alliance_rank", "Recluta"))
+		alliance_manager.members = [{"name":"Tú","rank":alliance_manager.rank,"contribution":0}]
+	_update_hud()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE:
+		_save_local_profile()
