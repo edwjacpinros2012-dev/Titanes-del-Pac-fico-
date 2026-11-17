@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TitanStats" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/titans/titan_stats.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+titan_id = "titan_alpha"
+display_name = "Titán Alfa"
+level = 1
+health = 100.0
+move_speed = 7.0
+armor = 5.0
+evolution_stage = 0
+abilities = Array[String](["pulse_scan"])
