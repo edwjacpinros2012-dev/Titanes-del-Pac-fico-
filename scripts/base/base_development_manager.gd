@@ -3,6 +3,7 @@ class_name BaseDevelopmentManager
 
 signal facility_upgraded(facility_id: String, new_level: int)
 signal production_generated(resource_id: String, amount: int)
+signal research_generated(amount: int)
 
 const PRODUCTION_INTERVAL := 60.0
 const FACILITY_ORDER := [
@@ -38,7 +39,7 @@ const FACILITIES := {
 	"laboratory": {
 		"name": "Laboratorio", "max_level": 5, "unlock_level": 2,
 		"cost": {"metal": 16, "energia": 12, "cristal": 5},
-		"prerequisites": {"hangar": 2}, "output": "", "rate": 0,
+		"prerequisites": {"hangar": 2}, "output": "research_data", "rate": 1,
 		"description": "Prepara investigación y futuras tecnologías."
 	},
 	"warehouse": {
@@ -157,9 +158,18 @@ func advance_production(delta: float, inventory: Dictionary) -> int:
 			if resource_id.is_empty() or rate <= 0 or level <= 0:
 				continue
 			var amount := rate * level
-			inventory[resource_id] = int(inventory.get(resource_id, 0)) + amount
-			generated_total += amount
-			production_generated.emit(resource_id, amount)
+			if resource_id == "research_data":
+				research_generated.emit(amount)
+				generated_total += amount
+				continue
+			var capacity := get_storage_capacity()
+			var current_amount := int(inventory.get(resource_id, 0))
+			var actual_amount := mini(amount, maxi(0, capacity - current_amount))
+			if actual_amount <= 0:
+				continue
+			inventory[resource_id] = current_amount + actual_amount
+			generated_total += actual_amount
+			production_generated.emit(resource_id, actual_amount)
 	return generated_total
 
 func get_selected_facility_text(inventory: Dictionary, base_level: int) -> String:
@@ -178,8 +188,25 @@ func get_selected_facility_text(inventory: Dictionary, base_level: int) -> Strin
 		str(definition["name"]), level, int(definition["max_level"]), status, cost_text
 	]
 
+
+func get_storage_capacity() -> int:
+	return 250 + get_facility_level("warehouse") * 250
+
+func get_repair_discount() -> float:
+	var hangar_bonus := float(get_facility_level("hangar")) * 0.04
+	var repair_bonus := float(get_facility_level("repair_bay")) * 0.10
+	return clampf(hangar_bonus + repair_bonus, 0.0, 0.60)
+
+func get_scouting_radius(base_radius: float = 30.0) -> float:
+	return base_radius + float(get_facility_level("radar")) * 8.0 + float(get_facility_level("airfield")) * 4.0
+
+func get_facility_effects_text() -> String:
+	return "Almacén: %d por recurso | Descuento reparación: %d%% | Radio de reconocimiento: %d m" % [
+		get_storage_capacity(), roundi(get_repair_discount() * 100.0), roundi(get_scouting_radius())
+	]
+
 func get_status_text() -> String:
-	var lines := PackedStringArray(["INSTALACIONES DE LA BASE"])
+	var lines := PackedStringArray(["INSTALACIONES DE LA BASE", get_facility_effects_text()])
 	for facility_id in FACILITY_ORDER:
 		var definition: Dictionary = FACILITIES[str(facility_id)]
 		var level := get_facility_level(str(facility_id))
