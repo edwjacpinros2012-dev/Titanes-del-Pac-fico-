@@ -65,3 +65,22 @@ func get_summary() -> String:
  for objective in objectives:
   if int(objective["progress"]) >= int(objective["target"]): completed += 1
  return "ALIANZA [%s] %s | Rango: %s | Miembros: %d | Objetivos: %d/%d" % [alliance_tag,alliance_name,rank,members.size(),completed,objectives.size()]
+
+func export_state() -> Dictionary:
+ return {
+  "alliance_name":alliance_name,
+  "alliance_tag":alliance_tag,
+  "rank":rank,
+  "members":members.duplicate(true),
+  "objectives":objectives.duplicate(true),
+  "local_chat":local_chat.duplicate()
+ }
+
+func import_state(data: Dictionary) -> void:
+ alliance_name = str(data.get("alliance_name",""))
+ alliance_tag = str(data.get("alliance_tag",""))
+ rank = str(data.get("rank","Sin alianza"))
+ members = data.get("members",[])
+ objectives = data.get("objectives",objectives)
+ local_chat = data.get("local_chat",[])
+ alliance_changed.emit(get_summary())
