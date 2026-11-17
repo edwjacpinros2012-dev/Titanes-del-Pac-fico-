@@ -10,9 +10,9 @@ Juego 3D original de exploración, supervivencia, recolección, fabricación, co
 - [x] Guía visual y contratos de integración.
 - [x] Guardado local con archivo temporal, copia de seguridad y recuperación.
 - [x] Pruebas headless de recursos, guardado y director de amenaza.
-- [x] Investigación comparativa con Pacific Drive, MechWarrior 5: Clans, War Robots y demos oficiales de Godot.
+- [x] Investigación comparativa con The Planet Crafter, Animal Crossing: New Horizons y demos oficiales de Godot.
 - [x] Gestor modular del ciclo de misión: despliegue, operación, objetivos, informe y regreso a base.
-- [ ] Integrar el gestor de misión con UI, mapa, controlador, economía, daños y guardado.
+- [x] Integrar el gestor de misión con el flujo de encuentros, resultados, recompensas y guardado del informe.\n- [ ] Integrar objetivos de exploración del mapa y reparación dentro del ciclo de misión.
 - [ ] Integrar el director de amenaza en el gestor real de encuentros y HUD.
 - [ ] Completar restauración de todos los gestores.
 - [ ] Construir y validar el primer encuentro 3D en tiempo real.
