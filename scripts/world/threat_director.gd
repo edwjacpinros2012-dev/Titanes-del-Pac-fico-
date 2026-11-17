@@ -19,7 +19,7 @@ func build_threat_brief(context: Dictionary) -> Dictionary:
 		+ base_support * 1.1 + intelligence * 0.8
 	)
 	var threat_score := effective_readiness * 0.48 + regional_pressure / 100.0 * 2.2 + mission_risk * 1.4
-	var tier := clampi(1 + int(floor(threat_score / 2.2)), 1, 10)
+	var tier := clampi(1 + int(floor(threat_score / 1.5)), 1, 10)
 	var warning := "Baja"
 	if tier >= 8:
 		warning = "Crítica"
