@@ -9,6 +9,7 @@ signal region_unlocked(region_id: String)
 signal world_event_started(event_id: String, title: String, resource_id: String, bonus: int)
 signal world_event_ended(event_id: String)
 signal status_changed(text: String)
+signal ecology_observed(species_id: String, region_id: String, observation_count: int)
 const STARTER_MISSION := {"id":"starter_gather","title":"Suministros para el puesto","description":"Recolecta metal para reforzar la base inicial.","resource":"metal","target":5,"reward":{"energia":8,"research_data":3}}
 const REGIONS := {"aurora_coast":{"title":"Costa de la Aurora","rank":1},"broken_isles":{"title":"Islas Quebradas","rank":2},"deep_trench":{"title":"Fosa del Pacífico","rank":3}}
 const EVENTS := [{"id":"crystal_echo","title":"Eco cristalino","resource":"cristal","bonus":1},{"id":"metal_tide","title":"Marea de minerales","resource":"metal","bonus":1},{"id":"energy_swell","title":"Oleada energética","resource":"energia","bonus":1}]
@@ -72,6 +73,18 @@ func report_collection(resource_id: String, amount: int) -> void:
 			var reward: Dictionary = active_expedition.get("reward",{}).duplicate(true)
 			active_expedition.clear()
 			expedition_completed.emit(region,reward)
+func report_ecology_observation(species_id: String, region_id: String) -> bool:
+	if not is_region_unlocked(region_id):
+		status_changed.emit("Primero debes desbloquear esa región.")
+		return false
+	if not SpeciesRegistry.observe(species_id, region_id):
+		status_changed.emit("No se pudo registrar la observación.")
+		return false
+	var count := SpeciesRegistry.get_observation_count(species_id)
+	ecology_observed.emit(species_id, region_id, count)
+	status_changed.emit("Observación registrada: "+species_id+" ("+str(count)+").")
+	return true
+
 func start_expedition(region_id: String, resource_id: String, amount: int, reward_data: Dictionary) -> bool:
 	if not active_expedition.is_empty() or not is_region_unlocked(region_id) or resource_id.is_empty() or amount <= 0: return false
 	active_expedition = {"region":region_id,"resource":resource_id,"target":amount,"progress":0,"reward":reward_data.duplicate(true)}

@@ -12,6 +12,7 @@ run/max_fps=60
 [autoload]
 GlobalState="*res://scripts/core/game_state.gd"
 SaveSystem="*res://scripts/core/save_manager.gd"
+SpeciesRegistry="*res://scripts/ecology/species_registry.gd"
 
 [display]
 window/size/viewport_width=1280
