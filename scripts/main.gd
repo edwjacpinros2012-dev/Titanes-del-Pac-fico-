@@ -729,6 +729,8 @@ func _on_platform_action(action_name: String) -> void:
 			_select_next_technology()
 		"tech_research":
 			_research_selected_technology()
+		"craft_alloy":
+			_craft_alloy_plate()
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
