@@ -16,12 +16,9 @@ func save_game(state: GameState) -> bool:
 		"titan_level": maxi(1, state.titan_level),
 		"unlocked_regions": state.unlocked_regions.duplicate()
 	}
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	if file == null:
-		push_error("No se pudo abrir el archivo de guardado.")
+	if not _write_json_atomic(SAVE_PATH, payload):
+		push_error("No se pudo guardar el progreso.")
 		return false
-	file.store_string(JSON.stringify(payload, "\t"))
-	file.close()
 	save_completed.emit()
 	return true
 
@@ -73,12 +70,9 @@ func load_game(state: GameState) -> bool:
 func save_profile(snapshot: Dictionary) -> bool:
 	var payload := snapshot.duplicate(true)
 	payload["version"] = 2
-	var file := FileAccess.open(PROFILE_PATH, FileAccess.WRITE)
-	if file == null:
+	if not _write_json_atomic(PROFILE_PATH, payload):
 		push_error("No se pudo guardar el perfil local.")
 		return false
-	file.store_string(JSON.stringify(payload, "\t"))
-	file.close()
 	save_completed.emit()
 	return true
 
@@ -96,3 +90,28 @@ func load_profile() -> Dictionary:
 	if version < 1 or version > 2:
 		return {}
 	return parsed
+
+func _write_json_atomic(path: String, payload: Dictionary) -> bool:
+	var temp_path := path + ".tmp"
+	var backup_path := path + ".bak"
+	var file := FileAccess.open(temp_path, FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_string(JSON.stringify(payload, "\t"))
+	file.flush()
+	file.close()
+	var absolute_target := ProjectSettings.globalize_path(path)
+	var absolute_temp := ProjectSettings.globalize_path(temp_path)
+	var absolute_backup := ProjectSettings.globalize_path(backup_path)
+	if FileAccess.file_exists(path):
+		if FileAccess.file_exists(backup_path):
+			DirAccess.remove_absolute(absolute_backup)
+		if DirAccess.rename_absolute(absolute_target, absolute_backup) != OK:
+			DirAccess.remove_absolute(absolute_temp)
+			return false
+	if DirAccess.rename_absolute(absolute_temp, absolute_target) != OK:
+		if FileAccess.file_exists(backup_path):
+			DirAccess.rename_absolute(absolute_backup, absolute_target)
+		DirAccess.remove_absolute(absolute_temp)
+		return false
+	return true
