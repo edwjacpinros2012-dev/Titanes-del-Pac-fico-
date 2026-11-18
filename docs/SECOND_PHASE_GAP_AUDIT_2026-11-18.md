@@ -149,3 +149,11 @@ No agregar más sistemas nuevos hasta que el loop central esté probado.
 **Loop now wired in source:** gather metal → complete starter mission → receive energy/research → unlock Islas Quebradas → start/cancel expedition with M or touch button → gather crystals → expedition rewards. Regional timed event bonus is included in resource pickup and reported through UI.
 
 **Validation limitation:** GitHub Actions for the latest commits is still running at time of writing. These changes are not yet claimed as CI-passed; inspect the latest workflow run before merging/continuing. Godot visual and physical-device testing still require installing/launching the engine on a computer/device.
+
+
+### Save safety improvement follow-up
+
+- `82f357c4`: writes save/profile to a temporary JSON file and retains a previous-file backup during replacement.
+- `322c98f7` and `65b860c1`: loaders can restore a backup if the current JSON is absent/invalid, preserve a damaged file as `.corrupt`, and validate profile version.
+- `843692b3`: adds an automated profile corruption/recovery test.
+- CI for these save-safety changes is pending; do not label them verified until the latest run finishes.
