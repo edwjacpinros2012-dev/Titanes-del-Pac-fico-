@@ -731,6 +731,39 @@ func _on_platform_action(action_name: String) -> void:
 			_research_selected_technology()
 		"craft_alloy":
 			_craft_alloy_plate()
+		"scout_helicopters":
+			if helicopter_manager and player:
+				_show_status("Helicópteros enviados." if helicopter_manager.dispatch_scout(player.global_position) else "Los helicópteros ya están en una misión.")
+		"alliance_join":
+			if alliance_manager and alliance_manager.join_demo_alliance():
+				_show_status("Te has unido a Guardianes del Abismo. Alianza local de demostración.")
+		"alliance_create":
+			if alliance_manager and alliance_manager.create_alliance("Vanguardia del Pacífico", "VDP"):
+				_show_status("Alianza local creada: Vanguardia del Pacífico.")
+		"save_profile":
+			_save_local_profile()
+			_show_status("Progreso guardado en este dispositivo.")
+		"market_buy_metal":
+			_complete_market_trade("metal", "buy", 3)
+		"market_buy_energy":
+			_complete_market_trade("energia", "buy", 3)
+		"market_buy_crystal":
+			_complete_market_trade("cristal", "buy", 2)
+		"market_sell_metal":
+			_complete_market_trade("metal", "sell", 3)
+		"market_sell_energy":
+			_complete_market_trade("energia", "sell", 3)
+		"market_sell_crystal":
+			_complete_market_trade("cristal", "sell", 2)
+
+func _complete_market_trade(good_id: String, direction: String, quantity: int) -> void:
+	if trade_manager == null:
+		return
+	var completed := trade_manager.buy_good(good_id, quantity, resources) if direction == "buy" else trade_manager.sell_good(good_id, quantity, resources)
+	_show_status(trade_manager.last_message if completed else "Operación no realizada: " + trade_manager.last_message)
+	_update_hud()
+	if completed:
+		_save_local_profile()
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
