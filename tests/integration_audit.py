@@ -16,6 +16,8 @@ settings = (ROOT / "scripts/core/settings_manager.gd").read_text(encoding="utf-8
 save = (ROOT / "scripts/core/save_manager.gd").read_text(encoding="utf-8")
 main = (ROOT / "scripts/main.gd").read_text(encoding="utf-8")
 workflow = (ROOT / ".github/workflows/godot-validation.yml").read_text(encoding="utf-8")
+region = (ROOT / "scripts/systems/region_restoration_manager.gd").read_text(encoding="utf-8")
+region_test = (ROOT / "tests/test_region_restoration.gd").read_text(encoding="utf-8")
 
 for name, path in {
     "AccountManager": "scripts/accounts/account_manager.gd",
@@ -53,6 +55,16 @@ check("base_development.export_state()" in main and "technology_tree.export_stat
       "base and research snapshots are included")
 check("tests/test_account_settings_foundations.gd" in workflow,
       "CI includes account/settings GDScript test")
+check('RegionRestoration="*res://scripts/systems/region_restoration_manager.gd"' in project,
+      "regional restoration manager is registered as autoload")
+check("RegionRestoration.add_progress" in main and "region_restoration_state" in main,
+      "exploration, base, research and profile save integrate regional restoration")
+check("region_restoration_label" in main,
+      "regional restoration progress is visible in game HUD")
+check("milestone_unlocked" in region and "import_state" in region,
+      "regional milestones and validated save import are implemented")
+check("test_region_restoration.gd" in workflow and "milestone" in region_test,
+      "CI includes regional restoration progression tests")
 check("tests/integration_audit.py" in workflow,
       "CI includes this integration audit")
 
