@@ -72,6 +72,7 @@ func _run_tests() -> void:
 	_check(inventory.remove_items({"metal": 3}), "inventory removes valid cost")
 	_check(inventory.items["metal"] == 2, "inventory deducts exact amount")
 	var trade = TradeManagerScript.new()
+	trade.credits = 0
 	var wallet := {"metal": 0, "energia": 0, "cristal": 0}
 	_check(not trade.buy_good("metal", -1, wallet), "market rejects negative quantity")
 	_check(not trade.buy_good("cristal", 100, wallet), "market rejects purchase beyond stock")
@@ -81,5 +82,5 @@ func _run_tests() -> void:
 	_check(wallet["metal"] == 2 and trade.credits == 76, "purchase updates inventory and wallet exactly")
 	_check(trade.sell_good("metal", 1, wallet), "market accepts valid sale")
 	_check(wallet["metal"] == 1 and trade.credits == 83, "sale updates inventory and wallet exactly")
-\tprint("CORE TESTS: ", passed, " passed, ", failed, " failed")
+	print("CORE TESTS: ", passed, " passed, ", failed, " failed")
 	quit(1 if failed > 0 else 0)
