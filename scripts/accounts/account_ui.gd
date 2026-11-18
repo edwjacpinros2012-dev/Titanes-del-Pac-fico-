@@ -1,25 +1,22 @@
 extends CanvasLayer
+
 var status_label: Label
 var name_input: LineEdit
 var settings_box: VBoxContainer
-var visible_panel := true
+var panel_container: PanelContainer
 
 func _ready() -> void:
 	layer = 80
 	_build_ui()
 
 func _build_ui() -> void:
-	var panel := PanelContainer.new()
-	panel.name = "AccountSettingsPanel"
-	panel.anchor_left = 0.0
-	panel.anchor_top = 0.0
-	panel.anchor_right = 0.0
-	panel.anchor_bottom = 0.0
-	panel.position = Vector2(14, 14)
-	panel.custom_minimum_size = Vector2(300, 0)
-	add_child(panel)
+	panel_container = PanelContainer.new()
+	panel_container.name = "AccountSettingsPanel"
+	panel_container.position = Vector2(14, 14)
+	panel_container.custom_minimum_size = Vector2(310, 0)
+	add_child(panel_container)
 	var column := VBoxContainer.new()
-	panel.add_child(column)
+	panel_container.add_child(column)
 	var title := Label.new()
 	title.text = "PILOTO / AJUSTES"
 	title.add_theme_font_size_override("font_size", 18)
@@ -37,7 +34,7 @@ func _build_ui() -> void:
 	save_name.pressed.connect(func(): AccountManager.set_display_name(name_input.text))
 	column.add_child(save_name)
 	var google := Button.new()
-	google.text = "Registrarse / iniciar con Google"
+	google.text = "REGISTRARSE / INICIAR CON GOOGLE"
 	google.pressed.connect(AccountManager.begin_google_sign_in)
 	column.add_child(google)
 	var offline := Button.new()
@@ -77,6 +74,7 @@ func _add_slider(label_text: String, setting_key: String, min_value := 0.0, max_
 	slider.max_value = max_value
 	slider.step = 0.05
 	slider.custom_minimum_size = Vector2(110, 0)
+	slider.set_meta("setting_key", setting_key)
 	slider.value = float(SettingsManager.get_setting(setting_key, 1.0))
 	slider.value_changed.connect(func(v: float): SettingsManager.set_setting(setting_key, v))
 	row.add_child(slider)
@@ -84,24 +82,23 @@ func _add_slider(label_text: String, setting_key: String, min_value := 0.0, max_
 func _add_check(label_text: String, setting_key: String) -> void:
 	var check := CheckBox.new()
 	check.text = label_text
+	check.set_meta("setting_key", setting_key)
 	check.button_pressed = bool(SettingsManager.get_setting(setting_key, true))
 	check.toggled.connect(func(v: bool): SettingsManager.set_setting(setting_key, v))
 	settings_box.add_child(check)
 
 func _refresh_settings(settings: Dictionary) -> void:
 	for child in settings_box.get_children():
-		if child is HSlider:
-			pass
-		elif child is HBoxContainer:
+		if child is HBoxContainer:
 			for nested in child.get_children():
 				if nested is HSlider:
-					var key := ""
-					for setting_key in ["master_volume","music_volume","sfx_volume","camera_sensitivity"]:
-						if setting_key in ["master_volume","music_volume","sfx_volume","camera_sensitivity"]:
-							key = setting_key
-					# Values are applied by direct slider callbacks; no recursive signal update here.
+					var key := str(nested.get_meta("setting_key", ""))
+					if settings.has(key):
+						nested.set_value_no_signal(float(settings[key]))
 		elif child is CheckBox:
-			pass
+			var key := str(child.get_meta("setting_key", ""))
+			if settings.has(key):
+				child.set_pressed_no_signal(bool(settings[key]))
 
 func _profile_summary() -> String:
 	var p := AccountManager.profile
@@ -116,4 +113,5 @@ func _on_status(message: String) -> void:
 	status_label.text = _profile_summary() + "\n" + message
 
 func _on_profile_changed(_profile: Dictionary) -> void:
+	name_input.text = str(AccountManager.profile.get("display_name", "Piloto"))
 	status_label.text = _profile_summary()
