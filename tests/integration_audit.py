@@ -63,6 +63,10 @@ check("region_restoration_label" in main,
       "regional restoration progress is visible in game HUD")
 check("milestone_unlocked" in region and "import_state" in region,
       "regional milestones and validated save import are implemented")
+check("milestone_unlocked.connect(_on_region_restoration_milestone)" in main,
+      "regional milestone signals are connected to player feedback")
+check("category_total != progress" in region and "threshold" in region,
+      "region import validates category totals and claimed milestone thresholds")
 check("test_region_restoration.gd" in workflow and "milestone" in region_test,
       "CI includes regional restoration progression tests")
 check("tests/integration_audit.py" in workflow,
