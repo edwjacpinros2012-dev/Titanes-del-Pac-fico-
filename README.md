@@ -18,6 +18,7 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - Mercado interno con créditos ficticios, materiales, compra/venta y existencias limitadas.
 - Contratos, recompensas de juego y reconocimiento con helicópteros.
 - Ecosistema inicial y catálogo de doce Kaijus originales: los monstruos son amenazas enemigas, nunca mascotas ni compañeros.
+- Registro de especies para exploración: observaciones por región, fichas de hábitat/comportamiento, hitos de investigación y exportación/importación de progreso.
 - Encuentros con victoria, éxito parcial, retirada y derrota, con reparación y recuperación.
 - Campaña y progresión inicial de Jaegers Mark I–V.
 - Alianzas locales de demostración.
