@@ -4,6 +4,8 @@ const GameStateScript = preload("res://scripts/core/game_state.gd")
 const InventoryScript = preload("res://scripts/resources/inventory.gd")
 const TradeManagerScript = preload("res://scripts/economy/trade_manager.gd")
 const GameLoopScript = preload("res://scripts/gameplay/game_loop_manager.gd")
+const CraftingManagerScript = preload("res://scripts/crafting/crafting_manager.gd")
+const RecipeDataScript = preload("res://scripts/crafting/recipe_data.gd")
 
 var passed := 0
 var failed := 0
@@ -115,6 +117,26 @@ func _run_tests() -> void:
 	_check(inventory.items["metal"] == 5, "invalid inventory transaction does not mint items")
 	_check(inventory.remove_items({"metal": 3}), "inventory removes valid cost")
 	_check(inventory.items["metal"] == 2, "inventory deducts exact amount")
+
+	var crafting_manager = CraftingManagerScript.new()
+	root.add_child(crafting_manager)
+	var recipe = RecipeDataScript.new()
+	recipe.recipe_id = "test_alloy"
+	recipe.ingredients = {"metal": 3, "energia": 1}
+	recipe.outputs = {"alloy_plate": 1}
+	recipe.required_research = "basic_metallurgy"
+	recipe.crafting_seconds = 0.01
+	crafting_manager.register_recipe(recipe)
+	var crafting_inventory = InventoryScript.new()
+	crafting_inventory.add_item("metal", 3)
+	crafting_inventory.add_item("energia", 1)
+	_check(not await crafting_manager.craft("test_alloy", crafting_inventory, []), "crafting blocks recipes without required research")
+	_check(crafting_inventory.items["metal"] == 3, "failed research check does not consume ingredients")
+	_check(await crafting_manager.craft("test_alloy", crafting_inventory, ["basic_metallurgy"]), "crafting completes when research and ingredients are available")
+	_check(crafting_inventory.items["metal"] == 0 and crafting_inventory.items["energia"] == 0, "crafting consumes exact ingredient costs")
+	_check(crafting_inventory.items["alloy_plate"] == 1, "crafting grants configured output")
+	crafting_manager.free()
+
 	var trade = TradeManagerScript.new()
 	trade.credits = 0
 	var wallet := {"metal": 0, "energia": 0, "cristal": 0}
