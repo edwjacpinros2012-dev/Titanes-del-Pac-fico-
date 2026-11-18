@@ -21,5 +21,5 @@ jobs:
         run: python3 tests/repo_sanity.py
       - name: Run core logic tests
         run: godot --headless --path . --script tests/test_core_logic.gd
-      - name: Run main scene briefly
+      - name: Run account and settings foundation tests\n        run: godot --headless --path . --script tests/test_account_settings_foundations.gd\n      - name: Run main scene briefly
         run: godot --headless --path . --quit-after 10
