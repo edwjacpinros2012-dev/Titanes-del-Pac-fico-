@@ -125,7 +125,7 @@ func _run_tests() -> void:
 	recipe.ingredients = {"metal": 3, "energia": 1}
 	recipe.outputs = {"alloy_plate": 1}
 	recipe.required_research = "basic_metallurgy"
-	recipe.crafting_seconds = 0.01
+	recipe.crafting_seconds = 0.0
 	crafting_manager.register_recipe(recipe)
 	var crafting_inventory = InventoryScript.new()
 	crafting_inventory.add_item("metal", 3)
