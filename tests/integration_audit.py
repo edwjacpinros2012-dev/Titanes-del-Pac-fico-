@@ -49,6 +49,10 @@ check("gameplay_loop.mission_completed.connect" in main,
       "main connects mission rewards to handler")
 check("gameplay_loop.report_collection" in main,
       "resource pickups feed missions/expeditions")
+check("crafting_manager.craft(\"alloy_plate\"" in main and "resources = crafting_inventory.items.duplicate(true)" in main,
+      "crafting consumes gameplay resources and returns outputs to saved resources")
+check("craft_alloy" in main and "craft_alloy" in (ROOT / "scripts/platform/platform_input.gd").read_text(encoding="utf-8"),
+      "crafting is reachable from keyboard and touch controls")
 check("base_development.export_state()" in main and "technology_tree.export_state()" in main,
       "base and research snapshots are included")
 check("tests/test_account_settings_foundations.gd" in workflow,
