@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import * as THREE from 'three';
 import './style.css';
+import './pwa';
 
 type Controls = { x: number; z: number };
 
