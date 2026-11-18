@@ -65,6 +65,10 @@ La autenticación y las alianzas online todavía no están conectadas a un servi
 
 Las credenciales privadas y claves de servicio nunca deben guardarse en el cliente Godot ni en GitHub. Las escrituras del progreso en nube y la vinculación de Google Play Games deben validarse desde servidor.
 
+## Proceso de desarrollo
+
+Consulta docs/DEVELOPMENT_PROCESS.md para el pipeline, gates de QA, pruebas mínimas, cadencia de revisión y criterios de lanzamiento.
+
 ## Validación automática
 Se añadió `.github/workflows/godot-validation.yml` para que GitHub Actions intente importar el proyecto y ejecutar brevemente la escena con Godot 4.3 en cada cambio. El estado real de la ejecución se consulta en la pestaña Actions del repositorio.
 
