@@ -135,3 +135,17 @@ No agregar más sistemas nuevos hasta que el loop central esté probado.
 ## Conclusión
 
 **El principal trabajo pendiente no es añadir más carpetas o scripts: es convertir los sistemas que ya existen en un juego coherente, accesible y verificable.** Las prioridades son integración, combate/loop real, guardado completo, interfaz y controles, contenido visual, QA de dispositivos y exportación.
+
+
+## Actual code integration work — follow-up
+
+**Commits on main (18 Nov 2026):**
+- `df6a6424` adds `scripts/gameplay/game_loop_manager.gd`: starter mission, progress/reward, region unlock/travel, expedition progress/reward/cancel, regional event resource bonus, and export/import state.
+- `eb58083d` connects that manager to main: mission and expedition rewards, collection reports, region unlock after starter mission, UI summary, and profile save/load.
+- `ac1fb123` and `b37c46bb` add expedition toggle to touch control and main action dispatch.
+- `3739f13e` adds tests for starter mission, unique completion, region locks/unlock/travel, expedition progress/completion, event bonus, and state restoration.
+- `42da1923` adds repository checks for new manager and main/touch integration.
+
+**Loop now wired in source:** gather metal → complete starter mission → receive energy/research → unlock Islas Quebradas → start/cancel expedition with M or touch button → gather crystals → expedition rewards. Regional timed event bonus is included in resource pickup and reported through UI.
+
+**Validation limitation:** GitHub Actions for the latest commits is still running at time of writing. These changes are not yet claimed as CI-passed; inspect the latest workflow run before merging/continuing. Godot visual and physical-device testing still require installing/launching the engine on a computer/device.
