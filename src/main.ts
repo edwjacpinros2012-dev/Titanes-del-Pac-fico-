@@ -8,7 +8,7 @@ type Controls = { x: number; z: number };
 class TitanesScene extends Phaser.Scene {
   private world!: THREE.Scene;
   private camera3d!: THREE.PerspectiveCamera;
-  private renderer!: THREE.WebGLRenderer;
+  private threeRenderer!: THREE.WebGLRenderer;
   private titan!: THREE.Group;
   private kaiju!: THREE.Group;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
@@ -90,11 +90,11 @@ class TitanesScene extends Phaser.Scene {
     this.world.fog = new THREE.Fog(0x071522, 25, 80);
     this.camera3d = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 160);
     this.camera3d.position.set(0, 8, 17);
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.worldCanvas, antialias: true, alpha: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-    this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.threeRenderer = new THREE.WebGLRenderer({ canvas: this.worldCanvas, antialias: true, alpha: false });
+    this.threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    this.threeRenderer.setSize(innerWidth, innerHeight);
+    this.threeRenderer.shadowMap.enabled = true;
+    this.threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.world.add(new THREE.HemisphereLight(0xa9d9ff, 0x15212b, 2.1));
     const sun = new THREE.DirectionalLight(0xffffff, 2.3);
     sun.position.set(-8, 16, 8);
@@ -120,7 +120,7 @@ class TitanesScene extends Phaser.Scene {
     this.kaiju = this.buildKaiju();
     this.kaiju.position.set(4, 0, -8);
     this.world.add(this.kaiju);
-    this.renderer.render(this.world, this.camera3d);
+    this.threeRenderer.render(this.world, this.camera3d);
   }
 
   private createHud() {
@@ -198,7 +198,7 @@ class TitanesScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
-    if (!this.renderer || this.gameOver) return;
+    if (!this.threeRenderer || this.gameOver) return;
     const dt = Math.min(delta / 1000, 0.04);
     this.attackCooldown = Math.max(0, this.attackCooldown - dt);
     this.enemyCooldown = Math.max(0, this.enemyCooldown - dt);
@@ -226,18 +226,18 @@ class TitanesScene extends Phaser.Scene {
     this.camera3d.position.lerp(targetCamera, dt * 2);
     this.camera3d.lookAt(this.titan.position.x, 2, this.titan.position.z - 3);
     this.kaiju.rotation.y = Math.sin(_time * 0.0005) * 0.12;
-    this.renderer.render(this.world, this.camera3d);
+    this.threeRenderer.render(this.world, this.camera3d);
   }
 
   private resizeWorld(size: Phaser.Structs.Size) {
-    if (!this.camera3d || !this.renderer) return;
+    if (!this.camera3d || !this.threeRenderer) return;
     this.camera3d.aspect = size.width / Math.max(1, size.height);
     this.camera3d.updateProjectionMatrix();
-    this.renderer.setSize(size.width, size.height);
+    this.threeRenderer.setSize(size.width, size.height);
   }
 
   private disposeWorld() {
-    if (!this.renderer) return;
+    if (!this.threeRenderer) return;
     this.world.traverse((object) => {
       const mesh = object as THREE.Mesh;
       if (mesh.geometry) mesh.geometry.dispose();
@@ -246,7 +246,7 @@ class TitanesScene extends Phaser.Scene {
         materials.forEach((material) => material.dispose());
       }
     });
-    this.renderer.dispose();
+    this.threeRenderer.dispose();
     this.worldCanvas.remove();
   }
 }
