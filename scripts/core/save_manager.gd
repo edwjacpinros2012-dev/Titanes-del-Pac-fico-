@@ -39,16 +39,17 @@ func load_game(state: GameState) -> bool:
 		if amount < 0:
 			load_completed.emit(false)
 			return false
+	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
+	if typeof(loaded_regions) != TYPE_ARRAY:
+		load_completed.emit(false)
+		return false
+	# Validate the complete payload before changing live state to avoid partial loads.
 	var merged_resources: Dictionary = state.resources.duplicate(true)
 	for resource_id in loaded_resources:
 		merged_resources[str(resource_id)] = int(loaded_resources[resource_id])
 	state.resources = merged_resources
 	state.base_level = maxi(1, int(parsed.get("base_level", 1)))
 	state.titan_level = maxi(1, int(parsed.get("titan_level", 1)))
-	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
-	if typeof(loaded_regions) != TYPE_ARRAY:
-		load_completed.emit(false)
-		return false
 	state.unlocked_regions.clear()
 	for region_value in loaded_regions:
 		var region_id := str(region_value).strip_edges()
@@ -72,8 +73,29 @@ func save_profile(snapshot: Dictionary) -> bool:
 
 func load_profile() -> Dictionary:
 	var snapshot := _load_json_with_backup(PROFILE_PATH)
+	if snapshot.is_empty():
+		return {}
 	var version := int(snapshot.get("version", 0))
-	return snapshot if version >= 1 and version <= 2 else {})
+	if version < 1 or version > 2:
+		return {}
+	var normalized := snapshot.duplicate(true)
+	var loaded_resources: Variant = normalized.get("resources", {})
+	if typeof(loaded_resources) != TYPE_DICTIONARY:
+		return {}
+	for resource_id in loaded_resources:
+		if int(loaded_resources[resource_id]) < 0:
+			return {}
+	# Version 1 profiles predate the explicit version-2 defaults. Keep their
+	# existing fields and fill only absent keys so saved progress is preserved.
+	if version == 1:
+		normalized["credits"] = int(normalized.get("credits", 250))
+		normalized["research_data"] = int(normalized.get("research_data", 0))
+		normalized["base_level"] = maxi(1, int(normalized.get("base_level", 1)))
+		normalized["titan_level"] = maxi(1, int(normalized.get("titan_level", 1)))
+		normalized["campaign_level"] = maxi(1, int(normalized.get("campaign_level", 1)))
+		normalized["jaeger_generation"] = maxi(1, int(normalized.get("jaeger_generation", 1)))
+		normalized["version"] = 2
+	return normalized
 
 func _load_json_with_backup(path: String) -> Dictionary:
 	var backup_path := path + ".bak"
