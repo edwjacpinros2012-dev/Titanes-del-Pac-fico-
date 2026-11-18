@@ -46,6 +46,8 @@ var helicopter_label: Label
 var creature_label: Label
 var market_label: Label
 var gameplay_loop: GameLoopManager
+var crafting_manager: CraftingManager
+var crafting_inventory: Inventory
 var loop_status_label: Label
 var market_open: bool = false
 var research_data: int = 0
@@ -170,6 +172,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_toggle_expedition()
 	if event.is_action_pressed("save_profile"):
 		_save_local_profile()
+	if event.is_action_pressed("craft_alloy"):
+		_craft_alloy_plate()
 	if event.is_action_pressed("tech_select_next"):
 		_select_next_technology()
 	if event.is_action_pressed("tech_research"):
@@ -214,6 +218,7 @@ func _setup_input() -> void:
 	_add_key("save_profile", KEY_F5)
 	_add_key("tech_select_next", KEY_O)
 	_add_key("tech_research", KEY_I)
+	_add_key("craft_alloy", KEY_L)
 	_add_key("market_buy_metal", KEY_1)
 	_add_key("market_buy_energy", KEY_2)
 	_add_key("market_buy_crystal", KEY_3)
@@ -397,11 +402,41 @@ func _create_gameplay_systems() -> void:
 	gameplay_loop.region_unlocked.connect(_on_loop_region_unlocked)
 	gameplay_loop.status_changed.connect(_show_status)
 
+	crafting_manager = CraftingManager.new()
+	crafting_manager.name = "CraftingManager"
+	add_child(crafting_manager)
+	crafting_inventory = Inventory.new()
+	var alloy_recipe := RecipeData.new()
+	alloy_recipe.recipe_id = "alloy_plate"
+	alloy_recipe.display_name = "Placa de aleacion"
+	alloy_recipe.ingredients = {"metal": 3, "energia": 1}
+	alloy_recipe.outputs = {"alloy_plate": 1}
+	alloy_recipe.crafting_seconds = 0.0
+	crafting_manager.register_recipe(alloy_recipe)
+	crafting_manager.crafting_failed.connect(_on_crafting_failed)
+
 	community_client = CommunityClient.new()
 	community_client.name = "CommunityClient"
 	add_child(community_client)
 	community_client.auth_changed.connect(_on_online_auth_changed)
 	community_client.request_failed.connect(_on_online_error)
+
+
+func _craft_alloy_plate() -> void:
+	if crafting_manager == null:
+		_show_status("Fabricacion no disponible.")
+		return
+	crafting_inventory.items = resources.duplicate(true)
+	var crafted: bool = await crafting_manager.craft("alloy_plate", crafting_inventory, [])
+	if crafted:
+		resources = crafting_inventory.items.duplicate(true)
+		_show_status("Fabricacion completada: +1 placa de aleacion. Se consumieron 3 metal y 1 energia.")
+		_update_hud()
+		_save_local_profile()
+
+func _on_crafting_failed(reason: String) -> void:
+	_show_status("Fabricacion cancelada: " + reason)
+
 
 func _on_base_research_generated(amount: int) -> void:
 	research_data += amount
