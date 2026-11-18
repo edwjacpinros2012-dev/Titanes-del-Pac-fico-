@@ -45,6 +45,8 @@ var contracts_label: Label
 var helicopter_label: Label
 var creature_label: Label
 var market_label: Label
+var gameplay_loop: GameLoopManager
+var loop_status_label: Label
 var market_open: bool = false
 var research_data: int = 0
 var resources := {"metal": 80, "energia": 45, "cristal": 12}
@@ -86,6 +88,8 @@ func _process(delta: float) -> void:
 		kaiju_war.set_damage_penalty(damage_model.get_power_penalty())
 	if objective_label and rift_manager:
 		objective_label.text = rift_manager.get_objective_text()
+	if loop_status_label and gameplay_loop:
+		loop_status_label.text = gameplay_loop.get_status_text()
 	if sync_label and pilot_sync:
 		sync_label.text = pilot_sync.get_status_text()
 	if contracts_label and contract_manager:
@@ -162,6 +166,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("alliance_create") and alliance_manager:
 		if alliance_manager.create_alliance("Vanguardia del Pacífico", "VDP"):
 			_show_status("Alianza local creada: Vanguardia del Pacífico.")
+	if event.is_action_pressed("expedition_toggle"):
+		_toggle_expedition()
 	if event.is_action_pressed("save_profile"):
 		_save_local_profile()
 	if event.is_action_pressed("tech_select_next"):
@@ -199,6 +205,7 @@ func _setup_input() -> void:
 	_add_key("kaiju_retreat", KEY_G)
 	_add_key("repair_titan", KEY_Y)
 	_add_key("talk_npc", KEY_Z)
+	_add_key("expedition_toggle", KEY_M)
 	_add_key("tactic_flank", KEY_Q)
 	_add_key("tactic_guard", KEY_X)
 	_add_key("tactic_precision", KEY_U)
@@ -380,6 +387,16 @@ func _create_gameplay_systems() -> void:
 	add_child(base_development)
 	base_development.research_generated.connect(_on_base_research_generated)
 
+	gameplay_loop = GameLoopManager.new()
+	gameplay_loop.name = "GameLoopManager"
+	add_child(gameplay_loop)
+	gameplay_loop.mission_completed.connect(_on_loop_mission_completed)
+	gameplay_loop.expedition_completed.connect(_on_loop_expedition_completed)
+	gameplay_loop.world_event_started.connect(_on_loop_event_started)
+	gameplay_loop.world_event_ended.connect(_on_loop_event_ended)
+	gameplay_loop.region_unlocked.connect(_on_loop_region_unlocked)
+	gameplay_loop.status_changed.connect(_show_status)
+
 	community_client = CommunityClient.new()
 	community_client.name = "CommunityClient"
 	add_child(community_client)
@@ -536,6 +553,9 @@ func _try_collect_nearby(show_message: bool = false) -> void:
 		if player.global_position.distance_to(node.global_position) <= PICKUP_DISTANCE:
 			var kind: String = node.get_meta("resource_type")
 			var amount: int = node.get_meta("resource_amount")
+			if gameplay_loop:
+				amount += gameplay_loop.get_event_bonus(kind)
+				gameplay_loop.report_collection(kind, int(node.get_meta("resource_amount")))
 			if npc_manager:
 				npc_manager.register_action("collect")
 			_add_resource(kind, amount)
@@ -703,6 +723,9 @@ func _create_hud() -> void:
 	objective_label = Label.new()
 	objective_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(objective_label)
+	loop_status_label = Label.new()
+	loop_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(loop_status_label)
 	sync_label = Label.new()
 	column.add_child(sync_label)
 	helicopter_label = Label.new()
@@ -729,7 +752,7 @@ func _create_hud() -> void:
 	market_label.visible = false
 	column.add_child(market_label)
 	var help := Label.new()
-	help.text = "WASD: mover | E: recoger | B: mejorar centro de mando | T: mejorar Jaeger\nV: elegir instalación | N: mejorar instalación | F: enlace | R: brecha\nH: helicópteros | J: enfrentar Abisal | G: retirarse | Z: hablar con NPC | F5: guardar\nK/P: alianza local | C: mercado | O: tecnología siguiente | I: investigar"
+	help.text = "WASD: mover | E: recoger | B: mejorar centro de mando | T: mejorar Jaeger\nV: elegir instalación | N: mejorar instalación | F: enlace | R: brecha\nH: helicópteros | J: enfrentar Abisal | G: retirarse | Z: hablar con NPC | M: expedición | F5: guardar\nK/P: alianza local | C: mercado | O: tecnología siguiente | I: investigar"
 	help.add_theme_font_size_override("font_size", 13)
 	column.add_child(help)
 	status_label = Label.new()
@@ -793,6 +816,50 @@ func _material(color: Color, glow: bool = false) -> StandardMaterial3D:
 		material.emission = color
 		material.emission_energy_multiplier = 1.5
 	return material
+
+func _on_loop_mission_completed(mission_id: String, reward: Dictionary) -> void:
+	_apply_loop_reward(reward)
+	_show_status("Misión %s completada: recompensa recibida." % mission_id)
+	_update_hud()
+	_save_local_profile()
+
+func _on_loop_expedition_completed(region_id: String, reward: Dictionary) -> void:
+	_apply_loop_reward(reward)
+	_show_status("Expedición completada en %s: recompensas recuperadas." % region_id)
+	_update_hud()
+	_save_local_profile()
+
+func _apply_loop_reward(reward: Dictionary) -> void:
+	for id in reward:
+		var amount := int(reward[id])
+		if id == "credits":
+			if trade_manager: trade_manager.add_credits(amount)
+		elif id == "research_data":
+			research_data += maxi(0, amount)
+		else:
+			_add_resource(str(id), amount)
+
+func _on_loop_event_started(_event_id: String, title: String, resource_id: String, bonus: int) -> void:
+	_show_status("EVENTO %s: recolecta %s para obtener +%d adicional." % [title, resource_id, bonus])
+
+func _on_loop_event_ended(event_id: String) -> void:
+	_show_status("Evento regional finalizado: " + event_id)
+
+func _on_loop_region_unlocked(region_id: String) -> void:
+	_show_status("¡Nueva región desbloqueada! " + str(GameLoopManager.REGIONS.get(region_id, {}).get("title", region_id)))
+	_save_local_profile()
+
+func _toggle_expedition() -> void:
+	if gameplay_loop == null: return
+	if not gameplay_loop.active_expedition.is_empty():
+		gameplay_loop.cancel_expedition()
+		_show_status("Expedición cancelada.")
+		return
+	if not gameplay_loop.is_region_unlocked("broken_isles"):
+		_show_status("Completa la misión inicial para desbloquear Islas Quebradas.")
+		return
+	if gameplay_loop.start_expedition("broken_isles", "cristal", 4, {"metal":6,"energia":4,"research_data":2}):
+		_show_status("Expedición iniciada: reúne 4 cristal. M: cancelar.")
 
 func _on_kaiju_battle_resolved(outcome: String, rewards: Dictionary, consequences: Dictionary) -> void:
 	for key in rewards.keys():
@@ -867,7 +934,8 @@ func _save_local_profile() -> void:
 		"warfront_state": warfront_state.export_state() if warfront_state else {},
 		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {},
 		"damage_model_state": damage_model.export_state() if damage_model else {},
-		"npc_state": npc_manager.export_state() if npc_manager else {}
+		"npc_state": npc_manager.export_state() if npc_manager else {},
+		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {}
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -906,6 +974,10 @@ func _load_local_profile() -> void:
 		var saved_damage: Variant = snapshot.get("damage_model_state", {})
 		if saved_damage is Dictionary and not saved_damage.is_empty():
 			damage_model.import_state(saved_damage)
+	if gameplay_loop:
+		var saved_loop: Variant = snapshot.get("gameplay_loop_state", {})
+		if saved_loop is Dictionary and not saved_loop.is_empty():
+			gameplay_loop.import_state(saved_loop)
 	if npc_manager:
 		var saved_npc: Variant = snapshot.get("npc_state", {})
 		if saved_npc is Dictionary and not saved_npc.is_empty():
