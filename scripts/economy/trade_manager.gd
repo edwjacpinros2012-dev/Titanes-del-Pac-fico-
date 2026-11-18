@@ -71,7 +71,7 @@ func import_state(data: Dictionary) -> void:
 	credits_changed.emit(credits)
 
 func get_market_text() -> String:
-	return "MERCADO COSTERO | Créditos: %d\\n1 Comprar 3 metal (%d c) | 2 Comprar 3 energía (%d c) | 3 Comprar 2 cristal (%d c)\\n4 Vender 3 metal (%d c) | 5 Vender 3 energía (%d c) | 6 Vender 2 cristal (%d c)\\nC: cerrar mercado" % [
+	return "MERCADO COSTERO | Créditos: %d\n1 Comprar 3 metal (%d c) | 2 Comprar 3 energía (%d c) | 3 Comprar 2 cristal (%d c)\n4 Vender 3 metal (%d c) | 5 Vender 3 energía (%d c) | 6 Vender 2 cristal (%d c)\nC: cerrar mercado" % [
 		credits,
 		int(buy_prices["metal"]) * 3,
 		int(buy_prices["energia"]) * 3,
