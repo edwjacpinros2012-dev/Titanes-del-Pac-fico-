@@ -16,7 +16,7 @@ Se revisó el árbol actual de GitHub (scripts, escenas, datos, configuración, 
 - CI en commit `28597fb1`: 40 pruebas de lógica aprobadas (0 fallidas), importación, sanity y smoke run aprobados.
 - Validación estática realizada desde GitHub: 18 archivos JSON analizados, 0 errores de parseo.
 - Migraciones SQL: versiones `0001`, `0002`, `0003`, `0004` comprobadas como únicas.
-- CI en commit `eeb2c758` añade 3 pruebas para snapshots parciales y limpieza de nodos de prueba; el resultado final de esa ejecución está pendiente al redactar este documento.
+- CI en commit `eeb2c758`: 20 comprobaciones de repositorio aprobadas, 43 pruebas de lógica aprobadas (0 fallidas), importación y smoke run aprobados. La limpieza de nodos de prueba eliminó los avisos de recursos filtrados en la prueba de lógica.
 
 ## Advertencia del smoke test headless
 El smoke run de Godot 4.3 devuelve código 0 y no reporta errores de script, pero el renderer dummy/headless emite numerosos mensajes `mesh_get_surface_count` con parámetro nulo. Esto impide usar el smoke run como evidencia de calidad visual. La prueba visual requiere abrir el proyecto en Godot en Windows con renderer real.
