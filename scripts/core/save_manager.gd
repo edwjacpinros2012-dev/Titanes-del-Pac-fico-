@@ -63,7 +63,7 @@ func load_game(state: GameState) -> bool:
 
 func save_profile(snapshot: Dictionary) -> bool:
 	var payload := snapshot.duplicate(true)
-	payload["version"] = 2
+	payload["version"] = 2\n\tpayload["account_identity"] = AccountManager.export_snapshot() if AccountManager else {}\n\tpayload["settings_snapshot"] = SettingsManager.export_snapshot() if SettingsManager else {}
 	if not _write_json_atomic(PROFILE_PATH, payload):
 		push_error("No se pudo guardar el perfil local.")
 		return false
@@ -73,7 +73,7 @@ func save_profile(snapshot: Dictionary) -> bool:
 func load_profile() -> Dictionary:
 	var snapshot := _load_json_with_backup(PROFILE_PATH)
 	var version := int(snapshot.get("version", 0))
-	return snapshot if version >= 1 and version <= 2 else {})
+	if version < 1 or version > 2:\n\t\treturn {}\n\tvar saved_settings: Variant = snapshot.get("settings_snapshot", {})\n\tif typeof(saved_settings) == TYPE_DICTIONARY and SettingsManager:\n\t\tSettingsManager.import_snapshot(saved_settings)\n\treturn snapshot
 
 func _load_json_with_backup(path: String) -> Dictionary:
 	var backup_path := path + ".bak"
