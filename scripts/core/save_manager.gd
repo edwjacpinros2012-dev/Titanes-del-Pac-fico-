@@ -48,7 +48,10 @@ func load_game(state: GameState) -> bool:
 		if amount < 0:
 			load_completed.emit(false)
 			return false
-	state.resources = loaded_resources.duplicate(true)
+	var merged_resources: Dictionary = state.resources.duplicate(true)
+	for resource_id in loaded_resources:
+		merged_resources[str(resource_id)] = int(loaded_resources[resource_id])
+	state.resources = merged_resources
 	state.base_level = maxi(1, int(parsed.get("base_level", 1)))
 	state.titan_level = maxi(1, int(parsed.get("titan_level", 1)))
 	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
