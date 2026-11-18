@@ -17,6 +17,8 @@ func _check(ok: bool, label: String) -> void:
 
 func _run() -> void:
 	var manager = ManagerScript.new()
+	var milestone_count := [0]
+	manager.milestone_unlocked.connect(func(_region_id, _milestone_id, _threshold): milestone_count[0] += 1)
 	root.add_child(manager)
 	_check(manager.get_region_snapshot().progress == 0, "new region starts with no restoration progress")
 	_check(manager.add_progress(12, "exploration") == 12, "exploration activity adds regional progress")
@@ -24,8 +26,10 @@ func _run() -> void:
 	_check(manager.get_region_snapshot().progress == 21, "region total combines activity categories")
 	_check(manager.get_region_snapshot().stage == "Cartografiada", "20 percent threshold marks a sector surveyed")
 	_check(manager.get_region_snapshot().milestones.has("surveyed"), "survey milestone is claimed once threshold is reached")
+	_check(milestone_count[0] == 1, "milestone signal fires on first threshold crossing")
 	_check(manager.add_progress(90, "infrastructure") == 79, "progress is capped at 100")
 	_check(manager.get_region_snapshot().stage == "Estabilizada", "100 percent stage is reported")
+	_check(milestone_count[0] == 4, "all milestone thresholds emit exactly once")
 	_check(manager.add_progress(5, "research") == 0, "progress cannot exceed cap")
 	_check(manager.add_progress(-3, "ecology") == 0, "negative progress is rejected")
 	_check(manager.add_progress(5, "unknown") == 0, "unknown activity category is rejected")
