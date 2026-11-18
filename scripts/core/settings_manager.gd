@@ -15,6 +15,8 @@ var settings: Dictionary = DEFAULTS.duplicate(true)
 
 func _ready() -> void:
 	load_settings()
+	settings_changed.connect(_apply_audio_settings)
+	_apply_audio_settings(settings)
 
 func load_settings() -> void:
 	if FileAccess.file_exists(SETTINGS_PATH):
@@ -57,8 +59,22 @@ func reset_settings() -> void:
 func save_settings() -> void:
 	var f := FileAccess.open(SETTINGS_PATH, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify(settings, "\t"))
+		f.store_string(JSON.stringify(settings, "\\t"))
 		f.close()
+
+func _apply_audio_settings(values: Dictionary) -> void:
+	_set_bus_volume("Master", float(values.get("master_volume", 1.0)))
+	_set_bus_volume("Music", float(values.get("music_volume", 0.75)))
+	_set_bus_volume("SFX", float(values.get("sfx_volume", 0.85)))
+
+func _set_bus_volume(bus_name: String, linear_value: float) -> void:
+	var index := AudioServer.get_bus_index(bus_name)
+	if index < 0:
+		return
+	var normalized := clampf(linear_value, 0.0, 1.0)
+	AudioServer.set_bus_mute(index, normalized <= 0.001)
+	if normalized > 0.001:
+		AudioServer.set_bus_volume_db(index, linear_to_db(normalized))
 
 func _sanitize(key: String, value: Variant) -> Variant:
 	match key:
