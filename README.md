@@ -69,6 +69,8 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - `web/`: página informativa; no es todavía una exportación jugable del juego.
 
 ## Cuentas, comunidad y seguridad
+- Perfil local de piloto y modo offline añadido como base; ajustes de audio, subtítulos, sensibilidad, controles táctiles y movimiento reducido guardan localmente.
+- Inicio Google y sincronización nube siguen como integración pendiente: el cliente no simula autenticación ni subidas. Requiere SDK OAuth/Google, backend desplegado, validación servidor y pruebas reales.
 La autenticación y las alianzas online todavía no están conectadas a un servicio real. Supabase Auth y el esquema SQL son una base de arquitectura, no un backend desplegado. El chat global permanece desactivado hasta tener moderación, reportes, bloqueos, controles de privacidad y revisión operativa.
 
 Las credenciales privadas y claves de servicio nunca deben guardarse en el cliente Godot ni en GitHub. Las escrituras del progreso en nube y la vinculación de Google Play Games deben validarse desde servidor.
