@@ -27,6 +27,11 @@ Fecha de revisión: 2026-11-18. Basado en README, PR #10 y la arquitectura visib
 7. **Contenido mínimo:** tutorial completo, 3 regiones, 10 instalaciones con UI/uso claro, 12 criaturas registradas, 20 misiones, 20 recetas y 30 descubrimientos (objetivos iniciales, no afirmación de que ya existan).
 8. **Arte/audio:** sustituir primitivos por assets originales; animaciones, feedback, ambientación, música y efectos; LOD y optimización móvil.
 
+### Implementado en rama de trabajo: restauración regional (validación pendiente)
+- `RegionRestorationManager` con progreso de 0–100 por región, categorías de exploración/ecología/infraestructura/investigación, cuatro hitos y guardado validado.
+- Conectado a recogida, mejoras de base, investigación, observación de criaturas, reconocimiento y estabilización de brechas; indicador en HUD.
+- Test dedicado y auditoría CI añadidos. Aún falta ejecutar Godot para confirmar parser y runtime.
+
 ### P1: ampliar los sistemas
 - Árbol de tecnología con ramas (exploración, base, energía, análisis, movilidad, logística) y prerequisitos claros.
 - Mapa de regiones, rutas, clima regional, puntos de interés persistentes y eventos rotativos.

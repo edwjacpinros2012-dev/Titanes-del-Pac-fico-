@@ -15,6 +15,7 @@ SaveSystem="*res://scripts/core/save_manager.gd"
 AccountManager="*res://scripts/accounts/account_manager.gd"
 SettingsManager="*res://scripts/core/settings_manager.gd"
 AccountUI="*res://scripts/accounts/account_ui.gd"
+RegionRestoration="*res://scripts/systems/region_restoration_manager.gd"
 
 [display]
 window/size/viewport_width=1280

@@ -47,6 +47,7 @@ var creature_label: Label
 var market_label: Label
 var gameplay_loop: GameLoopManager
 var loop_status_label: Label
+var region_restoration_label: Label
 var market_open: bool = false
 var research_data: int = 0
 var resources := {"metal": 80, "energia": 45, "cristal": 12}
@@ -59,6 +60,7 @@ const AUTOSAVE_INTERVAL := 60.0
 
 func _ready() -> void:
 	_setup_input()
+	RegionRestoration.milestone_unlocked.connect(_on_region_restoration_milestone)
 	_create_world()
 	_create_player()
 	_create_gameplay_systems()
@@ -90,6 +92,9 @@ func _process(delta: float) -> void:
 		objective_label.text = rift_manager.get_objective_text()
 	if loop_status_label and gameplay_loop:
 		loop_status_label.text = gameplay_loop.get_status_text()
+	if region_restoration_label:
+		var region_snapshot: Dictionary = RegionRestoration.get_region_snapshot()
+		region_restoration_label.text = "REGIÓN: %s | %d%% | %s" % [region_snapshot.get("name", "—"), region_snapshot.get("progress", 0), region_snapshot.get("stage", "Sin explorar")]
 	if sync_label and pilot_sync:
 		sync_label.text = pilot_sync.get_status_text()
 	if contracts_label and contract_manager:
@@ -413,6 +418,7 @@ func _on_creature_observed(display_name: String, research_reward: int) -> void:
 	if alliance_manager:
 		alliance_manager.register_objective("research")
 	research_data += research_reward
+	RegionRestoration.add_progress(6, "ecology")
 	_update_hud()
 	_show_status("Nueva especie registrada: " + display_name + " | +" + str(research_reward) + " datos de investigación.")
 
@@ -426,6 +432,7 @@ func _on_rift_stabilized(_index: int, reward: Dictionary) -> void:
 	for resource_id in reward.keys():
 		_add_resource(resource_id, int(reward[resource_id]))
 	contract_manager.register_action("rift")
+	RegionRestoration.add_progress(4, "infrastructure")
 	if npc_manager:
 		npc_manager.register_action("rift")
 	_update_hud()
@@ -440,6 +447,7 @@ func _on_scouting_completed(reward: Dictionary, scan_center: Vector3) -> void:
 	var scan_radius := base_development.get_scouting_radius(30.0) if base_development else 30.0
 	var discovered := creature_manager.reveal_nearby(scan_center, scan_radius) if creature_manager else 0
 	contract_manager.register_action("scout")
+	RegionRestoration.add_progress(5, "exploration")
 	if npc_manager:
 		npc_manager.register_action("scout")
 	if alliance_manager:
@@ -559,6 +567,7 @@ func _try_collect_nearby(show_message: bool = false) -> void:
 			if npc_manager:
 				npc_manager.register_action("collect")
 			_add_resource(kind, amount)
+			RegionRestoration.add_progress(1, "exploration")
 			collected_nodes.erase(node)
 			node.queue_free()
 			_update_hud()
@@ -572,6 +581,7 @@ func _upgrade_base() -> void:
 		base_level = base_development.get_facility_level("command_hub")
 		if npc_manager:
 			npc_manager.register_base_upgrade()
+		RegionRestoration.add_progress(5, "infrastructure")
 		_show_status("Centro de mando mejorado. Base nivel %d." % base_level)
 	else:
 		_show_status(base_development.get_selected_facility_text(resources, base_level) if base_development else "Sistema de base no disponible.")
@@ -587,6 +597,7 @@ func _upgrade_selected_facility() -> void:
 	if base_development.upgrade_facility(facility_id, resources, base_level):
 		if npc_manager:
 			npc_manager.register_base_upgrade()
+		RegionRestoration.add_progress(3, "infrastructure")
 		_show_status("Instalación mejorada: " + base_development.get_facility_name(facility_id))
 	else:
 		_show_status(base_development.get_selected_facility_text(resources, base_level))
@@ -605,6 +616,7 @@ func _research_selected_technology() -> void:
 		_show_status(technology_tree.get_selected_text(research_data))
 		return
 	research_data -= cost
+	RegionRestoration.add_progress(4, "research")
 	_apply_technology_effects()
 	_update_hud()
 	_save_local_profile()
@@ -728,6 +740,9 @@ func _create_hud() -> void:
 	loop_status_label = Label.new()
 	loop_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(loop_status_label)
+	region_restoration_label = Label.new()
+	region_restoration_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(region_restoration_label)
 	sync_label = Label.new()
 	column.add_child(sync_label)
 	helicopter_label = Label.new()
@@ -847,7 +862,13 @@ func _on_loop_event_started(_event_id: String, title: String, resource_id: Strin
 func _on_loop_event_ended(event_id: String) -> void:
 	_show_status("Evento regional finalizado: " + event_id)
 
+func _on_region_restoration_milestone(region_id: String, milestone_id: String, threshold: int) -> void:
+	var region_name: String = RegionRestoration.get_region_snapshot(region_id).get("name", region_id)
+	_show_status("HITO REGIONAL: %s — %s (%d%%)" % [region_name, milestone_id, threshold])
+	_save_local_profile()
+
 func _on_loop_region_unlocked(region_id: String) -> void:
+	RegionRestoration.set_active_region(region_id)
 	_show_status("¡Nueva región desbloqueada! " + str(GameLoopManager.REGIONS.get(region_id, {}).get("title", region_id)))
 	_save_local_profile()
 
@@ -937,7 +958,8 @@ func _save_local_profile() -> void:
 		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {},
 		"damage_model_state": damage_model.export_state() if damage_model else {},
 		"npc_state": npc_manager.export_state() if npc_manager else {},
-		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {}
+		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {},
+		"region_restoration_state": RegionRestoration.export_state()
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -981,6 +1003,9 @@ func _load_local_profile() -> void:
 		var saved_loop: Variant = snapshot.get("gameplay_loop_state", {})
 		if saved_loop is Dictionary and not saved_loop.is_empty():
 			gameplay_loop.import_state(saved_loop)
+	var saved_regions: Variant = snapshot.get("region_restoration_state", {})
+	if saved_regions is Dictionary and not saved_regions.is_empty():
+		RegionRestoration.import_state(saved_regions)
 	if npc_manager:
 		var saved_npc: Variant = snapshot.get("npc_state", {})
 		if saved_npc is Dictionary and not saved_npc.is_empty():

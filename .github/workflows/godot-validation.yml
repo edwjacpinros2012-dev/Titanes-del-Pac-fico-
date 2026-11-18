@@ -25,5 +25,7 @@ jobs:
         run: godot --headless --path . --script tests/test_core_logic.gd
       - name: Run account and settings foundation tests
         run: godot --headless --path . --script tests/test_account_settings_foundations.gd
+      - name: Run regional restoration progression tests
+        run: godot --headless --path . --script tests/test_region_restoration.gd
       - name: Run main scene briefly
         run: godot --headless --path . --quit-after 10
