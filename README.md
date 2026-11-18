@@ -51,6 +51,14 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - **C:** abrir/cerrar mercado interno; con el mercado abierto, 1–3 compra y 4–6 vende con créditos ficticios.
 - **J:** iniciar/resolver encuentro Kaiju; tecla de retirada según configuración del prototipo.
 
+## Loop inicial integrado (prototipo)
+- Misión inicial de recolección de metal con progreso y recompensa de energía/investigación.
+- Al completarla se desbloquea Islas Quebradas.
+- Expedición: reúne cristal y recibe una recompensa, con cancelación.
+- Eventos regionales temporales que dan un recurso extra al recoger el tipo indicado.
+- El estado de misión, expedición, región y evento se guarda en el perfil local.
+- Pruebas automáticas añadidas para este loop; revisar GitHub Actions antes de asumir que la última revisión está aprobada.
+
 ## Estructura
 - `assets/`: modelos, texturas, audio e interfaz.
 - `scenes/`: escenas Godot.
