@@ -72,6 +72,21 @@ func _run_tests() -> void:
 	_check(save_manager.load_game(state_after_profile_save), "game save remains readable after profile save")
 	_check(state_after_profile_save.resources["metal"] == 15, "profile save no longer overwrites game save")
 	
+	var legacy_profile_file := FileAccess.open(SaveManagerScript.PROFILE_PATH, FileAccess.WRITE)
+	if legacy_profile_file:
+		legacy_profile_file.store_string(JSON.stringify({"version": 1, "credits": 77, "research_data": 8, "resources": {"metal": 12}, "custom_flag": "kept"}))
+		legacy_profile_file.close()
+	var migrated_profile: Dictionary = save_manager.load_profile()
+	_check(migrated_profile.get("version", 0) == 2, "legacy profile v1 is normalized to v2")
+	_check(migrated_profile.get("credits", -1) == 77 and migrated_profile.get("research_data", -1) == 8, "profile migration preserves legacy progress values")
+	_check(migrated_profile.get("base_level", 0) == 1 and migrated_profile.get("campaign_level", 0) == 1, "profile migration fills missing progression defaults")
+	_check(migrated_profile.get("custom_flag", "") == "kept", "profile migration retains unknown legacy fields")
+	var unsupported_profile_file := FileAccess.open(SaveManagerScript.PROFILE_PATH, FileAccess.WRITE)
+	if unsupported_profile_file:
+		unsupported_profile_file.store_string(JSON.stringify({"version": 99, "credits": 500}))
+		unsupported_profile_file.close()
+	_check(save_manager.load_profile().is_empty(), "profile loader rejects unsupported future versions")
+
 	var loop_manager = GameLoopScript.new()
 	root.add_child(loop_manager)
 	_check(not loop_manager.active_mission.is_empty(), "integrated game loop starts tutorial mission")
