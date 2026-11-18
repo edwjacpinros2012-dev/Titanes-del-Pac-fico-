@@ -73,7 +73,7 @@ func save_profile(snapshot: Dictionary) -> bool:
 func load_profile() -> Dictionary:
 	var snapshot := _load_json_with_backup(PROFILE_PATH)
 	var version := int(snapshot.get("version", 0))
-	return snapshot if version >= 1 and version <= 2 else {})
+	return snapshot if version >= 1 and version <= 2 else {}
 
 func _load_json_with_backup(path: String) -> Dictionary:
 	var backup_path := path + ".bak"
