@@ -688,6 +688,8 @@ func _on_platform_action(action_name: String) -> void:
 				_show_status("TÁCTICA: PRECISIÓN. " + kaiju_war.last_tactic_feedback)
 		"talk_npc":
 			_interact_with_npc()
+		"expedition_toggle":
+			_toggle_expedition()
 		"tech_select_next":
 			_select_next_technology()
 		"tech_research":
