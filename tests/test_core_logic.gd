@@ -37,10 +37,10 @@ func _run_tests() -> void:
 	_check(state.unlocked_regions.count("test_region") == 1, "region unlock is idempotent")
 	_check(state.base_level == 1 and state.titan_level == 1, "default progression levels are valid")
 	_check(state.resources.has("energy") and state.resources.has("crystal"), "resource dictionary includes all core resources")
-	var resource_signal_count := 0
-	state.resources_changed.connect(func(): resource_signal_count += 1)
+	var signal_counter := [0]
+	state.resources_changed.connect(func(): signal_counter[0] += 1)
 	state.add_resource("crystal", 3)
-	_check(resource_signal_count == 1, "resource changes emit one signal")
+	_check(signal_counter[0] == 1, "resource changes emit one signal")
 	var SaveManagerScript = preload("res://scripts/core/save_manager.gd")
 	var save_manager = SaveManagerScript.new()
 	state.base_level = 3
@@ -57,5 +57,8 @@ func _run_tests() -> void:
 	_check(loaded_profile.get("version", 0) == 2, "profile save/load preserves version metadata")
 	_check(loaded_profile.get("credits", -1) == 123, "profile save/load preserves credits field")
 	_check(loaded_profile.get("flags", []).has("qa"), "profile save/load preserves custom snapshot fields")
+	var state_after_profile_save = GameStateScript.new()
+	_check(save_manager.load_game(state_after_profile_save), "game save remains readable after profile save")
+	_check(state_after_profile_save.resources["metal"] == 15, "profile save no longer overwrites game save")
 	print("CORE TESTS: ", passed, " passed, ", failed, " failed")
 	quit(1 if failed > 0 else 0)
