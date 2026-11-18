@@ -11,7 +11,10 @@ run/max_fps=60
 
 [autoload]
 GlobalState="*res://scripts/core/game_state.gd"
-SaveSystem="*res://scripts/core/save_manager.gd"\nAccountManager="*res://scripts/accounts/account_manager.gd"\nSettingsManager="*res://scripts/core/settings_manager.gd"\nAccountUI="*res://scripts/accounts/account_ui.gd"
+SaveSystem="*res://scripts/core/save_manager.gd"
+AccountManager="*res://scripts/accounts/account_manager.gd"
+SettingsManager="*res://scripts/core/settings_manager.gd"
+AccountUI="*res://scripts/accounts/account_ui.gd"
 
 [display]
 window/size/viewport_width=1280
