@@ -15,5 +15,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Import project and parse scripts
         run: godot --headless --editor --path . --quit
+      - name: Run core logic tests
+        run: godot --headless --path . --script tests/test_core_logic.gd
       - name: Run main scene briefly
         run: godot --headless --path . --quit-after 10
