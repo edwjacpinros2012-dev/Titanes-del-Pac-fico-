@@ -111,8 +111,21 @@ func import_snapshot(snapshot: Dictionary) -> bool:
 	var incoming_claimed: Variant = snapshot.get("claimed_milestones", {})
 	if typeof(incoming_claimed) != TYPE_DICTIONARY:
 		return false
+	var clean_claimed := {}
+	for species_id in incoming_claimed:
+		if not SPECIES.has(str(species_id)) or typeof(incoming_claimed[species_id]) != TYPE_ARRAY:
+			return false
+		var allowed_milestones: Array = SPECIES[str(species_id)].get("milestones", [])
+		var valid_claims: Array = []
+		for milestone_value in incoming_claimed[species_id]:
+			var milestone := int(milestone_value)
+			if milestone not in allowed_milestones or milestone > int(clean_observations.get(str(species_id), 0)):
+				return false
+			if milestone not in valid_claims:
+				valid_claims.append(milestone)
+		clean_claimed[str(species_id)] = valid_claims
 	observations = clean_observations
 	registered_species = clean_registered
-	claimed_milestones = incoming_claimed.duplicate(true)
+	claimed_milestones = clean_claimed
 	registry_changed.emit()
 	return true
