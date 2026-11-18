@@ -128,8 +128,18 @@ func import_state(snapshot: Dictionary) -> bool:
 			if value < 0 or value > MAX_PROGRESS:
 				return false
 			normalized["categories"][category] = value
+		var category_total := 0
+		for category in CATEGORIES:
+			category_total += int(normalized["categories"][category])
+		if category_total != progress:
+			return false
 		for milestone_id in milestones:
-			if not MILESTONES.any(func(item): return item["id"] == str(milestone_id)):
+			var matched_milestone := {}
+			for milestone in MILESTONES:
+				if milestone["id"] == str(milestone_id):
+					matched_milestone = milestone
+					break
+			if matched_milestone.is_empty() or progress < int(matched_milestone["threshold"]):
 				return false
 			if str(milestone_id) not in normalized["milestones"]:
 				normalized["milestones"].append(str(milestone_id))
