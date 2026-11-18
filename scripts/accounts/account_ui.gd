@@ -4,6 +4,7 @@ var status_label: Label
 var name_input: LineEdit
 var settings_box: VBoxContainer
 var panel_container: PanelContainer
+var reopen_button: Button
 
 func _ready() -> void:
 	layer = 80
@@ -13,14 +14,30 @@ func _build_ui() -> void:
 	panel_container = PanelContainer.new()
 	panel_container.name = "AccountSettingsPanel"
 	panel_container.position = Vector2(14, 14)
-	panel_container.custom_minimum_size = Vector2(310, 0)
+	panel_container.custom_minimum_size = Vector2(330, 0)
+	panel_container.size = Vector2(330, 0)
 	add_child(panel_container)
-	var column := VBoxContainer.new()
-	panel_container.add_child(column)
+	var panel_column := VBoxContainer.new()
+	panel_container.add_child(panel_column)
+	var header := HBoxContainer.new()
+	panel_column.add_child(header)
 	var title := Label.new()
 	title.text = "PILOTO / AJUSTES"
 	title.add_theme_font_size_override("font_size", 18)
-	column.add_child(title)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+	var close_button := Button.new()
+	close_button.text = "×"
+	close_button.tooltip_text = "Ocultar panel para jugar"
+	close_button.pressed.connect(_hide_panel)
+	header.add_child(close_button)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(0, 430)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel_column.add_child(scroll)
+	var column := VBoxContainer.new()
+	column.custom_minimum_size = Vector2(300, 0)
+	scroll.add_child(column)
 	status_label = Label.new()
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.text = _profile_summary()
@@ -57,10 +74,24 @@ func _build_ui() -> void:
 	reset.text = "Restablecer ajustes"
 	reset.pressed.connect(SettingsManager.reset_settings)
 	column.add_child(reset)
+	reopen_button = Button.new()
+	reopen_button.text = "Cuenta / ajustes"
+	reopen_button.position = Vector2(14, 14)
+	reopen_button.visible = false
+	reopen_button.pressed.connect(_show_panel)
+	add_child(reopen_button)
 	AccountManager.authentication_status_changed.connect(_on_status)
 	AccountManager.profile_changed.connect(_on_profile_changed)
 	SettingsManager.settings_changed.connect(_refresh_settings)
 	_refresh_settings(SettingsManager.settings)
+
+func _hide_panel() -> void:
+	panel_container.visible = false
+	reopen_button.visible = true
+
+func _show_panel() -> void:
+	panel_container.visible = true
+	reopen_button.visible = false
 
 func _add_slider(label_text: String, setting_key: String, min_value := 0.0, max_value := 1.0) -> void:
 	var row := HBoxContainer.new()
