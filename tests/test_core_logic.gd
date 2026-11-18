@@ -55,6 +55,17 @@ func _run_tests() -> void:
 	_check(loaded_state.resources["metal"] == 15 and loaded_state.resources["crystal"] == 3, "save/load preserves resource values")
 	_check(loaded_state.base_level == 3 and loaded_state.titan_level == 4, "save/load preserves progression levels")
 	_check(loaded_state.unlocked_regions.has("test_region_2"), "save/load preserves unlocked regions")
+	var malformed_save_file := FileAccess.open(SaveManagerScript.SAVE_PATH, FileAccess.WRITE)
+	if malformed_save_file:
+		malformed_save_file.store_string(JSON.stringify({"version": 1, "resources": {"metal": 999}, "base_level": 9, "titan_level": 9, "unlocked_regions": "not_an_array"}))
+		malformed_save_file.close()
+	var untouched_state = GameStateScript.new()
+	untouched_state.resources["metal"] = 5
+	untouched_state.base_level = 2
+	untouched_state.titan_level = 3
+	_check(not save_manager.load_game(untouched_state), "load_game rejects malformed region list")
+	_check(untouched_state.resources["metal"] == 5 and untouched_state.base_level == 2 and untouched_state.titan_level == 3, "failed load leaves live game state unchanged")
+	_check(save_manager.save_game(state), "restore valid game save after malformed payload test")
 	_check(save_manager.save_profile({"profile_name": "test", "credits": 123, "flags": ["qa"]}), "save_profile accepts valid snapshot")
 	var loaded_profile: Dictionary = save_manager.load_profile()
 	_check(loaded_profile.get("version", 0) == 2, "profile save/load preserves version metadata")
