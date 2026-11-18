@@ -1,5 +1,20 @@
 # Primeros pasos: preparar el proyecto sin tener Godot instalado
 
+## 0. Comprobar el equipo en Windows 11
+Antes de descargar, revisa RAM, procesador y espacio libre sin modificar nada:
+
+1. Extrae el ZIP del repositorio.
+2. Abre PowerShell normal dentro de la carpeta del proyecto.
+3. Ejecuta:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\\tools\\diagnostico_pc_windows.ps1
+```
+
+Alternativa sin script: pulsa **Ctrl + Shift + Esc**, abre **Administrador de tareas → Rendimiento → Memoria** y mira si tienes 4 GB, 8 GB, 16 GB, etc. El diagnóstico solo lee información; no instala ni cambia ajustes.
+
+
 **Objetivo:** dejar el proyecto listo en Windows y abrirlo cuando Godot esté instalado.  
 **Versión de editor fijada para este repositorio:** Godot 4.3 estable, edición Standard (no .NET).  
 **Sistema:** Windows 10/11 de 64 bits recomendado.
