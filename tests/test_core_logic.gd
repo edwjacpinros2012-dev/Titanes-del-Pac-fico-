@@ -135,7 +135,7 @@ func _run_tests() -> void:
 	var missing_research_craft: bool = crafting_manager.craft("test_alloy", crafting_inventory, [])
 	_check(not missing_research_craft, "crafting blocks recipes without required research")
 	_check(crafting_inventory.items["metal"] == 3, "failed research check does not consume ingredients")
-	var successful_craft: bool = await crafting_manager.craft("test_alloy", crafting_inventory, ["basic_metallurgy"])
+	var successful_craft: bool = crafting_manager.craft("test_alloy", crafting_inventory, ["basic_metallurgy"])
 	_check(successful_craft, "crafting completes when research and ingredients are available")
 	_check(crafting_inventory.items["metal"] == 0 and crafting_inventory.items["energia"] == 0, "crafting consumes exact ingredient costs")
 	_check(crafting_inventory.items["alloy_plate"] == 1, "crafting grants configured output")
