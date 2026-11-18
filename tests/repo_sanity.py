@@ -27,6 +27,30 @@ check((ROOT / "data").is_dir(), "data directory exists")
 check((ROOT / "scripts").is_dir(), "scripts directory exists")
 check((ROOT / "docs").is_dir(), "docs directory exists")
 
+
+# Parse all project JSON data to catch malformed content early.
+import json
+json_files = sorted(ROOT.rglob("*.json"))
+json_errors = []
+for json_path in json_files:
+    try:
+        json.loads(json_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as error:
+        json_errors.append(f"{json_path.relative_to(ROOT)}: {error}")
+check(not json_errors, f"all {len(json_files)} JSON files parse")
+
+# Supabase migration version prefixes must be unique and ordered.
+migration_files = sorted((ROOT / "backend/supabase/migrations").glob("*.sql"))
+migration_versions = [path.name.split("_", 1)[0] for path in migration_files]
+check(len(migration_versions) == len(set(migration_versions)), "Supabase migration versions are unique")
+check(migration_versions == sorted(migration_versions), "Supabase migration files sort by version")
+
+# Confirm the main scene references the script and autoload paths exist.
+main_scene = (ROOT / "scenes/main.tscn").read_text(encoding="utf-8")
+check("res://scripts/main.gd" in main_scene, "main scene references gameplay script")
+for autoload_path in ("res://scripts/core/game_state.gd", "res://scripts/core/save_manager.gd"):
+    check(autoload_path in project and (ROOT / autoload_path.replace("res://", "")).is_file(), f"autoload path exists: {autoload_path}")
+
 for ok, label in checks:
     print(("PASS" if ok else "FAIL") + ": " + label)
 failed = sum(not ok for ok, _ in checks)
