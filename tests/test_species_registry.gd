@@ -1,6 +1,7 @@
 extends SceneTree
 
 const RegistryScript = preload("res://scripts/ecology/species_registry.gd")
+const GameLoopScript = preload("res://scripts/gameplay/game_loop_manager.gd")
 var passed := 0
 var failed := 0
 var research_total := 0
@@ -41,5 +42,9 @@ func _run() -> void:
 	_check(restored.get_observation_count("lumina_ray") == 3, "snapshot preserves observation count")
 	_check(not restored.import_snapshot({"observations":{"lumina_ray":-2}}), "negative observation snapshot rejected")
 	_check(not restored.import_snapshot({"observations":{"lumina_ray":1},"claimed_milestones":{"lumina_ray":[5]}}), "future milestone claim rejected")
+	var loop = GameLoopScript.new()
+	loop.unlocked_regions = ["aurora_coast"]
+	_check(loop.report_ecology_observation("lumina_ray", "aurora_coast"), "gameplay loop accepts unlocked-region observation")
+	_check(not loop.report_ecology_observation("basalt_grazer", "broken_isles"), "gameplay loop blocks locked-region observation")
 	print("RESULT: ", passed, " passed; ", failed, " failed")
 	quit(1 if failed > 0 else 0)
