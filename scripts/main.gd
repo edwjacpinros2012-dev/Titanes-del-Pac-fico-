@@ -959,6 +959,8 @@ func _save_local_profile() -> void:
 		"version": 1,
 		"resources": resources,
 		"credits": trade_manager.credits if trade_manager else 250,
+		"trade_state": trade_manager.export_state() if trade_manager else {},
+		"contract_state": contract_manager.export_state() if contract_manager else {},
 		"research_data": research_data,
 		"base_level": base_level,
 		"base_development": base_development.export_state() if base_development else {},
@@ -994,7 +996,15 @@ func _load_local_profile() -> void:
 	titan_level = int(snapshot.get("titan_level", titan_level))
 	research_data = int(snapshot.get("research_data", research_data))
 	if trade_manager:
-		trade_manager.credits = int(snapshot.get("credits", trade_manager.credits))
+		var saved_trade: Variant = snapshot.get("trade_state", {})
+		if saved_trade is Dictionary and not saved_trade.is_empty():
+			trade_manager.import_state(saved_trade)
+		else:
+			trade_manager.credits = maxi(0, int(snapshot.get("credits", trade_manager.credits)))
+	if contract_manager:
+		var saved_contracts: Variant = snapshot.get("contract_state", {})
+		if saved_contracts is Dictionary and not saved_contracts.is_empty():
+			contract_manager.import_state(saved_contracts)
 	if technology_tree:
 		var saved_technology: Variant = snapshot.get("technology_state", {})
 		if typeof(saved_technology) == TYPE_DICTIONARY:
