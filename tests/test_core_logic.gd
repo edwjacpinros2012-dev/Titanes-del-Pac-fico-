@@ -132,7 +132,7 @@ func _run_tests() -> void:
 	var crafting_inventory = InventoryScript.new()
 	crafting_inventory.add_item("metal", 3)
 	crafting_inventory.add_item("energia", 1)
-	var missing_research_craft: bool = await crafting_manager.craft("test_alloy", crafting_inventory, [])
+	var missing_research_craft: bool = crafting_manager.craft("test_alloy", crafting_inventory, [])
 	_check(not missing_research_craft, "crafting blocks recipes without required research")
 	_check(crafting_inventory.items["metal"] == 3, "failed research check does not consume ingredients")
 	var successful_craft: bool = await crafting_manager.craft("test_alloy", crafting_inventory, ["basic_metallurgy"])
