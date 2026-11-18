@@ -60,6 +60,7 @@ const AUTOSAVE_INTERVAL := 60.0
 
 func _ready() -> void:
 	_setup_input()
+	RegionRestoration.milestone_unlocked.connect(_on_region_restoration_milestone)
 	_create_world()
 	_create_player()
 	_create_gameplay_systems()
@@ -860,6 +861,11 @@ func _on_loop_event_started(_event_id: String, title: String, resource_id: Strin
 
 func _on_loop_event_ended(event_id: String) -> void:
 	_show_status("Evento regional finalizado: " + event_id)
+
+func _on_region_restoration_milestone(region_id: String, milestone_id: String, threshold: int) -> void:
+	var region_name: String = RegionRestoration.get_region_snapshot(region_id).get("name", region_id)
+	_show_status("HITO REGIONAL: %s — %s (%d%%)" % [region_name, milestone_id, threshold])
+	_save_local_profile()
 
 func _on_loop_region_unlocked(region_id: String) -> void:
 	RegionRestoration.set_active_region(region_id)
