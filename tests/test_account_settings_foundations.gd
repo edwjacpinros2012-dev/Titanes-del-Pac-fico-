@@ -1,0 +1,22 @@
+extends SceneTree
+
+func _init() -> void:
+	var account_script = load("res://scripts/accounts/account_manager.gd")
+	var account = account_script.new()
+	account.load_or_create_profile()
+	assert(account.profile.has("player_id"))
+	assert(account.profile.get("provider") == "offline")
+	assert(account.set_display_name("Explorador"))
+	assert(not account.set_display_name(""))
+	account.begin_google_sign_in()
+	assert(not account.is_google_linked())
+	var settings_script = load("res://scripts/core/settings_manager.gd")
+	var settings = settings_script.new()
+	assert(settings.set_setting("master_volume", 2.0))
+	assert(is_equal_approx(settings.get_setting("master_volume"), 1.0))
+	assert(settings.set_setting("camera_sensitivity", 0.0))
+	assert(is_equal_approx(settings.get_setting("camera_sensitivity"), 0.25))
+	assert(not settings.set_setting("unknown_option", true))
+	settings.reset_settings()
+	print("ACCOUNT_SETTINGS_TESTS_OK")
+	quit()

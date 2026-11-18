@@ -964,6 +964,7 @@ func _load_local_profile() -> void:
 			technology_tree.import_state(saved_technology)
 	if campaign:
 		campaign.set_player_level(int(snapshot.get("campaign_level", 1)))
+		campaign.jaeger_generation = maxi(1, int(snapshot.get("jaeger_generation", campaign.jaeger_generation)))
 	if warfront_state:
 		var saved_warfront: Variant = snapshot.get("warfront_state", {})
 		if saved_warfront is Dictionary:

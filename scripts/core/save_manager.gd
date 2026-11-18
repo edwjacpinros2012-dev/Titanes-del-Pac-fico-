@@ -35,8 +35,7 @@ func load_game(state: GameState) -> bool:
 		load_completed.emit(false)
 		return false
 	for resource_id in loaded_resources:
-		var amount := int(loaded_resources[resource_id])
-		if amount < 0:
+		if int(loaded_resources[resource_id]) < 0:
 			load_completed.emit(false)
 			return false
 	var merged_resources: Dictionary = state.resources.duplicate(true)
@@ -64,6 +63,8 @@ func load_game(state: GameState) -> bool:
 func save_profile(snapshot: Dictionary) -> bool:
 	var payload := snapshot.duplicate(true)
 	payload["version"] = 2
+	payload["account_identity"] = AccountManager.export_snapshot() if AccountManager else {}
+	payload["settings_snapshot"] = SettingsManager.export_snapshot() if SettingsManager else {}
 	if not _write_json_atomic(PROFILE_PATH, payload):
 		push_error("No se pudo guardar el perfil local.")
 		return false
@@ -73,7 +74,12 @@ func save_profile(snapshot: Dictionary) -> bool:
 func load_profile() -> Dictionary:
 	var snapshot := _load_json_with_backup(PROFILE_PATH)
 	var version := int(snapshot.get("version", 0))
-	return snapshot if version >= 1 and version <= 2 else {})
+	if version < 1 or version > 2:
+		return {}
+	var saved_settings: Variant = snapshot.get("settings_snapshot", {})
+	if typeof(saved_settings) == TYPE_DICTIONARY and SettingsManager:
+		SettingsManager.import_snapshot(saved_settings)
+	return snapshot
 
 func _load_json_with_backup(path: String) -> Dictionary:
 	var backup_path := path + ".bak"

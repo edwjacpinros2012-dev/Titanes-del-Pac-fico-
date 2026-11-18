@@ -19,7 +19,11 @@ jobs:
         run: apt-get update && apt-get install -y python3
       - name: Repository sanity checks
         run: python3 tests/repo_sanity.py
+      - name: Integration audit
+        run: python3 tests/integration_audit.py
       - name: Run core logic tests
         run: godot --headless --path . --script tests/test_core_logic.gd
+      - name: Run account and settings foundation tests
+        run: godot --headless --path . --script tests/test_account_settings_foundations.gd
       - name: Run main scene briefly
         run: godot --headless --path . --quit-after 10
