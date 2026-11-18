@@ -65,6 +65,13 @@ check("func export_state()" in trade and "func import_state(data: Dictionary)" i
       "trade manager exposes a validated persistence boundary")
 check("func export_state()" in contracts and "func import_state(data: Dictionary)" in contracts,
       "contract manager exposes a persistence boundary")
+touch_script = (ROOT / "scripts/platform/platform_input.gd").read_text(encoding="utf-8")
+check('["R", "stabilize_rift"]' in touch_script and '["F", "sync_pilots"]' in touch_script,
+      "touch controls support hold interactions for rifts and pilot synchronization")
+check('["H", "scout_helicopters"]' in touch_script and '["1", "market_buy_metal"]' in touch_script,
+      "touch controls expose scouting and market transactions")
+check('"market_buy_metal":' in main and '"alliance_join":' in main and '"save_profile":' in main,
+      "mobile action dispatcher connects market, alliances, and saving")
 check("tests/test_account_settings_foundations.gd" in workflow,
       "CI includes account/settings GDScript test")
 check("tests/integration_audit.py" in workflow,
