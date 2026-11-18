@@ -176,6 +176,7 @@ func _run_tests() -> void:
 	var restored_contracts = ContractManagerScript.new()
 	restored_contracts.import_state(contract_snapshot)
 	_check(bool(restored_contracts.contracts[0]["claimed"]), "contract completion survives save and load")
+	_check(contracts.get_summary_text().contains("\n"), "contract summary uses readable line breaks")
 	contracts.free()
 	restored_contracts.free()
 
@@ -195,6 +196,7 @@ func _run_tests() -> void:
 	restored_trade.import_state(trade_snapshot)
 	_check(restored_trade.credits == 83, "market credits survive save and load")
 	_check(restored_trade.market_stock["metal"] == 39, "market stock survives purchases and sales")
+	_check(trade.get_market_text().contains("\n"), "market summary uses readable line breaks")
 	restored_trade.free()
 	var partial_state = GameStateScript.new()
 	partial_state.resources = {"metal": 9}
