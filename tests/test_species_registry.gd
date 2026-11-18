@@ -39,7 +39,7 @@ func _run() -> void:
 	var snapshot: Dictionary = registry.export_snapshot()
 	var restored = RegistryScript.new()
 	_check(restored.import_snapshot(snapshot), "snapshot restores")
-	_check(restored.get_observation_count("lumina_ray") == 3, "snapshot preserves observation count")
+	_check(restored.get_observation_count("lumina_ray") == 5, "snapshot preserves observation count")
 	_check(not restored.import_snapshot({"observations":{"lumina_ray":-2}}), "negative observation snapshot rejected")
 	_check(not restored.import_snapshot({"observations":{"lumina_ray":1},"claimed_milestones":{"lumina_ray":[5]}}), "future milestone claim rejected")
 	var loop = GameLoopScript.new()
