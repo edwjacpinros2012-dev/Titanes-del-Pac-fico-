@@ -72,8 +72,29 @@ func save_profile(snapshot: Dictionary) -> bool:
 
 func load_profile() -> Dictionary:
 	var snapshot := _load_json_with_backup(PROFILE_PATH)
+	if snapshot.is_empty():
+		return {}
 	var version := int(snapshot.get("version", 0))
-	return snapshot if version >= 1 and version <= 2 else {}
+	if version < 1 or version > 2:
+		return {}
+	var normalized := snapshot.duplicate(true)
+	var loaded_resources: Variant = normalized.get("resources", {})
+	if typeof(loaded_resources) != TYPE_DICTIONARY:
+		return {}
+	for resource_id in loaded_resources:
+		if int(loaded_resources[resource_id]) < 0:
+			return {}
+	# Version 1 profiles predate the explicit version-2 defaults. Keep their
+	# existing fields and fill only absent keys so saved progress is preserved.
+	if version == 1:
+		normalized["credits"] = int(normalized.get("credits", 250))
+		normalized["research_data"] = int(normalized.get("research_data", 0))
+		normalized["base_level"] = maxi(1, int(normalized.get("base_level", 1)))
+		normalized["titan_level"] = maxi(1, int(normalized.get("titan_level", 1)))
+		normalized["campaign_level"] = maxi(1, int(normalized.get("campaign_level", 1)))
+		normalized["jaeger_generation"] = maxi(1, int(normalized.get("jaeger_generation", 1)))
+		normalized["version"] = 2
+	return normalized
 
 func _load_json_with_backup(path: String) -> Dictionary:
 	var backup_path := path + ".bak"
