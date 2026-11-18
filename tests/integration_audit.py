@@ -28,8 +28,8 @@ for name, path in {
 
 check("begin_google_sign_in" in ui and "AccountManager.begin_google_sign_in" in ui,
       "Google registration UI calls account flow")
-check("not configured" in account.lower() or "no está conectado" in account.lower(),
-      "Google auth stub clearly reports not configured")
+check("no disponible" in account.lower() and "oauth" in account.lower(),
+      "Google auth stub clearly reports OAuth is not configured")
 check("begin_offline_session" in ui and "AccountManager.begin_offline_session" in ui,
       "offline play UI calls account flow")
 check("set_display_name" in ui and "AccountManager.set_display_name" in ui,
