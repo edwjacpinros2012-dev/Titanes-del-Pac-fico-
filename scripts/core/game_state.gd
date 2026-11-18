@@ -17,6 +17,8 @@ func add_resource(resource_id: String, amount: int) -> void:
 
 func can_afford(cost: Dictionary) -> bool:
 	for key in cost:
+		if int(cost[key]) < 0:
+			return false
 		if int(resources.get(key, 0)) < int(cost[key]):
 			return false
 	return true
