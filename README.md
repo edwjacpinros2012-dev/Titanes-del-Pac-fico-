@@ -80,6 +80,8 @@ Documentación:
 - `docs/ABC_MASTER_AUDIT.md` — auditoría completa A–Z, estado real y prioridades de cierre.
 - `docs/ROADMAP.md`
 - `docs/CONTENT_STATUS.md`
+- `docs/SYSTEMS_REFERENCE_RESEARCH_EXPANSION.md` — nueva investigación de sistemas, referencias y propuestas de expansión.
+- `docs/SYSTEMS_RESEARCH_AND_ARCHITECTURE.md`
 
 ## Exportar e instalar
 
@@ -88,7 +90,6 @@ Documentación:
 - Instalar APK en un Android conectado por ADB: `scripts/install_android.ps1`
 
 Lee `docs/ANDROID_BUILD.md`, `docs/PLATFORM_TARGETS.md` y `docs/QA_TEST_MATRIX.md` antes de exportar. La configuración prepara los destinos, pero las exportaciones requieren plantillas y SDK locales y pruebas en dispositivos reales.
-
 
 ## Preparar Windows sin tener Godot instalado
 
