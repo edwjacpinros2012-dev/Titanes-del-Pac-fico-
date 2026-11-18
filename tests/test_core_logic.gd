@@ -139,6 +139,21 @@ func _run_tests() -> void:
 	_check(crafting_inventory.items["alloy_plate"] == 1, "crafting grants configured output")
 	crafting_manager.free()
 
+	var ContractManagerScript = preload("res://scripts/economy/contract_manager.gd")
+	var contracts = ContractManagerScript.new()
+	var completed_contracts := [0]
+	contracts.contract_completed.connect(func(_title: String, _reward: Dictionary): completed_contracts[0] += 1)
+	contracts.register_action("rift")
+	_check(completed_contracts[0] == 1, "contract completes and emits its reward once")
+	contracts.register_action("rift")
+	_check(completed_contracts[0] == 1, "completed contract cannot pay twice")
+	var contract_snapshot: Dictionary = contracts.export_state()
+	var restored_contracts = ContractManagerScript.new()
+	restored_contracts.import_state(contract_snapshot)
+	_check(bool(restored_contracts.contracts[0]["claimed"]), "contract completion survives save and load")
+	contracts.free()
+	restored_contracts.free()
+
 	var trade = TradeManagerScript.new()
 	trade.credits = 0
 	var wallet := {"metal": 0, "energia": 0, "cristal": 0}
@@ -150,6 +165,12 @@ func _run_tests() -> void:
 	_check(wallet["metal"] == 2 and trade.credits == 76, "purchase updates inventory and wallet exactly")
 	_check(trade.sell_good("metal", 1, wallet), "market accepts valid sale")
 	_check(wallet["metal"] == 1 and trade.credits == 83, "sale updates inventory and wallet exactly")
+	var trade_snapshot: Dictionary = trade.export_state()
+	var restored_trade = TradeManagerScript.new()
+	restored_trade.import_state(trade_snapshot)
+	_check(restored_trade.credits == 83, "market credits survive save and load")
+	_check(restored_trade.market_stock["metal"] == 39, "market stock survives purchases and sales")
+	restored_trade.free()
 	var partial_state = GameStateScript.new()
 	partial_state.resources = {"metal": 9}
 	_check(save_manager.save_game(partial_state), "save_game supports partial legacy resource snapshots")
