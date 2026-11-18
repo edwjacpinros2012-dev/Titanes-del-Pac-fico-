@@ -49,6 +49,17 @@ func load_game(state: GameState) -> bool:
 		if amount < 0:
 			load_completed.emit(false)
 			return false
+	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
+	if typeof(loaded_regions) != TYPE_ARRAY:
+		load_completed.emit(false)
+		return false
+	var clean_regions: Array[String] = []
+	for region_value in loaded_regions:
+		var region_id := str(region_value).strip_edges()
+		if not region_id.is_empty() and region_id not in clean_regions:
+			clean_regions.append(region_id)
+	if clean_regions.is_empty():
+		clean_regions.append("aurora_coast")
 	var merged_resources: Dictionary = state.resources.duplicate(true)
 	for resource_id in loaded_resources:
 		merged_resources[str(resource_id)] = int(loaded_resources[resource_id])
@@ -57,11 +68,7 @@ func load_game(state: GameState) -> bool:
 		SpeciesRegistry.import_snapshot(ecology_snapshot)
 	state.base_level = maxi(1, int(parsed.get("base_level", 1)))
 	state.titan_level = maxi(1, int(parsed.get("titan_level", 1)))
-	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
-	if typeof(loaded_regions) != TYPE_ARRAY:
-		load_completed.emit(false)
-		return false
-	state.unlocked_regions.clear()
+	state.unlocked_regions = clean_regions
 	for region_value in loaded_regions:
 		var region_id := str(region_value).strip_edges()
 		if not region_id.is_empty() and region_id not in state.unlocked_regions:
