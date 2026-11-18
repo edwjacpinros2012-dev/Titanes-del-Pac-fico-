@@ -4,12 +4,17 @@ class_name PlatformInput
 signal action_tapped(action_name: String)
 
 const BUTTON_SIZE := Vector2(48, 48)
+const HOLD_ACTIONS := [["R", "stabilize_rift"], ["F", "sync_pilots"]]
+
 const GAME_ACTIONS := [
 	["E", "collect"], ["J", "kaiju_engage"], ["G", "kaiju_retreat"],
 	["T", "evolve_titan"], ["B", "upgrade_base"], ["V", "base_select_next"],
 	["N", "base_upgrade_selected"], ["C", "market_toggle"],
 	["O", "tech_select_next"], ["I", "tech_research"], ["L", "craft_alloy"],
-	["Q", "tactic_flank"], ["X", "tactic_guard"], ["U", "tactic_precision"], ["Y", "repair_titan"], ["Z", "talk_npc"], ["M", "expedition_toggle"]
+	["Q", "tactic_flank"], ["X", "tactic_guard"], ["U", "tactic_precision"], ["Y", "repair_titan"], ["Z", "talk_npc"], ["M", "expedition_toggle"],
+	["H", "scout_helicopters"], ["K", "alliance_join"], ["P", "alliance_create"], ["F5", "save_profile"],
+	["1", "market_buy_metal"], ["2", "market_buy_energy"], ["3", "market_buy_crystal"],
+	["4", "market_sell_metal"], ["5", "market_sell_energy"], ["6", "market_sell_crystal"]
 ]
 
 func _ready() -> void:
@@ -46,13 +51,19 @@ func _build_touch_controls() -> void:
 	actions_panel.anchor_right = 0.98
 	actions_panel.anchor_bottom = 0.98
 	add_child(actions_panel)
+	var actions_scroll := ScrollContainer.new()
+	actions_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	actions_panel.add_child(actions_scroll)
 	var actions_grid := GridContainer.new()
 	actions_grid.columns = 4
 	actions_grid.add_theme_constant_override("h_separation", 3)
 	actions_grid.add_theme_constant_override("v_separation", 3)
-	actions_panel.add_child(actions_grid)
+	actions_scroll.add_child(actions_grid)
 	for item in GAME_ACTIONS:
 		_add_tap_button(actions_grid, str(item[0]), str(item[1]))
+	for item in HOLD_ACTIONS:
+		_add_hold_button(actions_grid, str(item[0]), str(item[1]))
 
 func _add_spacer(parent: GridContainer) -> void:
 	var spacer := Control.new()
