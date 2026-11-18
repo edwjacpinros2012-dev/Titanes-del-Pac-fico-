@@ -87,7 +87,8 @@ Documentación:
 - `docs/SYSTEMS_REFERENCE_RESEARCH_EXPANSION.md` — nueva investigación de sistemas, referencias y propuestas de expansión.
 - `docs/SYSTEMS_RESEARCH_AND_ARCHITECTURE.md
 - `docs/DIAGNOSTICO_COMUNICACION_QA_REFERENCIAS.md` — matriz de comunicación entre sistemas, riesgos, pruebas P0, criterios de integración y referencias adicionales.
-- `docs/DIAGNOSTICO_REAL_2026-11-18.md` — diagnóstico técnico con correcciones, resultados CI y bloqueos verificados.`
+- `docs/DIAGNOSTICO_REAL_2026-11-18.md` — diagnóstico técnico con correcciones, resultados CI y bloqueos verificados.
+- `docs/SECOND_PHASE_GAP_AUDIT_2026-11-18.md` — auditoría de segunda fase con brechas de integración, módulos no conectados, prioridades P0/P1/P2 y plan de vertical slice.
 
 ## Exportar e instalar
 
