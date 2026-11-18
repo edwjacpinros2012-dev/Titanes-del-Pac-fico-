@@ -29,7 +29,7 @@ func get_summary_text() -> String:
 	for contract in contracts:
 		var status := "COMPLETADO" if bool(contract["claimed"]) else "%d/%d" % [int(contract["progress"]), int(contract["target"])]
 		lines.append("%s: %s" % [str(contract["title"]), status])
-	return "\\n".join(lines)
+	return "\n".join(lines)
 
 func export_state() -> Dictionary:
 	var progress: Array[Dictionary] = []
