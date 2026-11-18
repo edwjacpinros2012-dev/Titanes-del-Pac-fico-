@@ -1,0 +1,19 @@
+{
+  "name": "Pacific Rim: Titanes",
+  "short_name": "Titanes",
+  "description": "Combate 3D de Jaegers contra Kaijus.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#071522",
+  "theme_color": "#071522",
+  "icons": [
+    {
+      "src": "/titanes-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
