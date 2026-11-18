@@ -243,3 +243,8 @@ La documentación oficial de Godot confirma que los presets no sustituyen las pl
 ## 8. Próximo trabajo técnico recomendado
 
 El siguiente bloque de implementación debe ser **“Vertical Slice 01: primera salida y primer combate real”**. Antes de construir más sistemas grandes, completar un escenario pequeño con inicio, objetivo, amenaza, combate real, consecuencias, regreso a base, reparación, recompensa y guardado. Esa será la primera prueba integral que permita medir si las piezas actuales forman un juego y no solo una colección de gestores.
+
+
+## Auditoría de segunda fase (18 de noviembre de 2026)
+
+Se realizó una revisión adicional de scripts y escena principal para distinguir módulos que existen de módulos integrados al juego. Consulta `docs/SECOND_PHASE_GAP_AUDIT_2026-11-18.md` para los hallazgos P0/P1/P2, módulos no instanciados, riesgos de guardado, UI/touch y el plan de cierre del vertical slice.
