@@ -15,6 +15,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Import project and parse scripts
         run: godot --headless --editor --path . --quit
+      - name: Ensure Python is available
+        run: apt-get update && apt-get install -y python3
       - name: Repository sanity checks
         run: python3 tests/repo_sanity.py
       - name: Run core logic tests
