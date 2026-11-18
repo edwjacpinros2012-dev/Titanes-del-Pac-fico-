@@ -80,4 +80,3 @@ func get_market_text() -> String:
 		int(sell_prices["energia"]) * 3,
 		int(sell_prices["cristal"]) * 2
 	]
-}
