@@ -1,6 +1,8 @@
 extends SceneTree
 
 const GameStateScript = preload("res://scripts/core/game_state.gd")
+const InventoryScript = preload("res://scripts/resources/inventory.gd")
+const TradeManagerScript = preload("res://scripts/economy/trade_manager.gd")
 
 var passed := 0
 var failed := 0
@@ -60,5 +62,24 @@ func _run_tests() -> void:
 	var state_after_profile_save = GameStateScript.new()
 	_check(save_manager.load_game(state_after_profile_save), "game save remains readable after profile save")
 	_check(state_after_profile_save.resources["metal"] == 15, "profile save no longer overwrites game save")
-	print("CORE TESTS: ", passed, " passed, ", failed, " failed")
+	
+	var inventory = InventoryScript.new()
+	inventory.add_item("metal", 5)
+	_check(inventory.has_items({"metal": 5}), "inventory confirms sufficient item quantity")
+	_check(not inventory.has_items({"metal": -2}), "inventory rejects negative costs")
+	_check(not inventory.remove_items({"metal": -2}), "inventory refuses negative-cost removal")
+	_check(inventory.items["metal"] == 5, "invalid inventory transaction does not mint items")
+	_check(inventory.remove_items({"metal": 3}), "inventory removes valid cost")
+	_check(inventory.items["metal"] == 2, "inventory deducts exact amount")
+	var trade = TradeManagerScript.new()
+	var wallet := {"metal": 0, "energia": 0, "cristal": 0}
+	_check(not trade.buy_good("metal", -1, wallet), "market rejects negative quantity")
+	_check(not trade.buy_good("cristal", 100, wallet), "market rejects purchase beyond stock")
+	_check(not trade.buy_good("cristal", 1, wallet), "market rejects purchase without enough credits")
+	trade.add_credits(100)
+	_check(trade.buy_good("metal", 2, wallet), "market accepts affordable valid purchase")
+	_check(wallet["metal"] == 2 and trade.credits == 76, "purchase updates inventory and wallet exactly")
+	_check(trade.sell_good("metal", 1, wallet), "market accepts valid sale")
+	_check(wallet["metal"] == 1 and trade.credits == 83, "sale updates inventory and wallet exactly")
+\tprint("CORE TESTS: ", passed, " passed, ", failed, " failed")
 	quit(1 if failed > 0 else 0)
