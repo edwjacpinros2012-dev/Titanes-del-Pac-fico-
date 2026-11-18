@@ -23,19 +23,13 @@ func save_game(state: GameState) -> bool:
 	return true
 
 func load_game(state: GameState) -> bool:
-	if state == null or not FileAccess.file_exists(SAVE_PATH):
+	if state == null:
 		load_completed.emit(false)
 		return false
-	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
-	if file == null:
+	var parsed := _load_json_with_backup(SAVE_PATH)
+	if parsed.is_empty() or int(parsed.get("version", 0)) != 1:
 		load_completed.emit(false)
 		return false
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	file.close()
-	if typeof(parsed) != TYPE_DICTIONARY or int(parsed.get("version", 0)) != 1:
-		load_completed.emit(false)
-		return false
-
 	var loaded_resources: Variant = parsed.get("resources", {})
 	if typeof(loaded_resources) != TYPE_DICTIONARY:
 		load_completed.emit(false)
@@ -77,19 +71,36 @@ func save_profile(snapshot: Dictionary) -> bool:
 	return true
 
 func load_profile() -> Dictionary:
-	if not FileAccess.file_exists(PROFILE_PATH):
+	return _load_json_with_backup(PROFILE_PATH)
+
+func _load_json_with_backup(path: String) -> Dictionary:
+	var backup_path := path + ".bak"
+	var parsed: Variant = {}
+	if FileAccess.file_exists(path):
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file != null:
+			parsed = JSON.parse_string(file.get_as_text())
+			file.close()
+	if typeof(parsed) == TYPE_DICTIONARY and not parsed.is_empty():
+		return parsed
+	if not FileAccess.file_exists(backup_path):
 		return {}
-	var file := FileAccess.open(PROFILE_PATH, FileAccess.READ)
-	if file == null:
+	var absolute_target := ProjectSettings.globalize_path(path)
+	var absolute_backup := ProjectSettings.globalize_path(backup_path)
+	if FileAccess.file_exists(path):
+		var corrupt_path := path + ".corrupt"
+		var absolute_corrupt := ProjectSettings.globalize_path(corrupt_path)
+		if FileAccess.file_exists(corrupt_path):
+			DirAccess.remove_absolute(absolute_corrupt)
+		DirAccess.rename_absolute(absolute_target, absolute_corrupt)
+	if DirAccess.rename_absolute(absolute_backup, absolute_target) != OK:
 		return {}
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	file.close()
-	if typeof(parsed) != TYPE_DICTIONARY:
+	var backup_file := FileAccess.open(path, FileAccess.READ)
+	if backup_file == null:
 		return {}
-	var version := int(parsed.get("version", 0))
-	if version < 1 or version > 2:
-		return {}
-	return parsed
+	var backup_parsed: Variant = JSON.parse_string(backup_file.get_as_text())
+	backup_file.close()
+	return backup_parsed if typeof(backup_parsed) == TYPE_DICTIONARY else {}
 
 func _write_json_atomic(path: String, payload: Dictionary) -> bool:
 	var temp_path := path + ".tmp"
