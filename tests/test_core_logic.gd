@@ -6,6 +6,8 @@ const TradeManagerScript = preload("res://scripts/economy/trade_manager.gd")
 const GameLoopScript = preload("res://scripts/gameplay/game_loop_manager.gd")
 const CraftingManagerScript = preload("res://scripts/crafting/crafting_manager.gd")
 const RecipeDataScript = preload("res://scripts/crafting/recipe_data.gd")
+const BaseDevelopmentScript = preload("res://scripts/base/base_development_manager.gd")
+const WarfrontStateScript = preload("res://scripts/war/warfront_state_manager.gd")
 
 var passed := 0
 var failed := 0
@@ -138,6 +140,29 @@ func _run_tests() -> void:
 	_check(crafting_inventory.items["metal"] == 0 and crafting_inventory.items["energia"] == 0, "crafting consumes exact ingredient costs")
 	_check(crafting_inventory.items["alloy_plate"] == 1, "crafting grants configured output")
 	crafting_manager.free()
+
+	var base_manager = BaseDevelopmentScript.new()
+	var base_inventory := {"metal": 30, "energia": 20, "cristal": 5}
+	_check(not base_manager.upgrade_facility("refinery", base_inventory, 1), "base blocks facilities above command-center level")
+	_check(base_manager.upgrade_facility("hangar", base_inventory, 1), "base upgrades an available facility when affordable")
+	_check(base_manager.get_facility_level("hangar") == 2, "base records facility upgrade level")
+	_check(base_inventory["metal"] == 16 and base_inventory["energia"] == 14 and base_inventory["cristal"] == 4, "base upgrade consumes exact costs")
+	var energy_before_production := int(base_inventory["energia"])
+	_check(base_manager.advance_production(60.0, base_inventory) == 2, "reactor generates configured output per production cycle")
+	_check(int(base_inventory["energia"]) == energy_before_production + 2, "production adds resources to the shared inventory")
+	base_manager.free()
+
+	var warfront = WarfrontStateScript.new()
+	warfront.apply_battle_result("defeat", 3)
+	_check(warfront.get_control_state() == "EN DISPUTA", "defeat increases front pressure and contests the region")
+	warfront.apply_battle_result("victory")
+	_check(warfront.pressure == 1 and warfront.victories == 1, "victory reduces front pressure")
+	var warfront_snapshot: Dictionary = warfront.export_state()
+	var restored_warfront = WarfrontStateScript.new()
+	restored_warfront.import_state(warfront_snapshot)
+	_check(restored_warfront.pressure == 1 and restored_warfront.operations == 2, "warfront history survives save and load")
+	warfront.free()
+	restored_warfront.free()
 
 	var ContractManagerScript = preload("res://scripts/economy/contract_manager.gd")
 	var contracts = ContractManagerScript.new()
