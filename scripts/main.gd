@@ -427,7 +427,7 @@ func _craft_alloy_plate() -> void:
 		_show_status("Fabricacion no disponible.")
 		return
 	crafting_inventory.items = resources.duplicate(true)
-	var crafted: bool = await crafting_manager.craft("alloy_plate", crafting_inventory, [])
+	var crafted: bool = await crafting_manager.craft_async("alloy_plate", crafting_inventory, [])
 	if crafted:
 		resources = crafting_inventory.items.duplicate(true)
 		_show_status("Fabricacion completada: +1 placa de aleacion. Se consumieron 3 metal y 1 energia.")
