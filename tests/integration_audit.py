@@ -55,6 +55,16 @@ check("craft_alloy" in main and "craft_alloy" in (ROOT / "scripts/platform/platf
       "crafting is reachable from keyboard and touch controls")
 check("base_development.export_state()" in main and "technology_tree.export_state()" in main,
       "base and research snapshots are included")
+trade = (ROOT / "scripts/economy/trade_manager.gd").read_text(encoding="utf-8")
+contracts = (ROOT / "scripts/economy/contract_manager.gd").read_text(encoding="utf-8")
+check("trade_manager.export_state()" in main and "trade_manager.import_state(saved_trade)" in main,
+      "market credits and stock are saved and restored")
+check("contract_manager.export_state()" in main and "contract_manager.import_state(saved_contracts)" in main,
+      "contract progress and claimed rewards are saved and restored")
+check("func export_state()" in trade and "func import_state(data: Dictionary)" in trade,
+      "trade manager exposes a validated persistence boundary")
+check("func export_state()" in contracts and "func import_state(data: Dictionary)" in contracts,
+      "contract manager exposes a persistence boundary")
 check("tests/test_account_settings_foundations.gd" in workflow,
       "CI includes account/settings GDScript test")
 check("tests/integration_audit.py" in workflow,
