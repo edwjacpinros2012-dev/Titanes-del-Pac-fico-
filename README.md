@@ -3,6 +3,8 @@
 Juego 3D de exploración, supervivencia, recolección, fabricación, construcción y guerra de robots gigantes contra monstruos colosales, desarrollado con Godot 4. El nombre es provisional y debe pasar una revisión de marcas y originalidad antes de publicarse.
 
 ## Abrir el proyecto
+
+Para trabajar desde un teléfono Android, consulta `docs/ANDROID_DEVICE_WORKFLOW.md`. El editor Android permite importar y ejecutar el proyecto, pero la exportación APK final requiere plantillas y configuración de exportación verificadas; no se considera lista hasta instalarla y probarla en un dispositivo.
 1. Instala Godot 4.
 2. Descarga o clona este repositorio.
 3. En Godot, pulsa **Importar** y selecciona `project.godot`.
