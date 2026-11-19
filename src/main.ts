@@ -137,13 +137,13 @@ class TitanesScene extends Phaser.Scene {
     for(let i=0;i<6;i++){const x=-4.5+(i%3)*4.5,z=5.5+Math.floor(i/3)*1.4;this.box(base,[0.5,1.1,0.4],[x,1.1,z],i%2?0x497f8c:0x9a7651);const head=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),this.material(0xc7a27a,0.1));head.position.set(x,1.85,z);base.add(head);}
     // Modular facilities are grouped so upgrades visibly change the 3D outpost.
     const facilities: Array<[string,[number,number,number],number]> = [
-      ['command',[-8.0,0,-1.2],0x36586a],['reactor',[7.4,0,-3.0],0x287080],
+      ['command',[-8.0,0,-1.2],0x36586a],['hangar',[0,0,-4.6],0x1b3444],['reactor',[7.4,0,-3.0],0x287080],
       ['workshop',[7.4,0,1.2],0x345363],['medical',[-7.7,0,4.0],0x3a6577],
       ['defense',[0,0,7.0],0x45687a],['evacuation',[0,0,4.8],0x9a7651]
     ];
     for(const [id,pos,color] of facilities){
       const group=new THREE.Group(); group.position.set(...pos); base.add(group); this.buildingGroups[id]=group;
-      const footprint=id==='command'?[4.6,3.5,3.8]:[3.2,2.5,3.0];
+      const footprint=id==='command'?[4.6,3.5,3.8]:id==='hangar'?[11.2,3.6,4.6]:[3.2,2.5,3.0];
       this.box(group,[footprint[0],0.25,footprint[2]],[0,0.15,0],0x253b49);
       this.box(group,[footprint[0]*0.78,footprint[1],footprint[2]*0.72],[0,footprint[1]/2+0.2,0],color);
       this.box(group,[footprint[0]*0.9,0.28,footprint[0]*0.9],[0,footprint[1]+0.35,0],0x244b5c);
