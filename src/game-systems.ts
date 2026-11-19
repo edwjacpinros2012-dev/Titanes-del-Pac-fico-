@@ -37,6 +37,12 @@ export class TitanesSystems {
     for (const key of Object.keys(values) as ResourceKey[]) this.data.resources[key] = clamp(this.data.resources[key] + Math.max(0, values[key] ?? 0), 0, 999999);
     this.save();
   }
+  spendResources(cost: Partial<Record<ResourceKey, number>>) {
+    for (const key of Object.keys(cost) as ResourceKey[]) if (this.data.resources[key] < Math.max(0, cost[key] ?? 0)) return false;
+    for (const key of Object.keys(cost) as ResourceKey[]) this.data.resources[key] -= Math.max(0, cost[key] ?? 0);
+    this.save();
+    return true;
+  }
   upgrade(key: keyof TitanesSave['upgrades']) {
     const level = this.data.upgrades[key] ?? 0;
     const cost = { alloy: 180 + level * 140, energy: 120 + level * 100 };
