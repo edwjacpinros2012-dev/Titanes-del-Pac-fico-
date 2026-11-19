@@ -1,4 +1,5 @@
-import { TitanesSystems, MISSION_LIST, JAEGERS } from './game-systems';
+import type { TitanesSystems } from './game-systems';
+import { MISSION_LIST, JAEGERS } from './game-systems';
 
 export function mountGamePanels(systems: TitanesSystems, onJaegerSelected?: (id: 'gipsy'|'striker'|'cherno') => void) {
   if (document.getElementById('titan-panels')) return;
