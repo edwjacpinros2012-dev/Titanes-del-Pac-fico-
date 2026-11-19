@@ -96,7 +96,7 @@ export class TitanesSystems {
   reset() { this.data = cloneStart(); this.save(); }
 }
 export const JAEGERS: Record<JaegerId, { label: string; role: string; armor: number; power: number; agility: number }> = {
-  gipsy: { label: 'GIPSY-CLASS', role: 'Equilibrado', armor: 86, power: 74, agility: 62 },
+  gipsy: { label: 'GIPSY-CLASS · MARK-I', role: 'Jaeger inicial · Nivel 1', armor: 58, power: 52, agility: 46 },
   striker: { label: 'STRIKER-CLASS', role: 'Rápido', armor: 72, power: 91, agility: 88 },
   cherno: { label: 'CHERNO-CLASS', role: 'Pesado', armor: 95, power: 68, agility: 48 }
 };
