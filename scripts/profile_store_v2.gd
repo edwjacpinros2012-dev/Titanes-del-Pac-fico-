@@ -36,17 +36,22 @@ func save_profile(profile: Dictionary) -> bool:
 	file.flush()
 	file.close()
 
-	# Keep one recoverable copy of the last profile before replacing it.
-	if FileAccess.file_exists(FILE_PATH):
-		var backup_err := DirAccess.copy_absolute(ProjectSettings.globalize_path(FILE_PATH), ProjectSettings.globalize_path(BACKUP_PATH))
+	# Move the old profile to backup, then promote the temporary file. If promotion
+	# fails, restore the previous profile instead of leaving the slot empty.
+	var had_previous := FileAccess.file_exists(FILE_PATH)\tif had_previous:
+		if FileAccess.file_exists(BACKUP_PATH):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(BACKUP_PATH))
+		var backup_err := DirAccess.rename_absolute(ProjectSettings.globalize_path(FILE_PATH), ProjectSettings.globalize_path(BACKUP_PATH))
 		if backup_err != OK:
-			push_warning("ProfileStoreV2: backup copy failed (%s); keeping current profile." % backup_err)
+			push_error("ProfileStoreV2: could not preserve previous profile (%s)." % backup_err)
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(TEMP_PATH))
 			return false
 
-	var rename_err := DirAccess.rename_absolute(ProjectSettings.globalize_path(TEMP_PATH), ProjectSettings.globalize_path(FILE_PATH))
-	if rename_err != OK:
-		push_error("ProfileStoreV2: atomic replace failed (%s)." % rename_err)
+	var promote_err := DirAccess.rename_absolute(ProjectSettings.globalize_path(TEMP_PATH), ProjectSettings.globalize_path(FILE_PATH))
+	if promote_err != OK:
+		push_error("ProfileStoreV2: promotion failed (%s)." % promote_err)
+		if had_previous and FileAccess.file_exists(BACKUP_PATH):
+			DirAccess.rename_absolute(ProjectSettings.globalize_path(BACKUP_PATH), ProjectSettings.globalize_path(FILE_PATH))
 		return false
 	return true
 
