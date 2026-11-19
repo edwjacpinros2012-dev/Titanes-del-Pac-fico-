@@ -107,7 +107,9 @@ func create_local_profile(display_name: String) -> bool:
 		return false
 	if not profile.is_empty() and str(profile.get("display_name", "")).to_lower() == clean.to_lower():
 		profile["last_login_at"] = int(Time.get_unix_time_from_system())
-		_save_profile()
+		if not _save_profile():
+			authentication_status_changed.emit("No se pudo actualizar el perfil local.")
+			return false
 		profile_changed.emit(profile.duplicate(true))
 		authentication_status_changed.emit("Perfil local encontrado. Sesión iniciada en este dispositivo.")
 		return true
@@ -143,10 +145,10 @@ func begin_google_sign_in() -> void:
 func begin_offline_session() -> void:
 	if profile.is_empty():
 		profile = _new_local_profile()
+	profile["last_login_at"] = int(Time.get_unix_time_from_system())
 	if not _save_profile():
 		authentication_status_changed.emit("No se pudo guardar el perfil local.")
 		return
-	profile["last_login_at"] = int(Time.get_unix_time_from_system())
 	profile_changed.emit(profile.duplicate(true))
 	authentication_status_changed.emit("Modo offline activo. Tu perfil permanece en este dispositivo.")
 
