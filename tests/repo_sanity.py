@@ -22,6 +22,8 @@ check("godot --headless --editor --path . --quit" in workflow, "CI imports Godot
 check("godot --headless --path . --quit-after 10" in workflow, "CI smoke-runs main scene")
 check((ROOT / "scripts/core/game_state.gd").is_file(), "core state script exists")
 check((ROOT / "scripts/core/save_manager.gd").is_file(), "save manager script exists")
+save_manager = (ROOT / "scripts/core/save_manager.gd").read_text(encoding="utf-8")
+check("return snapshot if version >= 1 and version <= 2 else {}" in save_manager, "profile loader uses valid version fallback syntax")
 check((ROOT / "scripts/gameplay/game_loop_manager.gd").is_file(), "integrated gameplay loop manager exists")
 main_script = (ROOT / "scripts/main.gd").read_text(encoding="utf-8")
 check("gameplay_loop.mission_completed.connect" in main_script, "main scene connects mission completion reward handler")
