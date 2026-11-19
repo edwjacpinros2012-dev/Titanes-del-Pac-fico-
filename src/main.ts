@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import * as THREE from 'three';
 import './style.css';
-import { TitanesSystems, JAEGERS } from './game-systems';
+import { TitanesSystems, JAEGERS, JaegerId } from './game-systems';
 import { mountGamePanels } from './game-panels';
 import './game-panels.css';
 
@@ -44,9 +44,8 @@ class TitanesScene extends Phaser.Scene {
     this.renderer3d.setSize(innerWidth, innerHeight);
     this.renderer3d.shadowMap.enabled = true;
     this.renderer3d.toneMapping = THREE.ACESFilmicToneMapping;
-    const selected = JAEGERS[this.systems.snapshot().selectedJaeger];
-    this.hp = selected.armor; this.energy = selected.power; this.attackPower = Math.max(12, Math.round(selected.power / 4)); this.moveSpeed = 3.2 + selected.agility / 30;
     this.buildWorld();
+    this.applySelectedJaeger(this.systems.snapshot().selectedJaeger);
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE') as Record<string, Phaser.Input.Keyboard.Key>;
     this.buildHud();
     this.buildMainMenu();
@@ -63,7 +62,7 @@ class TitanesScene extends Phaser.Scene {
     const menu=document.createElement('section'); menu.id='titan-menu';
     menu.innerHTML=`<header><b>PPDC // DEFENSE NETWORK</b><span>● ALERTA COSTERA</span><div class="menu-rank">PROTOCOLO DE DEFENSA · 2047</div></header><main><div class="menu-copy"><small>OPERACIÓN · PACÍFICO</small><h1>EL PACÍFICO<br><em>NO CAERÁ.</em></h1><p>La brecha sigue abierta. Despliega tu Jaeger, protege la costa y responde a la amenaza Kaiju.</p><div class="mission-card"><small>▰ MISIÓN ACTIVA · SECTOR 07</small><b>DEFENSA DE LA COSTA</b><span>OBJETIVO: interceptar al Kaiju y proteger la zona urbana.</span><div id="tm-resources" class="resource-strip"></div><div class="mission-progress"><i></i></div><label><span>AMENAZA DETECTADA</span><b>CLASE III</b></label></div><button id="tm-start">▶ DESPLEGAR JAEGER</button><button id="tm-hangar">▣ HANGAR / UNIDADES</button><button id="tm-upgrade">⬆ MEJORAR DEFENSA</button><small id="tm-system-notice"></small><footer><span>SECTOR<b>SHATTERDOME · COSTA</b></span><span>ESTADO<b>● SISTEMAS EN LÍNEA</b></span></footer></div><div class="tm-mech"><div class="rings"></div><div class="robot"><i class="head"><b></b></i><i class="body"><b></b></i><i class="arm a"></i><i class="arm b"></i><i class="leg c"></i><i class="leg d"></i></div><label>JAEGER // GIPSY-CLASS<small>UNIDAD DE COMBATE · MARK-III</small></label></div></main><div class="tm-bottom">PPDC · PAN-PACIFIC DEFENSE CORPS <span>INTERFAZ TÁCTICA v0.3</span></div><aside id="tm-roster"><div class="roster-window"><button id="tm-close">×</button><small>HANGAR / SELECCIÓN DE UNIDADES</small><h2>ESCUADRÓN JAEGER</h2><p>Selecciona una unidad para la misión. Las estadísticas son prototipos de juego.</p><div class="roster-cards"><article class="selected"><span class="unit-icon">01</span><b>GIPSY-CLASS</b><small>Equilibrado · Mark III</small><div class="unit-bars"><label>ARMADURA <i><b style="width:86%"></b></i></label><label>ENERGÍA <i><b style="width:74%"></b></i></label><label>AGILIDAD <i><b style="width:62%"></b></i></label></div></article><article><span class="unit-icon">02</span><b>STRIKER-CLASS</b><small>Rápido · Mark V</small><div class="unit-bars"><label>ARMADURA <i><b style="width:72%"></b></i></label><label>ENERGÍA <i><b style="width:91%"></b></i></label><label>AGILIDAD <i><b style="width:88%"></b></i></label></div></article><article><span class="unit-icon">03</span><b>CHERNO-CLASS</b><small>Pesado · Mark I</small><div class="unit-bars"><label>ARMADURA <i><b style="width:95%"></b></i></label><label>ENERGÍA <i><b style="width:68%"></b></i></label><label>AGILIDAD <i><b style="width:48%"></b></i></label></div></article></div><button id="tm-select">CONFIRMAR UNIDAD</button></div></aside>`;
     document.body.appendChild(menu);
-    menu.querySelector('#tm-start')?.addEventListener('click',()=>{menu.classList.add('started'); mountGamePanels(this.systems); });
+    menu.querySelector('#tm-start')?.addEventListener('click',()=>{menu.classList.add('started'); mountGamePanels(this.systems, (id)=>this.applySelectedJaeger(id)); });
     menu.querySelector('#tm-hangar')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.add('open'));
     menu.querySelector('#tm-close')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
     menu.querySelector('#tm-select')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
@@ -82,13 +81,29 @@ class TitanesScene extends Phaser.Scene {
     menu.querySelectorAll('.roster-cards article').forEach((card, index) => card.addEventListener('click', () => {
       const ids = ['gipsy', 'striker', 'cherno'] as const;
       const id = ids[index]; if (!id) return;
-      this.systems.setJaeger(id);
+      this.systems.setJaeger(id); this.applySelectedJaeger(id);
       menu.querySelectorAll('.roster-cards article').forEach(el => el.classList.remove('selected'));
       card.classList.add('selected');
       const heading = menu.querySelector('#tm-roster h2'); if (heading) heading.textContent = JAEGERS[id].label;
     }));
   }
 
+  private applySelectedJaeger(id: JaegerId) {
+    const stats = JAEGERS[id];
+    this.hp = stats.armor; this.energy = stats.power;
+    this.attackPower = Math.max(12, Math.round(stats.power / 4));
+    this.moveSpeed = 3.2 + stats.agility / 30;
+    if (this.titan) {
+      const colors: Record<JaegerId,number> = { gipsy:0x167c9c, striker:0xc2b044, cherno:0x485c63 };
+      this.titan.traverse(obj => {
+        if ((obj as THREE.Mesh).isMesh) {
+          const mesh=obj as THREE.Mesh;
+          const material=mesh.material as THREE.MeshStandardMaterial;
+          if (material.color) material.color.setHex(colors[id]);
+        }
+      });
+    }
+  }
   private material(color: number, metalness = 0.5) {
     return new THREE.MeshStandardMaterial({ color, metalness, roughness: 0.38 });
   }
