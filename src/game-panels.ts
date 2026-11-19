@@ -40,5 +40,4 @@ export function mountGamePanels(systems: TitanesSystems) {
       content.querySelector('#tp-operation')?.addEventListener('click',()=>{const msg=content.querySelector('#tp-alliance-msg');if(msg)msg.textContent='Demo de operación: objetivos de ciudad, evacuación, Kaijus y escuadrones. Combate multijugador real aún pendiente.';});
     }
   }
-}  }
 }
