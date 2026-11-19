@@ -140,9 +140,10 @@ func _refresh_settings(settings: Dictionary) -> void:
 
 func _profile_summary() -> String:
 	var p := AccountManager.profile
-	return "Perfil: %s\nID local: %s\nGoogle: %s | Nube: %s" % [
+	return "PILOTO: %s\nID local: %s\nNivel: %s\nGoogle: %s | Nube: %s" % [
 		str(p.get("display_name", "Piloto")),
 		str(p.get("player_id", "—")),
+		str(p.get("pilot_level", 1)),
 		"vinculado" if bool(p.get("google_linked", false)) else "sin vincular",
 		"apagada" if not bool(p.get("cloud_enabled", false)) else "activa"
 	]
