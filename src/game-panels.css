@@ -1,0 +1,35 @@
+#titan-panels{position:fixed;inset:0;z-index:30;pointer-events:none;color:#e7f7ff;font-family:Rajdhani,sans-serif}
+#titan-panels button{cursor:pointer;border:1px solid #39718a;background:#102c3b;color:#dffaff;padding:10px 13px;font:700 12px Rajdhani;letter-spacing:.08em}
+.tp-nav{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:7px;pointer-events:auto;flex-wrap:wrap;justify-content:center;width:min(95%,720px)}
+.tp-nav button{background:#071a26e8!important;border-color:#326174!important;box-shadow:0 6px 22px #0005}
+.tp-nav button:hover{background:#16465b!important;border-color:#62e8ff!important}
+.tp-window{display:none;pointer-events:auto;position:absolute;inset:6% 5%;background:linear-gradient(145deg,#061522f7,#081d2bf7);border:1px solid #39819b;box-shadow:0 20px 90px #000a;overflow:auto;padding:clamp(16px,3vw,34px)}
+.tp-window.open{display:block}
+.tp-close{position:sticky;float:right;top:0;font-size:22px!important;padding:5px 12px!important}
+.tp-content{clear:both}
+.tp-content small{color:#69e7ff;letter-spacing:.2em;font-size:10px}
+.tp-content h2{font:900 clamp(30px,5vw,56px) 'Barlow Condensed';margin:8px 0 10px}
+.tp-content p{color:#9bb9c8;max-width:780px;line-height:1.45}
+.tp-res{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 22px}
+.tp-res span{background:#102838;border:1px solid #294b5d;padding:8px 10px;font-size:10px;color:#81a6ba}
+.tp-res b{color:#6be8ff;padding-left:6px}
+.tp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:20px 0}
+.tp-grid article,.tp-missions article{background:linear-gradient(140deg,#0e2837,#091925);border:1px solid #244556;padding:16px;display:flex;flex-direction:column;gap:9px;min-height:140px}
+.tp-grid article b,.tp-missions article b{font:700 22px 'Barlow Condensed';color:#e7faff}
+.tp-grid article span,.tp-missions article span{font-size:12px;color:#91adbf;line-height:1.4}
+.tp-grid article strong{font-size:10px;color:#60dff5;letter-spacing:.08em;margin-top:auto}
+.tp-actions{display:flex;gap:8px;flex-wrap:wrap}
+.tp-note{color:#ffc17d!important;font-size:12px}
+.tp-missions{display:grid;gap:9px;margin-top:20px}
+.tp-missions article{min-height:90px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:14px}
+.tp-missions article>div{display:grid;gap:5px}
+.tp-missions article small{font-size:9px;color:#60e5f7;letter-spacing:.12em}
+.tp-missions article button{min-width:145px}
+.tp-missions article.locked{opacity:.5}
+.tp-missions article.done{border-color:#387e65}
+.tp-missions article.done button{background:#123a30}
+.tp-lock{padding:16px;border:1px solid #a97942;background:#2a2118;color:#ffd29b}
+.tp-lock p{color:#d0b28f}
+.tp-jaegers button{margin-top:10px}
+.tp-jaegers button:disabled,.tp-missions button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:700px){.tp-nav{bottom:7px;gap:4px}.tp-nav button{padding:9px 8px;font-size:10px}.tp-window{inset:3% 3% 65px;padding:14px}.tp-missions article{align-items:flex-start;flex-direction:column}.tp-missions article button{width:100%}}
