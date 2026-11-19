@@ -46,6 +46,11 @@ func _run_tests() -> void:
 	_check(signal_counter[0] == 1, "resource changes emit one signal")
 	var SaveManagerScript = preload("res://scripts/core/save_manager.gd")
 	var save_manager = SaveManagerScript.new()
+	var invalid_profile_file := FileAccess.open(SaveManagerScript.PROFILE_PATH, FileAccess.WRITE)
+	if invalid_profile_file:
+		invalid_profile_file.store_string("{\"version\":99,\"credits\":999}")
+		invalid_profile_file.close()
+	_check(save_manager.load_profile().is_empty(), "profile loader rejects unsupported future schema versions")
 	state.base_level = 3
 	state.titan_level = 4
 	state.unlock_region("test_region_2")
