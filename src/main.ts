@@ -38,6 +38,7 @@ class TitanesScene extends Phaser.Scene {
     this.buildWorld();
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE') as Record<string, Phaser.Input.Keyboard.Key>;
     this.buildHud();
+    this.buildMainMenu();
     this.scale.on('resize', (size: Phaser.Structs.Size) => {
       this.camera3d.aspect = size.width / size.height;
       this.camera3d.updateProjectionMatrix();
@@ -45,6 +46,16 @@ class TitanesScene extends Phaser.Scene {
     });
     this.events.once('destroy', () => { this.renderer.dispose(); canvas.remove(); });
     this.animate3d();
+  }
+
+  private buildMainMenu() {
+    const menu=document.createElement('section'); menu.id='titan-menu';
+    menu.innerHTML=`<header><b>PPDC // DEFENSE NETWORK</b><span>● ALERTA COSTERA</span></header><main><div class="menu-copy"><small>TACTICAL SYSTEMS · 2047</small><h1>EL PACÍFICO<br><em>NO CAERÁ.</em></h1><p>La brecha sigue abierta. Pilota tu Jaeger, defiende la costa y responde a la alerta Kaiju.</p><button id="tm-start">▶ INICIAR MISIÓN</button><button id="tm-hangar">▣ HANGAR / SELECCIÓN</button><footer><span>SECTOR<b>SHATTERDOME · COSTA</b></span><span>ESTADO<b>● SISTEMAS EN LÍNEA</b></span></footer></div><div class="tm-mech"><div class="rings"></div><div class="robot"><i class="head"><b></b></i><i class="body"><b></b></i><i class="arm a"></i><i class="arm b"></i><i class="leg c"></i><i class="leg d"></i></div><label>JAEGER // GIPSY-CLASS<small>UNIDAD DE COMBATE · MARK-III</small></label></div></main><div class="tm-bottom">PPDC · PAN-PACIFIC DEFENSE CORPS <span>TACTICAL INTERFACE v0.2</span></div><aside id="tm-roster"><div><button id="tm-close">×</button><small>HANGAR / UNIDADES</small><h2>GIPSY-CLASS</h2><p>Unidad de defensa de primera línea · selección provisional</p><section><span>ARMADURA<b>86</b></span><span>ENERGÍA<b>74</b></span><span>AGILIDAD<b>62</b></span></section><button id="tm-select">SELECCIONAR UNIDAD</button></div></aside>`;
+    document.body.appendChild(menu);
+    menu.querySelector('#tm-start')?.addEventListener('click',()=>menu.classList.add('started'));
+    menu.querySelector('#tm-hangar')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.add('open'));
+    menu.querySelector('#tm-close')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
+    menu.querySelector('#tm-select')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
   }
 
   private material(color: number, metalness = 0.5) {
