@@ -90,3 +90,13 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;background:line
  .roster-cards article{min-height:145px;padding:12px}
 }
 @media(max-height:620px) and (min-width:701px){#titan-menu main{inset:10% 5% 7%}.mission-card{margin:10px 0;padding:10px}.menu-copy h1{font-size:72px}.tm-mech{transform:scale(.8)}}
+
+/* HUD progression panels */
+.resource-strip{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 0;color:#7193a6;font-size:9px;letter-spacing:.08em}
+.resource-strip span{background:#0b1d2a;border:1px solid #244252;padding:7px 10px}
+.resource-strip b{color:#63e4f4;margin-left:5px;font-size:11px}
+#tm-upgrade{background:#183247!important;color:#d9f8ff!important;border:1px solid #3e8da5!important}
+#tm-system-notice{display:block;color:#ffbe78;min-height:12px;font-size:9px;letter-spacing:.1em;margin:0 0 8px}
+.roster-cards article{cursor:pointer;transition:transform .15s,border-color .15s,background .15s}
+.roster-cards article:hover{transform:translateY(-3px);border-color:#67dff3;background:#123044}
+@media(max-width:700px){.resource-strip{max-width:330px;gap:5px}.resource-strip span{padding:6px 7px}#tm-system-notice{max-width:300px}}
