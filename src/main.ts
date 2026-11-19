@@ -23,6 +23,8 @@ class TitanesScene extends Phaser.Scene {
   private attackCooldown = 0;
   private moveX = 0;
   private moveZ = 0;
+  private attackPower = 20;
+  private moveSpeed = 5;
   private systems = new TitanesSystems();
 
   constructor() { super('TitanesScene'); }
@@ -41,6 +43,8 @@ class TitanesScene extends Phaser.Scene {
     this.renderer.setSize(innerWidth, innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    const selected = JAEGERS[this.systems.snapshot().selectedJaeger];
+    this.hp = selected.armor; this.energy = selected.power; this.attackPower = Math.max(12, Math.round(selected.power / 4)); this.moveSpeed = 3.2 + selected.agility / 30;
     this.buildWorld();
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE') as Record<string, Phaser.Input.Keyboard.Key>;
     this.buildHud();
@@ -173,18 +177,18 @@ class TitanesScene extends Phaser.Scene {
     this.status=this.add.text(w-24,22,'OBJETIVO: NEUTRALIZAR AL KAIJU',{fontSize:'11px',color:'#ffb36b'}).setOrigin(1,0);
     this.add.text(24,this.scale.height-30,'WASD / FLECHAS: MOVER   •   ESPACIO: IMPACTO   •   MÓVIL: USA LOS CONTROLES',{fontSize:'10px',color:'#b4c7d2'}).setScrollFactor(0);
     const btn=(x:number,label:string,fn:()=>void)=>{const b=this.add.text(x,this.scale.height-95,label,{fontSize:'12px',color:'#ffffff',backgroundColor:'#12394b',padding:{x:13,y:12}}).setOrigin(.5).setInteractive();b.on('pointerdown',fn);return b;};
-    btn(this.scale.width-190,'◀',()=>this.moveX=-1).on('pointerup',()=>this.moveX=0);
-    btn(this.scale.width-135,'▶',()=>this.moveX=1).on('pointerup',()=>this.moveX=0);
+    btn(this.scale.width-190,'◀',()=>this.moveX=-1).on('pointerup',()=>this.moveX=0).on('pointerout',()=>this.moveX=0);
+    btn(this.scale.width-135,'▶',()=>this.moveX=1).on('pointerup',()=>this.moveX=0).on('pointerout',()=>this.moveX=0);
     btn(this.scale.width-80,'IMPACTO',()=>this.attack());
-    btn(this.scale.width-245,'▲',()=>this.moveZ=-1).on('pointerup',()=>this.moveZ=0);
-    btn(this.scale.width-245,'▼',()=>this.moveZ=1);
+    btn(this.scale.width-245,'▲',()=>this.moveZ=-1).on('pointerup',()=>this.moveZ=0).on('pointerout',()=>this.moveZ=0);
+    btn(this.scale.width-245,'▼',()=>this.moveZ=1).on('pointerup',()=>this.moveZ=0).on('pointerout',()=>this.moveZ=0);
   }
   private attack() {
     if(this.attackCooldown>0 || this.energy<12 || this.kaijuDefeated) return;
     this.attackCooldown=0.7; this.energy=Math.max(0,this.energy-12);
     const d=this.titan.position.distanceTo(this.kaiju.position);
     if(d<12){
-      this.kaijuHp=Math.max(0,this.kaijuHp-20); this.kaiju.position.x+=this.kaiju.position.x>this.titan.position.x?1.3:-1.3; this.score+=100;
+      this.kaijuHp=Math.max(0,this.kaijuHp-this.attackPower); this.kaiju.position.x+=this.kaiju.position.x>this.titan.position.x?1.3:-1.3; this.score+=100;
       if(this.kaijuHp<=0){
         this.kaijuDefeated=true; this.kaiju.visible=false;
         const result=this.systems.completeMission(1);
@@ -197,7 +201,7 @@ class TitanesScene extends Phaser.Scene {
     this.attackCooldown=Math.max(0,this.attackCooldown-dt);
     const x=(this.keys.A.isDown||this.keys.LEFT.isDown?-1:0)+(this.keys.D.isDown||this.keys.RIGHT.isDown?1:0)+this.moveX;
     const z=(this.keys.W.isDown||this.keys.UP.isDown?-1:0)+(this.keys.S.isDown||this.keys.DOWN.isDown?1:0)+this.moveZ;
-    this.titan.position.x+=x*dt*5; this.titan.position.z+=z*dt*5;
+    this.titan.position.x+=x*dt*this.moveSpeed; this.titan.position.z+=z*dt*this.moveSpeed;
     if(this.keys.SPACE.isDown) this.attack();
     this.energy=Math.min(100,this.energy+dt*5);
     this.hpBar.width=180*this.hp/100; this.energyBar.width=180*this.energy/100;
