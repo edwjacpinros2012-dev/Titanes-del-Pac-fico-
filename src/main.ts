@@ -15,6 +15,8 @@ class TitanesScene extends Phaser.Scene {
   private hp = 100;
   private energy = 100;
   private score = 0;
+  private kaijuHp = 100;
+  private kaijuDefeated = false;
   private status!: Phaser.GameObjects.Text;
   private hpBar!: Phaser.GameObjects.Rectangle;
   private energyBar!: Phaser.GameObjects.Rectangle;
@@ -149,11 +151,17 @@ class TitanesScene extends Phaser.Scene {
     btn(this.scale.width-245,'▼',()=>this.moveZ=1);
   }
   private attack() {
-    if(this.attackCooldown>0 || this.energy<12) return;
+    if(this.attackCooldown>0 || this.energy<12 || this.kaijuDefeated) return;
     this.attackCooldown=0.7; this.energy=Math.max(0,this.energy-12);
     const d=this.titan.position.distanceTo(this.kaiju.position);
-    if(d<12){ this.hp=Math.max(0,this.hp-0); this.kaiju.position.x+=this.kaiju.position.x>this.titan.position.x?1.3:-1.3; this.score+=100; }
-    this.status.setText(d<12?'IMPACTO CONFIRMADO  +100':'ACÉRCATE PARA ALCANZAR AL KAIJU');
+    if(d<12){
+      this.kaijuHp=Math.max(0,this.kaijuHp-20); this.kaiju.position.x+=this.kaiju.position.x>this.titan.position.x?1.3:-1.3; this.score+=100;
+      if(this.kaijuHp<=0){
+        this.kaijuDefeated=true; this.kaiju.visible=false;
+        const result=this.systems.completeMission(1);
+        this.status.setText(result.ok?'KAIJU DERROTADO · MISIÓN COMPLETADA · RECURSOS RECIBIDOS':'KAIJU DERROTADO · VICTORIA');
+      } else this.status.setText('IMPACTO CONFIRMADO · KAIJU '+this.kaijuHp+'% · +100');
+    } else this.status.setText('ACÉRCATE PARA ALCANZAR AL KAIJU');
   }
   update(_time:number,delta:number) {
     const dt=Math.min(delta/1000,0.04);
