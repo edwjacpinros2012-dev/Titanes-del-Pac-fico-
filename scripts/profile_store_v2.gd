@@ -38,7 +38,8 @@ func save_profile(profile: Dictionary) -> bool:
 
 	# Move the old profile to backup, then promote the temporary file. If promotion
 	# fails, restore the previous profile instead of leaving the slot empty.
-	var had_previous := FileAccess.file_exists(FILE_PATH)	if had_previous:
+	var had_previous := FileAccess.file_exists(FILE_PATH)
+	if had_previous:
 		if FileAccess.file_exists(BACKUP_PATH):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(BACKUP_PATH))
 		var backup_err := DirAccess.rename_absolute(ProjectSettings.globalize_path(FILE_PATH), ProjectSettings.globalize_path(BACKUP_PATH))
