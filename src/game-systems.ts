@@ -7,13 +7,14 @@ export interface TitanesSave {
   completedMissions: number[];
   selectedJaeger: JaegerId;
   upgrades: Record<string, number>;
+  inventory: Record<string, number>;
   xp: number;
 }
 const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
 const START: TitanesSave = {
   version: 1, resources: { alloy: 650, energy: 500, intel: 0 },
   unlockedMissions: 1, completedMissions: [], selectedJaeger: 'gipsy',
-  upgrades: { defense: 0, reactor: 0, training: 0 }, xp: 0
+  upgrades: { defense: 0, reactor: 0, training: 0 }, inventory: { repairKit: 0, armorParts: 0, researchData: 0 }, xp: 0
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -40,6 +41,12 @@ export class TitanesSystems {
   spendResources(cost: Partial<Record<ResourceKey, number>>) {
     for (const key of Object.keys(cost) as ResourceKey[]) if (this.data.resources[key] < Math.max(0, cost[key] ?? 0)) return false;
     for (const key of Object.keys(cost) as ResourceKey[]) this.data.resources[key] -= Math.max(0, cost[key] ?? 0);
+    this.save();
+    return true;
+  }
+  buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>) {
+    if (!this.spendResources(cost)) return false;
+    this.data.inventory[item] = (this.data.inventory[item] || 0) + 1;
     this.save();
     return true;
   }
