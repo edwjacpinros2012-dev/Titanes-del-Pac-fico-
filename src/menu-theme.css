@@ -100,3 +100,5 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;background:line
 .roster-cards article{cursor:pointer;transition:transform .15s,border-color .15s,background .15s}
 .roster-cards article:hover{transform:translateY(-3px);border-color:#67dff3;background:#123044}
 @media(max-width:700px){.resource-strip{max-width:330px;gap:5px}.resource-strip span{padding:6px 7px}#tm-system-notice{max-width:300px}}
+
+.roster-cards article.locked{opacity:.48;filter:grayscale(.65);cursor:not-allowed;position:relative}.roster-cards article.locked:after{content:'UNIDAD BLOQUEADA';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#06111bb8;color:#9fc9d8;font-size:11px;letter-spacing:.15em;font-weight:700}
