@@ -269,43 +269,96 @@ func _create_world() -> void:
 	var env := WorldEnvironment.new()
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_SKY
-	environment.sky = Sky.new()
+	var sky := Sky.new()
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color(0.015, 0.055, 0.12)
+	sky_material.sky_horizon_color = Color(0.08, 0.25, 0.34)
+	sky_material.ground_bottom_color = Color(0.012, 0.035, 0.055)
+	sky_material.ground_horizon_color = Color(0.035, 0.13, 0.18)
+	sky_material.sun_angle_max = 18.0
+	sky.sky_material = sky_material
+	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.55, 0.68, 0.78)
-	environment.ambient_light_energy = 0.8
+	environment.ambient_light_color = Color(0.42, 0.62, 0.78)
+	environment.ambient_light_energy = 0.85
+	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	environment.glow_enabled = true
+	environment.glow_intensity = 0.35
 	env.environment = environment
 	add_child(env)
 
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -28, 0)
-	sun.light_energy = 1.25
+	sun.rotation_degrees = Vector3(-48, -32, 0)
+	sun.light_color = Color(0.72, 0.86, 1.0)
+	sun.light_energy = 1.35
+	sun.shadow_enabled = true
 	add_child(sun)
 
-	var ground := StaticBody3D.new()
-	ground.name = "Terreno"
-	var ground_mesh := MeshInstance3D.new()
-	var plane := BoxMesh.new()
-	plane.size = Vector3(100, 1, 100)
-	ground_mesh.mesh = plane
-	ground_mesh.position.y = -0.5
-	ground_mesh.material_override = _material(Color(0.16, 0.28, 0.19))
-	ground.add_child(ground_mesh)
-	var ground_collision := CollisionShape3D.new()
-	var ground_shape := BoxShape3D.new()
-	ground_shape.size = Vector3(100, 1, 100)
-	ground_collision.shape = ground_shape
-	ground_collision.position.y = -0.5
-	ground.add_child(ground_collision)
-	add_child(ground)
+	# Isla volcánica rodeada por agua: el plano azul y los bordes dan escala al mapa.
+	_add_box("Mar profundo", Vector3(0, -1.25, 0), Vector3(180, 1.0, 180), Color(0.015, 0.12, 0.2))
+	_add_box("Plataforma de isla", Vector3(0, -0.12, 0), Vector3(94, 1.0, 94), Color(0.12, 0.23, 0.22))
+	_add_box("Zona central de operaciones", Vector3(0, 0.015, -7), Vector3(34, 0.12, 30), Color(0.19, 0.29, 0.31))
+	_add_box("Pista de acceso", Vector3(0, 0.04, 15), Vector3(8, 0.08, 32), Color(0.12, 0.17, 0.2))
+	for x in [-3.2, 3.2]:
+		for z in range(-1, 31, 5):
+			_add_box("Luz de pista", Vector3(x, 0.12, z), Vector3(0.18, 0.08, 0.8), Color(0.05, 0.8, 1.0), true)
 
 	_create_base_visual(Vector3(0, 0, -8))
 	_create_rocks_and_trees()
+	_create_coastal_details()
 
 	camera = Camera3D.new()
-	camera.position = Vector3(0, 13, 17)
+	camera.position = Vector3(0, 17, 24)
 	camera.current = true
-	camera.fov = 70
+	camera.fov = 58
+	camera.near = 0.1
+	camera.far = 260
 	add_child(camera)
+
+func _add_box(label: String, pos: Vector3, dimensions: Vector3, tint: Color, glow: bool = false) -> MeshInstance3D:
+	var instance := MeshInstance3D.new()
+	instance.name = label
+	var shape := BoxMesh.new()
+	shape.size = dimensions
+	instance.mesh = shape
+	instance.position = pos
+	instance.material_override = _material(tint, glow)
+	add_child(instance)
+	return instance
+
+func _add_cylinder(label: String, pos: Vector3, radius: float, height: float, tint: Color, glow: bool = false) -> MeshInstance3D:
+	var instance := MeshInstance3D.new()
+	instance.name = label
+	var shape := CylinderMesh.new()
+	shape.top_radius = radius * 0.82
+	shape.bottom_radius = radius
+	shape.height = height
+	instance.mesh = shape
+	instance.position = pos
+	instance.material_override = _material(tint, glow)
+	add_child(instance)
+	return instance
+
+func _create_coastal_details() -> void:
+	for i in range(18):
+		var angle := TAU * float(i) / 18.0
+		var radius := randf_range(43.0, 48.0)
+		var rock := MeshInstance3D.new()
+		var shape := SphereMesh.new()
+		shape.radius = randf_range(1.2, 3.0)
+		shape.height = shape.radius * 1.4
+		rock.mesh = shape
+		rock.position = Vector3(cos(angle) * radius, -0.05, sin(angle) * radius)
+		rock.scale = Vector3(1.8, 0.65, 1.0)
+		rock.material_override = _material(Color(0.055, 0.12, 0.16))
+		add_child(rock)
+	for i in range(8):
+		var x := randf_range(-38.0, 38.0)
+		var z := randf_range(-38.0, 38.0)
+		if absf(x) < 18.0 and absf(z + 8.0) < 18.0:
+			continue
+		_add_box("Edificio costero", Vector3(x, 1.0, z), Vector3(randf_range(2.0, 4.0), randf_range(2.0, 5.0), randf_range(2.0, 4.0)), Color(0.13, 0.22, 0.27))
+
 
 func _create_player() -> void:
 	var titan_scene := load("res://scenes/characters/titans/titan_alpha.tscn") as PackedScene
@@ -525,38 +578,60 @@ func _handle_market_input(event: InputEvent) -> void:
 	_update_hud()
 
 func _create_base_visual(pos: Vector3) -> void:
-	var base := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(8, 1.4, 6)
-	base.mesh = mesh
-	base.position = pos + Vector3(0, 0.7, 0)
-	base.material_override = _material(Color(0.23, 0.34, 0.42))
-	add_child(base)
-	var beacon := MeshInstance3D.new()
-	var pillar := CylinderMesh.new()
-	pillar.top_radius = 0.35
-	pillar.bottom_radius = 0.6
-	pillar.height = 4
-	beacon.mesh = pillar
-	beacon.position = pos + Vector3(0, 3.4, 0)
-	beacon.material_override = _material(Color(0.15, 0.8, 1.0), true)
-	add_child(beacon)
+	# Centro de mando modular: hangar, torres, depósitos y señalización.
+	_add_box("Hangar principal", pos + Vector3(0, 1.0, 0), Vector3(13, 2.0, 9), Color(0.16, 0.25, 0.32))
+	_add_box("Techo del hangar", pos + Vector3(0, 2.2, 0), Vector3(14, 0.45, 10), Color(0.25, 0.36, 0.43))
+	_add_box("Puerta hangar", pos + Vector3(0, 1.1, 4.58), Vector3(5.2, 1.8, 0.12), Color(0.035, 0.11, 0.16), true)
+	for x in [-5.6, 5.6]:
+		_add_box("Torre de defensa", pos + Vector3(x, 2.1, -2.0), Vector3(1.8, 4.2, 1.8), Color(0.22, 0.31, 0.38))
+		_add_cylinder("Radar de torre", pos + Vector3(x, 4.5, -2.0), 0.8, 0.22, Color(0.08, 0.78, 1.0), true)
+	_add_box("Plataforma Jaeger", pos + Vector3(0, 0.18, 9.0), Vector3(17, 0.35, 5), Color(0.09, 0.16, 0.2))
+	for x in [-6.0, -3.0, 0.0, 3.0, 6.0]:
+		_add_box("Línea de plataforma", pos + Vector3(x, 0.38, 9.0), Vector3(0.12, 0.04, 4.0), Color(0.04, 0.75, 0.95), true)
+	_add_cylinder("Baliza central", pos + Vector3(0, 5.2, -5.5), 0.62, 5.0, Color(0.05, 0.78, 1.0), true)
+	_add_sphere_visual("Cúpula de mando", pos + Vector3(0, 7.8, -5.5), 2.3, Color(0.18, 0.36, 0.62), false)
+	_add_box("Depósito de suministros", pos + Vector3(-10, 0.9, 5), Vector3(4.0, 1.8, 3.2), Color(0.12, 0.42, 0.3))
+	_add_box("Centro energético", pos + Vector3(10, 1.2, 5), Vector3(3.6, 2.4, 3.6), Color(0.08, 0.42, 0.55), true)
+	for x in [-8.0, 8.0]:
+		_add_cylinder("Antena de comunicaciones", pos + Vector3(x, 3.2, -8.0), 0.12, 6.0, Color(0.62, 0.75, 0.82))
+		_add_sphere_visual("Luz de antena", pos + Vector3(x, 6.3, -8.0), 0.28, Color(0.1, 0.85, 1.0), true)
+
+func _add_sphere_visual(label: String, pos: Vector3, radius: float, tint: Color, glow: bool) -> MeshInstance3D:
+	var instance := MeshInstance3D.new()
+	instance.name = label
+	var shape := SphereMesh.new()
+	shape.radius = radius
+	shape.height = radius * 2.0
+	instance.mesh = shape
+	instance.position = pos
+	instance.material_override = _material(tint, glow)
+	add_child(instance)
+	return instance
 
 func _create_rocks_and_trees() -> void:
-	for i in range(28):
-		var x := randf_range(-42, 42)
-		var z := randf_range(-42, 42)
-		if absf(x) < 7 and z > -14 and z < 9:
+	for i in range(34):
+		var x := randf_range(-43.0, 43.0)
+		var z := randf_range(-43.0, 43.0)
+		if absf(x) < 17.0 and z > -22.0 and z < 14.0:
 			continue
+		var radius := randf_range(0.7, 1.8)
 		var rock := MeshInstance3D.new()
 		var mesh := SphereMesh.new()
-		mesh.radius = randf_range(0.5, 1.5)
-		mesh.height = mesh.radius * 1.5
+		mesh.radius = radius
+		mesh.height = radius * 1.5
 		rock.mesh = mesh
-		rock.position = Vector3(x, mesh.radius * 0.45, z)
-		rock.scale = Vector3(1.3, 0.8, 1.0)
-		rock.material_override = _material(Color(0.22, 0.25, 0.26))
+		rock.position = Vector3(x, radius * 0.38, z)
+		rock.scale = Vector3(1.5, 0.72, 1.0)
+		rock.material_override = _material(Color(0.075, 0.14, 0.17))
 		add_child(rock)
+	for i in range(12):
+		var x := randf_range(-40.0, 40.0)
+		var z := randf_range(-40.0, 40.0)
+		if absf(x) < 18.0 and absf(z + 8.0) < 18.0:
+			continue
+		_add_cylinder("Árbol tronco", Vector3(x, 1.0, z), 0.28, 2.0, Color(0.16, 0.12, 0.09))
+		_add_sphere_visual("Copa costera", Vector3(x, 2.5, z), 1.5, Color(0.08, 0.28, 0.22), false)
+
 
 func _spawn_resources() -> void:
 	var kinds := ["metal", "energia", "cristal"]
@@ -769,8 +844,8 @@ func _create_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var viewport_size := get_viewport().get_visible_rect().size
-	var hud_width := minf(440.0, maxf(280.0, viewport_size.x - 24.0))
-	var hud_height := minf(340.0, maxf(150.0, viewport_size.y * 0.48))
+	var hud_width := minf(360.0, maxf(250.0, viewport_size.x * 0.34))
+	var hud_height := minf(250.0, maxf(132.0, viewport_size.y * 0.36))
 	var panel := PanelContainer.new()
 	panel.position = Vector2(12, 12)
 	panel.custom_minimum_size = Vector2(hud_width, hud_height)
@@ -784,7 +859,7 @@ func _create_hud() -> void:
 	scroll.add_child(column)
 	var heading := Label.new()
 	heading.text = "TITANES DEL PACÍFICO"
-	heading.add_theme_font_size_override("font_size", 22)
+	heading.add_theme_font_size_override("font_size", 18)
 	column.add_child(heading)
 	hud = Label.new()
 	hud.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
