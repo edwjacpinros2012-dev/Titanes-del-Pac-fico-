@@ -43,17 +43,22 @@ func _build_ui() -> void:
 	status_label.text = _profile_summary()
 	column.add_child(status_label)
 	name_input = LineEdit.new()
-	name_input.placeholder_text = "Nombre de piloto (1–24)"
+	name_input.placeholder_text = "Nombre de piloto (3–20)"
+	name_input.max_length = AccountManager.MAX_DISPLAY_NAME_LENGTH
 	name_input.text = str(AccountManager.profile.get("display_name", "Piloto"))
 	column.add_child(name_input)
 	var save_name := Button.new()
-	save_name.text = "Guardar nombre"
-	save_name.pressed.connect(func(): AccountManager.set_display_name(name_input.text))
+	save_name.text = "CREAR / ENTRAR CON ESTE PILOTO"
+	save_name.pressed.connect(func(): AccountManager.create_local_profile(name_input.text))
 	column.add_child(save_name)
 	var google := Button.new()
-	google.text = "REGISTRARSE / INICIAR CON GOOGLE"
+	google.text = "GOOGLE (PRÓXIMAMENTE)"
 	google.pressed.connect(AccountManager.begin_google_sign_in)
 	column.add_child(google)
+	var privacy_note := Label.new()
+	privacy_note.text = "El perfil local no necesita correo ni contraseña. Google y la nube no están conectados todavía."
+	privacy_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(privacy_note)
 	var offline := Button.new()
 	offline.text = "Continuar sin cuenta"
 	offline.pressed.connect(AccountManager.begin_offline_session)
