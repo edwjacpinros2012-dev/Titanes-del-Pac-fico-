@@ -170,7 +170,7 @@ func _save_profile() -> bool:
 	if file == null:
 		last_load_warning = "No se pudo crear el archivo temporal del perfil."
 		return false
-	file.store_string(JSON.stringify(profile, "\\t"))
+	file.store_string(JSON.stringify(profile, "\t"))
 	file.flush()
 	file.close()
 	var target := ProjectSettings.globalize_path(PROFILE_PATH)
