@@ -306,6 +306,7 @@ func _create_world() -> void:
 	_create_base_visual(Vector3(0, 0, -8))
 	_create_rocks_and_trees()
 	_create_coastal_details()
+	_create_kaiju_landmark()
 
 	camera = Camera3D.new()
 	camera.position = Vector3(0, 17, 24)
@@ -359,6 +360,19 @@ func _create_coastal_details() -> void:
 			continue
 		_add_box("Edificio costero", Vector3(x, 1.0, z), Vector3(randf_range(2.0, 4.0), randf_range(2.0, 5.0), randf_range(2.0, 4.0)), Color(0.13, 0.22, 0.27))
 
+
+
+func _create_kaiju_landmark() -> void:
+	var kaiju_scene := load("res://scenes/characters/kaiju/kaiju_brineback.tscn") as PackedScene
+	if kaiju_scene == null:
+		push_warning("No se pudo cargar el modelo provisional del Kaiju Brineback.")
+		return
+	var kaiju := kaiju_scene.instantiate() as Node3D
+	kaiju.name = "KaijuBrineback"
+	kaiju.position = Vector3(27, 0, -25)
+	kaiju.rotation_degrees.y = -28
+	kaiju.scale = Vector3(1.6, 1.6, 1.6)
+	add_child(kaiju)
 
 func _create_player() -> void:
 	var titan_scene := load("res://scenes/characters/titans/titan_alpha.tscn") as PackedScene
