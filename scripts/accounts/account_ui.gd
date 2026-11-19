@@ -13,9 +13,11 @@ func _ready() -> void:
 func _build_ui() -> void:
 	panel_container = PanelContainer.new()
 	panel_container.name = "AccountSettingsPanel"
+	var viewport_size := get_viewport().get_visible_rect().size
+	var panel_width := minf(360.0, maxf(260.0, viewport_size.x - 28.0))
 	panel_container.position = Vector2(14, 14)
-	panel_container.custom_minimum_size = Vector2(330, 0)
-	panel_container.size = Vector2(330, 0)
+	panel_container.custom_minimum_size = Vector2(panel_width, 0)
+	panel_container.size = Vector2(panel_width, 0)
 	add_child(panel_container)
 	var panel_column := VBoxContainer.new()
 	panel_container.add_child(panel_column)
@@ -32,11 +34,11 @@ func _build_ui() -> void:
 	close_button.pressed.connect(_hide_panel)
 	header.add_child(close_button)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 430)
+	scroll.custom_minimum_size = Vector2(0, minf(430.0, viewport_size.y * 0.62))
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel_column.add_child(scroll)
 	var column := VBoxContainer.new()
-	column.custom_minimum_size = Vector2(300, 0)
+	column.custom_minimum_size = Vector2(panel_width - 28.0, 0)
 	scroll.add_child(column)
 	status_label = Label.new()
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
