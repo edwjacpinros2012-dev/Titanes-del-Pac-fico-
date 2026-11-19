@@ -8,7 +8,7 @@ import './game-panels.css';
 class TitanesScene extends Phaser.Scene {
   private world!: THREE.Scene;
   private camera3d!: THREE.PerspectiveCamera;
-  private renderer!: THREE.WebGLRenderer;
+  private renderer3d!: THREE.WebGLRenderer;
   private titan!: THREE.Group;
   private kaiju!: THREE.Group;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
