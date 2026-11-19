@@ -13,9 +13,11 @@ func _ready() -> void:
 func _build_ui() -> void:
 	panel_container = PanelContainer.new()
 	panel_container.name = "AccountSettingsPanel"
+	var viewport_size := get_viewport().get_visible_rect().size
+	var panel_width := minf(360.0, maxf(260.0, viewport_size.x - 28.0))
 	panel_container.position = Vector2(14, 14)
-	panel_container.custom_minimum_size = Vector2(330, 0)
-	panel_container.size = Vector2(330, 0)
+	panel_container.custom_minimum_size = Vector2(panel_width, 0)
+	panel_container.size = Vector2(panel_width, 0)
 	add_child(panel_container)
 	var panel_column := VBoxContainer.new()
 	panel_container.add_child(panel_column)
@@ -32,28 +34,33 @@ func _build_ui() -> void:
 	close_button.pressed.connect(_hide_panel)
 	header.add_child(close_button)
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 430)
+	scroll.custom_minimum_size = Vector2(0, minf(430.0, viewport_size.y * 0.62))
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel_column.add_child(scroll)
 	var column := VBoxContainer.new()
-	column.custom_minimum_size = Vector2(300, 0)
+	column.custom_minimum_size = Vector2(panel_width - 28.0, 0)
 	scroll.add_child(column)
 	status_label = Label.new()
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.text = _profile_summary()
 	column.add_child(status_label)
 	name_input = LineEdit.new()
-	name_input.placeholder_text = "Nombre de piloto (1–24)"
+	name_input.placeholder_text = "Nombre de piloto (3–20)"
+	name_input.max_length = AccountManager.MAX_DISPLAY_NAME_LENGTH
 	name_input.text = str(AccountManager.profile.get("display_name", "Piloto"))
 	column.add_child(name_input)
 	var save_name := Button.new()
-	save_name.text = "Guardar nombre"
-	save_name.pressed.connect(func(): AccountManager.set_display_name(name_input.text))
+	save_name.text = "CREAR / ENTRAR CON ESTE PILOTO"
+	save_name.pressed.connect(func(): AccountManager.create_local_profile(name_input.text))
 	column.add_child(save_name)
 	var google := Button.new()
-	google.text = "REGISTRARSE / INICIAR CON GOOGLE"
+	google.text = "GOOGLE (PRÓXIMAMENTE)"
 	google.pressed.connect(AccountManager.begin_google_sign_in)
 	column.add_child(google)
+	var privacy_note := Label.new()
+	privacy_note.text = "El perfil local no necesita correo ni contraseña. Google y la nube no están conectados todavía."
+	privacy_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(privacy_note)
 	var offline := Button.new()
 	offline.text = "Continuar sin cuenta"
 	offline.pressed.connect(AccountManager.begin_offline_session)
@@ -133,9 +140,10 @@ func _refresh_settings(settings: Dictionary) -> void:
 
 func _profile_summary() -> String:
 	var p := AccountManager.profile
-	return "Perfil: %s\nID local: %s\nGoogle: %s | Nube: %s" % [
+	return "PILOTO: %s\nID local: %s\nNivel: %s\nGoogle: %s | Nube: %s" % [
 		str(p.get("display_name", "Piloto")),
 		str(p.get("player_id", "—")),
+		str(p.get("pilot_level", 1)),
 		"vinculado" if bool(p.get("google_linked", false)) else "sin vincular",
 		"apagada" if not bool(p.get("cloud_enabled", false)) else "activa"
 	]

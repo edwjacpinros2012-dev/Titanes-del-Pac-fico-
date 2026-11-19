@@ -69,7 +69,7 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - `web/`: página informativa; no es todavía una exportación jugable del juego.
 
 ## Cuentas, comunidad y seguridad
-La autenticación y las alianzas online todavía no están conectadas a un servicio real. Supabase Auth y el esquema SQL son una base de arquitectura, no un backend desplegado. El chat global permanece desactivado hasta tener moderación, reportes, bloqueos, controles de privacidad y revisión operativa.
+El registro de piloto local funciona en este dispositivo: permite crear/usar un nombre de piloto, genera un ID local, valida el nombre, migra el perfil y mantiene una copia de recuperación. No requiere correo ni contraseña. El inicio con Google, la sincronización en nube y las alianzas online todavía no están conectadas a un servicio real. Supabase Auth y el esquema SQL son una base de arquitectura, no un backend desplegado. El chat global permanece desactivado hasta tener moderación, reportes, bloqueos, controles de privacidad y revisión operativa.
 
 Las credenciales privadas y claves de servicio nunca deben guardarse en el cliente Godot ni en GitHub. Las escrituras del progreso en nube y la vinculación de Google Play Games deben validarse desde servidor.
 
