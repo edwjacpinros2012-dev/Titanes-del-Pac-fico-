@@ -1,33 +1,63 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=16 format=3]
 
 [sub_resource type="StandardMaterial3D" id="Material_armor"]
-albedo_color = Color(0.12, 0.34, 0.48, 1)
-metallic = 0.45
-roughness = 0.32
+albedo_color = Color(0.075, 0.22, 0.34, 1)
+metallic = 0.72
+roughness = 0.26
+
+[sub_resource type="StandardMaterial3D" id="Material_edge"]
+albedo_color = Color(0.25, 0.43, 0.53, 1)
+metallic = 0.82
+roughness = 0.22
 
 [sub_resource type="StandardMaterial3D" id="Material_glow"]
-albedo_color = Color(0.08, 0.75, 0.95, 1)
+albedo_color = Color(0.04, 0.78, 1, 1)
 emission_enabled = true
-emission = Color(0.04, 0.55, 0.9, 1)
-emission_energy_multiplier = 1.6
+emission = Color(0.02, 0.55, 1, 1)
+emission_energy_multiplier = 2.2
+
+[sub_resource type="StandardMaterial3D" id="Material_dark"]
+albedo_color = Color(0.018, 0.055, 0.08, 1)
+metallic = 0.6
+roughness = 0.3
 
 [sub_resource type="CapsuleMesh" id="Mesh_torso"]
 radius = 0.72
 height = 2.0
 
-[sub_resource type="SphereMesh" id="Mesh_head"]
-radius = 0.48
-height = 0.8
+[sub_resource type="BoxMesh" id="Mesh_chest"]
+size = Vector3(1.55, 0.82, 0.42)
+
+[sub_resource type="BoxMesh" id="Mesh_shoulder"]
+size = Vector3(0.92, 0.72, 0.86)
 
 [sub_resource type="BoxMesh" id="Mesh_arm"]
 size = Vector3(0.48, 1.45, 0.55)
 
+[sub_resource type="BoxMesh" id="Mesh_forearm"]
+size = Vector3(0.62, 0.82, 0.72)
+
 [sub_resource type="BoxMesh" id="Mesh_leg"]
 size = Vector3(0.58, 1.2, 0.68)
 
+[sub_resource type="BoxMesh" id="Mesh_foot"]
+size = Vector3(0.82, 0.34, 1.08)
+
+[sub_resource type="SphereMesh" id="Mesh_head"]
+radius = 0.48
+height = 0.8
+
 [sub_resource type="SphereMesh" id="Mesh_core"]
-radius = 0.24
-height = 0.48
+radius = 0.27
+height = 0.54
+
+[sub_resource type="CylinderMesh" id="Mesh_thruster"]
+top_radius = 0.22
+bottom_radius = 0.34
+height = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_visor"]
+size = Vector3(0.58, 0.14, 0.12)
 
 [node name="TitanAlphaVisual" type="Node3D"]
 
@@ -36,20 +66,55 @@ position = Vector3(0, 2.15, 0)
 mesh = SubResource("Mesh_torso")
 surface_material_override/0 = SubResource("Material_armor")
 
+[node name="ChestArmor" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.55, -0.48)
+mesh = SubResource("Mesh_chest")
+surface_material_override/0 = SubResource("Material_edge")
+
+[node name="Core" type="MeshInstance3D" parent="."]
+position = Vector3(0, 2.38, -0.73)
+mesh = SubResource("Mesh_core")
+surface_material_override/0 = SubResource("Material_glow")
+
 [node name="Head" type="MeshInstance3D" parent="."]
 position = Vector3(0, 3.55, 0)
 mesh = SubResource("Mesh_head")
-surface_material_override/0 = SubResource("Material_armor")
+surface_material_override/0 = SubResource("Material_edge")
+
+[node name="Visor" type="MeshInstance3D" parent="."]
+position = Vector3(0, 3.58, -0.42)
+mesh = SubResource("Mesh_visor")
+surface_material_override/0 = SubResource("Material_glow")
+
+[node name="LeftShoulder" type="MeshInstance3D" parent="."]
+position = Vector3(-1.0, 2.75, 0)
+mesh = SubResource("Mesh_shoulder")
+surface_material_override/0 = SubResource("Material_edge")
+
+[node name="RightShoulder" type="MeshInstance3D" parent="."]
+position = Vector3(1.0, 2.75, 0)
+mesh = SubResource("Mesh_shoulder")
+surface_material_override/0 = SubResource("Material_edge")
 
 [node name="LeftArm" type="MeshInstance3D" parent="."]
-position = Vector3(-0.92, 2.25, 0)
+position = Vector3(-0.98, 2.12, 0)
 mesh = SubResource("Mesh_arm")
 surface_material_override/0 = SubResource("Material_armor")
 
 [node name="RightArm" type="MeshInstance3D" parent="."]
-position = Vector3(0.92, 2.25, 0)
+position = Vector3(0.98, 2.12, 0)
 mesh = SubResource("Mesh_arm")
 surface_material_override/0 = SubResource("Material_armor")
+
+[node name="LeftForearmGuard" type="MeshInstance3D" parent="."]
+position = Vector3(-1.0, 1.62, -0.12)
+mesh = SubResource("Mesh_forearm")
+surface_material_override/0 = SubResource("Material_edge")
+
+[node name="RightForearmGuard" type="MeshInstance3D" parent="."]
+position = Vector3(1.0, 1.62, -0.12)
+mesh = SubResource("Mesh_forearm")
+surface_material_override/0 = SubResource("Material_edge")
 
 [node name="LeftLeg" type="MeshInstance3D" parent="."]
 position = Vector3(-0.38, 0.75, 0)
@@ -61,7 +126,24 @@ position = Vector3(0.38, 0.75, 0)
 mesh = SubResource("Mesh_leg")
 surface_material_override/0 = SubResource("Material_armor")
 
-[node name="Core" type="MeshInstance3D" parent="."]
-position = Vector3(0, 2.3, -0.66)
-mesh = SubResource("Mesh_core")
-surface_material_override/0 = SubResource("Material_glow")
+[node name="LeftFoot" type="MeshInstance3D" parent="."]
+position = Vector3(-0.4, 0.2, -0.22)
+mesh = SubResource("Mesh_foot")
+surface_material_override/0 = SubResource("Material_dark")
+
+[node name="RightFoot" type="MeshInstance3D" parent="."]
+position = Vector3(0.4, 0.2, -0.22)
+mesh = SubResource("Mesh_foot")
+surface_material_override/0 = SubResource("Material_dark")
+
+[node name="LeftThruster" type="MeshInstance3D" parent="."]
+position = Vector3(-0.55, 2.4, 0.56)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("Mesh_thruster")
+surface_material_override/0 = SubResource("Material_dark")
+
+[node name="RightThruster" type="MeshInstance3D" parent="."]
+position = Vector3(0.55, 2.4, 0.56)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("Mesh_thruster")
+surface_material_override/0 = SubResource("Material_dark")
