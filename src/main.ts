@@ -20,6 +20,7 @@ class TitanesScene extends Phaser.Scene {
   private status!: Phaser.GameObjects.Text;
   private hpBar!: Phaser.GameObjects.Rectangle;
   private energyBar!: Phaser.GameObjects.Rectangle;
+  private kaijuBar!: Phaser.GameObjects.Rectangle;
   private attackCooldown = 0;
   private moveX = 0;
   private moveZ = 0;
@@ -174,6 +175,9 @@ class TitanesScene extends Phaser.Scene {
     this.add.rectangle(24,108,180,7,0x263b49).setOrigin(0,0.5);
     this.energyBar=this.add.rectangle(24,108,180,7,0x263b49).setOrigin(0,0.5);
     this.energyBar.setFillStyle(0x39c8ff);
+    this.add.text(24,125,'KAIJU / INTEGRIDAD',{fontSize:'9px',color:'#b9d2dc'}).setScrollFactor(0);
+    this.add.rectangle(24,143,180,7,0x263b49).setOrigin(0,0.5);
+    this.kaijuBar=this.add.rectangle(24,143,180,7,0xff654b).setOrigin(0,0.5);
     this.status=this.add.text(w-24,22,'OBJETIVO: NEUTRALIZAR AL KAIJU',{fontSize:'11px',color:'#ffb36b'}).setOrigin(1,0);
     this.add.text(24,this.scale.height-30,'WASD / FLECHAS: MOVER   •   ESPACIO: IMPACTO   •   MÓVIL: USA LOS CONTROLES',{fontSize:'10px',color:'#b4c7d2'}).setScrollFactor(0);
     const btn=(x:number,label:string,fn:()=>void)=>{const b=this.add.text(x,this.scale.height-95,label,{fontSize:'12px',color:'#ffffff',backgroundColor:'#12394b',padding:{x:13,y:12}}).setOrigin(.5).setInteractive();b.on('pointerdown',fn);return b;};
@@ -204,7 +208,7 @@ class TitanesScene extends Phaser.Scene {
     this.titan.position.x+=x*dt*this.moveSpeed; this.titan.position.z+=z*dt*this.moveSpeed;
     if(this.keys.SPACE.isDown) this.attack();
     this.energy=Math.min(100,this.energy+dt*5);
-    this.hpBar.width=180*this.hp/100; this.energyBar.width=180*this.energy/100;
+    this.hpBar.width=180*this.hp/100; this.energyBar.width=180*this.energy/100; this.kaijuBar.width=180*this.kaijuHp/100;
     this.camera3d.position.lerp(new THREE.Vector3(this.titan.position.x,7,this.titan.position.z+12),dt*2);
     this.camera3d.lookAt(this.titan.position.x,2,this.titan.position.z-3);
     this.kaiju.rotation.y=Math.sin(_time*0.0005)*0.12;
