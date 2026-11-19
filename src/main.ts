@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import * as THREE from 'three';
 import './style.css';
-import { TitanesSystems, JAEGERS, JaegerId } from './game-systems';
+import { TitanesSystems, JAEGERS } from './game-systems';
+import type { JaegerId } from './game-systems';
 import { mountGamePanels } from './game-panels';
 import './game-panels.css';
 
