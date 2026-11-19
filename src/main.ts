@@ -18,6 +18,7 @@ class TitanesScene extends Phaser.Scene {
   private score = 0;
   private kaijuHp = 100;
   private kaijuDefeated = false;
+  private buildingGroups: Record<string, THREE.Group> = {};
   private status!: Phaser.GameObjects.Text;
   private hpBar!: Phaser.GameObjects.Rectangle;
   private energyBar!: Phaser.GameObjects.Rectangle;
@@ -63,7 +64,7 @@ class TitanesScene extends Phaser.Scene {
     const menu=document.createElement('section'); menu.id='titan-menu';
     menu.innerHTML=`<header><b>PPDC // DEFENSE NETWORK</b><span>● ALERTA COSTERA</span><div class="menu-rank">PROTOCOLO DE DEFENSA · 2047</div></header><main><div class="menu-copy"><small>OPERACIÓN · PACÍFICO</small><h1>EL PACÍFICO<br><em>NO CAERÁ.</em></h1><p>La brecha sigue abierta. Despliega tu Jaeger, protege la costa y responde a la amenaza Kaiju.</p><div class="mission-card"><small>▰ MISIÓN ACTIVA · SECTOR 07</small><b>DEFENSA DE LA COSTA</b><span>OBJETIVO: interceptar al Kaiju y proteger la zona urbana.</span><div id="tm-resources" class="resource-strip"></div><div class="mission-progress"><i></i></div><label><span>AMENAZA DETECTADA</span><b>CLASE III</b></label></div><button id="tm-start">▶ DESPLEGAR JAEGER</button><button id="tm-hangar">▣ HANGAR / UNIDADES</button><button id="tm-upgrade">⬆ MEJORAR DEFENSA</button><small id="tm-system-notice"></small><footer><span>SECTOR<b>SHATTERDOME · COSTA</b></span><span>ESTADO<b>● SISTEMAS EN LÍNEA</b></span></footer></div><div class="tm-mech"><div class="rings"></div><div class="robot"><i class="head"><b></b></i><i class="body"><b></b></i><i class="arm a"></i><i class="arm b"></i><i class="leg c"></i><i class="leg d"></i></div><label>JAEGER // GIPSY-CLASS<small>UNIDAD DE COMBATE · MARK-III</small></label></div></main><div class="tm-bottom">PPDC · PAN-PACIFIC DEFENSE CORPS <span>INTERFAZ TÁCTICA v0.3</span></div><aside id="tm-roster"><div class="roster-window"><button id="tm-close">×</button><small>HANGAR / SELECCIÓN DE UNIDADES</small><h2>ESCUADRÓN JAEGER</h2><p>Selecciona una unidad para la misión. Las estadísticas son prototipos de juego.</p><div class="roster-cards"><article class="selected"><span class="unit-icon">01</span><b>GIPSY-CLASS</b><small>Equilibrado · Mark III</small><div class="unit-bars"><label>ARMADURA <i><b style="width:86%"></b></i></label><label>ENERGÍA <i><b style="width:74%"></b></i></label><label>AGILIDAD <i><b style="width:62%"></b></i></label></div></article><article><span class="unit-icon">02</span><b>STRIKER-CLASS</b><small>Rápido · Mark V</small><div class="unit-bars"><label>ARMADURA <i><b style="width:72%"></b></i></label><label>ENERGÍA <i><b style="width:91%"></b></i></label><label>AGILIDAD <i><b style="width:88%"></b></i></label></div></article><article><span class="unit-icon">03</span><b>CHERNO-CLASS</b><small>Pesado · Mark I</small><div class="unit-bars"><label>ARMADURA <i><b style="width:95%"></b></i></label><label>ENERGÍA <i><b style="width:68%"></b></i></label><label>AGILIDAD <i><b style="width:48%"></b></i></label></div></article></div><button id="tm-select">CONFIRMAR UNIDAD</button></div></aside>`;
     document.body.appendChild(menu);
-    menu.querySelector('#tm-start')?.addEventListener('click',()=>{menu.classList.add('started'); mountGamePanels(this.systems, (id)=>this.applySelectedJaeger(id)); });
+    menu.querySelector('#tm-start')?.addEventListener('click',()=>{menu.classList.add('started'); mountGamePanels(this.systems, (id)=>this.applySelectedJaeger(id), (id)=>this.refreshBuildingVisuals(id)); });
     menu.querySelector('#tm-hangar')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.add('open'));
     menu.querySelector('#tm-close')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
     menu.querySelector('#tm-select')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
@@ -123,10 +124,7 @@ class TitanesScene extends Phaser.Scene {
     this.box(base,[12,0.7,0.7],[0,4.9,-4.8],0x38758b);
     this.box(base,[12,0.45,0.7],[0,0.6,4.8],0x24485a);
     // Command center, reactor, storage and clinic blocks
-    this.box(base,[5,5.5,4],[ -8.2,2.9,-1.2],0x36586a);
-    this.box(base,[3.8,3.3,3.6],[7.6,1.9,-3.2],0x293f4c);
-    this.box(base,[3.8,2.8,3.6],[7.6,1.65,1.2],0x345363);
-    this.box(base,[4.4,2.2,3.4],[-7.7,1.35,4.0],0x3a6577);
+
     // Perimeter walls and gate
     this.box(base,[22,1.3,0.5],[0,0.8,8.0],0x263f50);
     this.box(base,[0.5,1.3,16],[-10.8,0.8,0],0x263f50);
@@ -137,8 +135,34 @@ class TitanesScene extends Phaser.Scene {
     for(const x of [-10,10]){this.box(base,[1.2,4,1.2],[x,2,-7.5],0x203c4e);this.box(base,[1.8,0.3,1.8],[x,4.2,-7.5],0x4b7c8f);this.box(base,[0.3,0.2,0.3],[x,4.5,-7.5],0x51eaff);}
     // Evacuation tents and simple civilian silhouettes
     for(let i=0;i<6;i++){const x=-4.5+(i%3)*4.5,z=5.5+Math.floor(i/3)*1.4;this.box(base,[0.5,1.1,0.4],[x,1.1,z],i%2?0x497f8c:0x9a7651);const head=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),this.material(0xc7a27a,0.1));head.position.set(x,1.85,z);base.add(head);}
+    // Modular facilities are grouped so upgrades visibly change the 3D outpost.
+    const facilities: Array<[string,[number,number,number],number]> = [
+      ['command',[-8.0,0,-1.2],0x36586a],['reactor',[7.4,0,-3.0],0x287080],
+      ['workshop',[7.4,0,1.2],0x345363],['medical',[-7.7,0,4.0],0x3a6577],
+      ['defense',[0,0,7.0],0x45687a],['evacuation',[0,0,4.8],0x9a7651]
+    ];
+    for(const [id,pos,color] of facilities){
+      const group=new THREE.Group(); group.position.set(...pos); base.add(group); this.buildingGroups[id]=group;
+      const footprint=id==='command'?[4.6,3.5,3.8]:[3.2,2.5,3.0];
+      this.box(group,[footprint[0],0.25,footprint[2]],[0,0.15,0],0x253b49);
+      this.box(group,[footprint[0]*0.78,footprint[1],footprint[2]*0.72],[0,footprint[1]/2+0.2,0],color);
+      this.box(group,[footprint[0]*0.9,0.28,footprint[0]*0.9],[0,footprint[1]+0.35,0],0x244b5c);
+      for(const side of [-1,1]) this.box(group,[0.18,0.18,footprint[2]*0.55],[side*footprint[0]*0.42,footprint[1]*0.6,0],0x50d8ed);
+      this.box(group,[0.22,0.35,0.22],[0,footprint[1]+0.6,0],0x52eaff);
+    }
+    this.refreshBuildingVisuals();
     // Marked rescue lane
     for(let i=0;i<5;i++)this.box(base,[0.3,0.04,2],[ -3+i*1.5,0.3,7.1],0x45d7ed);
+  }
+  private refreshBuildingVisuals(id?: string) {
+    const levels=this.systems.snapshot().buildings;
+    const keys=id?[id]:Object.keys(this.buildingGroups);
+    for(const key of keys){
+      const group=this.buildingGroups[key]; if(!group) continue;
+      const level=levels[key]||0;
+      const size=Math.max(0.62,0.72+level*0.16);
+      group.scale.set(size,Math.max(0.65,0.72+level*0.22),size);
+    }
   }
   private buildMech(color: number) {
     const g = new THREE.Group();
