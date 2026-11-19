@@ -44,8 +44,8 @@ This file is an execution checklist. A module is only complete after it is reach
 - [ ] Performance, crash, input, save, network and accessibility checks.
 - [ ] Privacy disclosure and release/legal review.
 
-## New utility in this branch
-- `scripts/profile_store_v2.gd`: a standalone, versioned local-profile store with default values, sanitization, temp-write, previous-profile backup and recovery. It is not yet wired into the main scene; integrate only after reviewing current save logic and testing file replacement behavior on target platforms.
+## Existing persistence found during follow-up review
+- `scripts/main.gd` already calls `SaveSystem.save_profile()` and `SaveSystem.load_profile()` and persists several manager snapshots. Avoid introducing a second profile store. Follow-up work is to audit the existing `SaveSystem`, add the missing module state round-trips, and harden backup/atomic replacement.
 
 ## Acceptance evidence
 Record test date, device/platform, build/commit, steps, expected vs actual, and screenshots/logs for manual checks. CI headless is useful but does not certify visual quality or Android readiness.
