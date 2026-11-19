@@ -1,7 +1,7 @@
 import type { TitanesSystems } from './game-systems';
 import { MISSION_LIST, JAEGERS } from './game-systems';
 
-export function mountGamePanels(systems: TitanesSystems, onJaegerSelected?: (id: 'gipsy'|'striker'|'cherno') => void) {
+export function mountGamePanels(systems: TitanesSystems, onJaegerSelected?: (id: 'gipsy'|'striker'|'cherno') => void, onBuildingUpgraded?: (id: string) => void) {
   if (document.getElementById('titan-panels')) return;
   const host = document.createElement('div');
   host.id = 'titan-panels';
@@ -29,7 +29,7 @@ export function mountGamePanels(systems: TitanesSystems, onJaegerSelected?: (id:
       const buildingIds = ['hangar','reactor','workshop','medical','defense','evacuation'];
       const buildingCards = buildingIds.map(id => { const level=s.buildings[id]||0; const locked=id==='evacuation'&&baseLevel<2; return `<article><b>${buildingNames[id]}</b><span>${locked?'Desbloquea en base nivel 2':'Instalación PPDC · Mejorable'}</span><strong>NIVEL ${level}</strong><button data-building="${id}" ${locked?'disabled':''}>MEJORAR · ${160+level*125} ALEACIÓN / ${90+level*80} ENERGÍA</button></article>`; }).join('');
       content.querySelector('.tp-grid')?.insertAdjacentHTML('beforeend', buildingCards);
-      content.querySelectorAll('[data-building]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-building') as keyof typeof s.buildings;const r=systems.upgradeBuilding(id);render('base');const notice=content.querySelector('#tp-msg');if(notice)notice.textContent=r.ok?'Instalación mejorada al nivel '+r.level:r.reason||'No se pudo mejorar.';}));
+      content.querySelectorAll('[data-building]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-building') as keyof typeof s.buildings;const r=systems.upgradeBuilding(id);if(r.ok)onBuildingUpgraded?.(id);render('base');const notice=content.querySelector('#tp-msg');if(notice)notice.textContent=r.ok?'Instalación mejorada al nivel '+r.level:r.reason||'No se pudo mejorar.';}));
       content.querySelector('#tp-rescue-demo')?.addEventListener('click',()=>{const r=systems.rescueCivilians(3);render('base');const notice=content.querySelector('#tp-msg');if(notice)notice.textContent='Rescate de demostración: 3 habitantes salvados · total '+r.total+'. Esta acción es una simulación del panel.';});
 
     } else if (which === 'missions') {
