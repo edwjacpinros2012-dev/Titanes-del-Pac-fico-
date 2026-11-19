@@ -39,11 +39,11 @@ class TitanesScene extends Phaser.Scene {
     this.world.fog = new THREE.Fog(0x071522, 24, 75);
     this.camera3d = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 150);
     this.camera3d.position.set(0, 7, 15);
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
-    this.renderer.setSize(innerWidth, innerHeight);
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer3d = new THREE.WebGLRenderer({ canvas, antialias: true });
+    this.renderer3d.setPixelRatio(Math.min(devicePixelRatio, 1.7));
+    this.renderer3d.setSize(innerWidth, innerHeight);
+    this.renderer3d.shadowMap.enabled = true;
+    this.renderer3d.toneMapping = THREE.ACESFilmicToneMapping;
     const selected = JAEGERS[this.systems.snapshot().selectedJaeger];
     this.hp = selected.armor; this.energy = selected.power; this.attackPower = Math.max(12, Math.round(selected.power / 4)); this.moveSpeed = 3.2 + selected.agility / 30;
     this.buildWorld();
@@ -53,9 +53,9 @@ class TitanesScene extends Phaser.Scene {
     this.scale.on('resize', (size: Phaser.Structs.Size) => {
       this.camera3d.aspect = size.width / size.height;
       this.camera3d.updateProjectionMatrix();
-      this.renderer.setSize(size.width, size.height);
+      this.renderer3d.setSize(size.width, size.height);
     });
-    this.events.once('destroy', () => { this.renderer.dispose(); canvas.remove(); });
+    this.events.once('destroy', () => { this.renderer3d.dispose(); canvas.remove(); });
     this.animate3d();
   }
 
@@ -212,7 +212,7 @@ class TitanesScene extends Phaser.Scene {
     this.camera3d.position.lerp(new THREE.Vector3(this.titan.position.x,7,this.titan.position.z+12),dt*2);
     this.camera3d.lookAt(this.titan.position.x,2,this.titan.position.z-3);
     this.kaiju.rotation.y=Math.sin(_time*0.0005)*0.12;
-    this.renderer.render(this.world,this.camera3d);
+    this.renderer3d.render(this.world,this.camera3d);
   }
   private animate3d() { this.game.events.on('step',()=>{}); }
 }
