@@ -1,6 +1,6 @@
 import { TitanesSystems, MISSION_LIST, JAEGERS } from './game-systems';
 
-export function mountGamePanels(systems: TitanesSystems) {
+export function mountGamePanels(systems: TitanesSystems, onJaegerSelected?: (id: 'gipsy'|'striker'|'cherno') => void) {
   if (document.getElementById('titan-panels')) return;
   const host = document.createElement('div');
   host.id = 'titan-panels';
@@ -36,7 +36,7 @@ export function mountGamePanels(systems: TitanesSystems) {
       content.querySelectorAll('[data-mission]').forEach(b=>b.addEventListener('click',()=>{const id=Number(b.getAttribute('data-mission'));const result=systems.completeMission(id);if(result.ok){render('missions');}else {b.textContent='NO DISPONIBLE';}}));
     } else if (which === 'hangar') {
       content.innerHTML = res + `<small>UNIDADES / JAEGER PROGRAM</small><h2>HANGAR</h2><p>Selecciona una unidad disponible. Los desbloqueos superiores se habilitarán por progresión.</p><div class="tp-grid tp-jaegers">${Object.entries(JAEGERS).map(([id,j],i)=>`<article><b>${j.label}</b><span>${j.role} · PROTOTIPO</span><strong>ARMADURA ${j.armor} / POTENCIA ${j.power} / AGILIDAD ${j.agility}</strong><button data-jaeger="${id}" ${i>0?'disabled':''}>${s.selectedJaeger===id?'SELECCIONADO':'SELECCIONAR'}</button></article>`).join('')}</div>`;
-      content.querySelectorAll('[data-jaeger]').forEach(b=>b.addEventListener('click',()=>{systems.setJaeger(b.getAttribute('data-jaeger') as 'gipsy'|'striker'|'cherno');render('hangar');}));
+      content.querySelectorAll('[data-jaeger]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-jaeger') as 'gipsy'|'striker'|'cherno';systems.setJaeger(id);onJaegerSelected?.(id);render('hangar');}));
     } else if (which === 'shop') {
       content.innerHTML = res + `<small>ABASTECIMIENTO / PPDC</small><h2>TIENDA</h2><p>Catálogo de prueba conectado a recursos e inventario guardado. Las compras se registran localmente.</p><div class="tp-grid"><article><b>Kit de reparación · ${s.inventory.repairKit || 0}</b><span>Reabastecimiento de campo</span><strong>180 ALEACIÓN</strong><button data-buy="repair">ADQUIRIR</button></article><article><b>Componentes de armadura · ${s.inventory.armorParts || 0}</b><span>Material de mejora</span><strong>240 ALEACIÓN + 90 ENERGÍA</strong><button data-buy="armor">ADQUIRIR</button></article><article><b>Datos de investigación · ${s.inventory.researchData || 0}</b><span>Paquete de inteligencia</span><strong>120 ENERGÍA</strong><button data-buy="intel">ADQUIRIR</button></article></div><p id="tp-msg" class="tp-note"></p>`;
       content.querySelectorAll('[data-buy]').forEach(b=>b.addEventListener('click',()=>{const kind=b.getAttribute('data-buy');let ok=false;if(kind==='repair'){ok=systems.buyItem('repairKit',{alloy:180});}if(kind==='armor'){ok=systems.buyItem('armorParts',{alloy:240,energy:90});}if(kind==='intel'){ok=systems.buyItem('researchData',{energy:120});if(ok)systems.addResources({intel:2});}const msg=content.querySelector('#tp-msg');if(msg)msg.textContent=ok?'Compra completada.':'Recursos insuficientes.';render('shop');}));
