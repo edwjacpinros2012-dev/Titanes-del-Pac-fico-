@@ -33,3 +33,16 @@
 .tp-jaegers button{margin-top:10px}
 .tp-jaegers button:disabled,.tp-missions button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:700px){.tp-nav{bottom:7px;gap:4px}.tp-nav button{padding:9px 8px;font-size:10px}.tp-window{inset:3% 3% 65px;padding:14px}.tp-missions article{align-items:flex-start;flex-direction:column}.tp-missions article button{width:100%}}
+
+.tp-grid article button{margin-top:5px;background:linear-gradient(90deg,#13384a,#0d2534);border-color:#2f647b;color:#80eaff}
+.tp-grid article button:hover:not(:disabled){background:#1a526a;border-color:#6de8ff}
+.tp-grid article button:disabled{opacity:.35;cursor:not-allowed}
+.tp-grid article input{background:#061522;border:1px solid #315365;color:#e9fbff;padding:10px;font:12px Rajdhani;outline:none}
+.tp-grid article input:focus{border-color:#64dff4}
+.tp-content .tp-grid article{position:relative;overflow:hidden}
+.tp-content .tp-grid article:before{content:"";position:absolute;left:0;top:0;width:3px;height:100%;background:linear-gradient(#5be5ff,#1b4357);opacity:.8}
+.tp-grid article strong{line-height:1.5}
+.tp-window{backdrop-filter:blur(12px)}
+.tp-nav button{border-radius:3px}
+.tp-nav button:active{transform:translateY(1px)}
+@media(max-width:480px){.tp-res span{flex:1;min-width:90px}.tp-grid{grid-template-columns:1fr}.tp-grid article{min-height:110px}.tp-window{inset:2% 2% 74px}.tp-nav button{font-size:9px;padding:8px 6px}}
