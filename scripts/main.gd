@@ -369,7 +369,7 @@ func _create_kaiju_landmark() -> void:
 		return
 	var kaiju := kaiju_scene.instantiate() as Node3D
 	kaiju.name = "KaijuBrineback"
-	kaiju.position = Vector3(27, 0, -25)
+	kaiju.position = Vector3(14, 0, -22)
 	kaiju.rotation_degrees.y = -28
 	kaiju.scale = Vector3(1.6, 1.6, 1.6)
 	add_child(kaiju)
