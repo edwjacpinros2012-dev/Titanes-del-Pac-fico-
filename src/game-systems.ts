@@ -8,13 +8,15 @@ export interface TitanesSave {
   selectedJaeger: JaegerId;
   upgrades: Record<string, number>;
   inventory: Record<string, number>;
+  buildings: Record<string, number>;
+  civiliansRescued: number;
   xp: number;
 }
 const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
 const START: TitanesSave = {
   version: 1, resources: { alloy: 650, energy: 500, intel: 0 },
   unlockedMissions: 1, completedMissions: [], selectedJaeger: 'gipsy',
-  upgrades: { defense: 0, reactor: 0, training: 0 }, inventory: { repairKit: 0, armorParts: 0, researchData: 0 }, xp: 0
+  upgrades: { defense: 0, reactor: 0, training: 0 }, inventory: { repairKit: 0, armorParts: 0, researchData: 0 }, buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, evacuation: 0 }, civiliansRescued: 0, xp: 0
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -28,7 +30,7 @@ export class TitanesSystems {
       if (!raw) return cloneStart();
       const parsed = JSON.parse(raw) as Partial<TitanesSave>;
       if (parsed.version !== 1 || !parsed.resources || !Array.isArray(parsed.completedMissions)) return cloneStart();
-      return { ...cloneStart(), ...parsed, resources: { ...START.resources, ...parsed.resources }, upgrades: { ...START.upgrades, ...parsed.upgrades } } as TitanesSave;
+      return { ...cloneStart(), ...parsed, resources: { ...START.resources, ...parsed.resources }, upgrades: { ...START.upgrades, ...parsed.upgrades }, inventory: { ...START.inventory, ...parsed.inventory }, buildings: { ...START.buildings, ...parsed.buildings }, civiliansRescued: Math.max(0, Number(parsed.civiliansRescued) || 0) } as TitanesSave;
     } catch { return cloneStart(); }
   }
   private save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data)); } catch { /* storage may be disabled */ } }
@@ -57,6 +59,26 @@ export class TitanesSystems {
     this.data.resources.alloy -= cost.alloy; this.data.resources.energy -= cost.energy;
     this.data.upgrades[key] = level + 1; this.save();
     return { ok: true, cost, level: level + 1 };
+  }
+  upgradeBuilding(id: keyof TitanesSave['buildings']) {
+    const level = this.data.buildings[id] || 0;
+    if (id === 'command') return { ok: false, level, reason: 'El centro de mando se mejora mediante progresión de base.' };
+    const baseLevel = 1 + Math.floor((this.data.upgrades.defense || 0) / 2);
+    const unlockAt: Record<string, number> = { hangar: 1, reactor: 1, workshop: 1, medical: 1, defense: 1, evacuation: 2 };
+    if (baseLevel < (unlockAt[id] || 1)) return { ok: false, level, reason: 'Requiere base nivel ' + (unlockAt[id] || 1) };
+    const cost = { alloy: 160 + level * 125, energy: 90 + level * 80 };
+    if (!this.spendResources(cost)) return { ok: false, level, reason: 'Recursos insuficientes' };
+    this.data.buildings[id] = level + 1;
+    this.save();
+    return { ok: true, level: level + 1, cost };
+  }
+  rescueCivilians(count: number) {
+    const safeCount = Math.max(0, Math.floor(count));
+    this.data.civiliansRescued += safeCount;
+    this.data.xp += safeCount * 5;
+    this.addResources({ alloy: safeCount * 8, energy: safeCount * 4 });
+    this.save();
+    return { rescued: safeCount, total: this.data.civiliansRescued };
   }
   completeMission(missionId: number) {
     if (missionId !== this.data.unlockedMissions || this.data.completedMissions.includes(missionId)) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 } };
