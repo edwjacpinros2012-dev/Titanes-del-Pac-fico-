@@ -91,6 +91,34 @@ class TitanesScene extends Phaser.Scene {
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), this.material(color));
     mesh.position.set(...pos); mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
   }
+  private buildBase() {
+    // Starter PPDC outpost: visible hangar, command block, generator, perimeter and evac area.
+    const base = new THREE.Group(); base.position.set(-12,0,-2); this.world.add(base);
+    this.box(base,[22,0.35,17],[0,0.1,0],0x253c4a);
+    // Hangar shell and open front
+    this.box(base,[12,4.8,0.7],[0,2.5,-4.8],0x1b3444);
+    this.box(base,[0.8,4.5,9.2],[-5.8,2.3,0],0x24495c);
+    this.box(base,[0.8,4.5,9.2],[5.8,2.3,0],0x24495c);
+    this.box(base,[12,0.7,0.7],[0,4.9,-4.8],0x38758b);
+    this.box(base,[12,0.45,0.7],[0,0.6,4.8],0x24485a);
+    // Command center, reactor, storage and clinic blocks
+    this.box(base,[5,5.5,4],[ -8.2,2.9,-1.2],0x36586a);
+    this.box(base,[3.8,3.3,3.6],[7.6,1.9,-3.2],0x293f4c);
+    this.box(base,[3.8,2.8,3.6],[7.6,1.65,1.2],0x345363);
+    this.box(base,[4.4,2.2,3.4],[-7.7,1.35,4.0],0x3a6577);
+    // Perimeter walls and gate
+    this.box(base,[22,1.3,0.5],[0,0.8,8.0],0x263f50);
+    this.box(base,[0.5,1.3,16],[-10.8,0.8,0],0x263f50);
+    this.box(base,[0.5,1.3,16],[10.8,0.8,0],0x263f50);
+    this.box(base,[5.8,1.3,0.5],[-7.8,0.8,-8.0],0x263f50);
+    this.box(base,[5.8,1.3,0.5],[7.8,0.8,-8.0],0x263f50);
+    // Watch towers with cyan lamps
+    for(const x of [-10,10]){this.box(base,[1.2,4,1.2],[x,2,-7.5],0x203c4e);this.box(base,[1.8,0.3,1.8],[x,4.2,-7.5],0x4b7c8f);this.box(base,[0.3,0.2,0.3],[x,4.5,-7.5],0x51eaff);}
+    // Evacuation tents and simple civilian silhouettes
+    for(let i=0;i<6;i++){const x=-4.5+(i%3)*4.5,z=5.5+Math.floor(i/3)*1.4;this.box(base,[0.5,1.1,0.4],[x,1.1,z],i%2?0x497f8c:0x9a7651);const head=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),this.material(0xc7a27a,0.1));head.position.set(x,1.85,z);base.add(head);}
+    // Marked rescue lane
+    for(let i=0;i<5;i++)this.box(base,[0.3,0.04,2],[ -3+i*1.5,0.3,7.1],0x45d7ed);
+  }
   private buildMech(color: number) {
     const g = new THREE.Group();
     this.box(g,[1.8,2.1,1],[0,2.8,0],color);
@@ -123,6 +151,7 @@ class TitanesScene extends Phaser.Scene {
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(160,160),this.material(0x172b38,0.15));
     floor.rotation.x=-Math.PI/2; floor.position.y=-0.08; floor.receiveShadow=true; this.world.add(floor);
     const grid = new THREE.GridHelper(100,50,0x1b8095,0x1b3d50); grid.position.y=0.01; this.world.add(grid);
+    this.buildBase();
     for(let i=0;i<18;i++){
       const h=2+Math.random()*8, x=(Math.random()-.5)*55, z=-12-Math.random()*35;
       const b=new THREE.Mesh(new THREE.BoxGeometry(2+Math.random()*3,h,2),this.material(0x1b3343,0.25));
