@@ -149,6 +149,18 @@ class TitanesScene extends Phaser.Scene {
       this.box(group,[footprint[0]*0.9,0.28,footprint[0]*0.9],[0,footprint[1]+0.35,0],0x244b5c);
       for(const side of [-1,1]) this.box(group,[0.18,0.18,footprint[2]*0.55],[side*footprint[0]*0.42,footprint[1]*0.6,0],0x50d8ed);
       this.box(group,[0.22,0.35,0.22],[0,footprint[1]+0.6,0],0x52eaff);
+      const labelCanvas=document.createElement('canvas'); labelCanvas.width=512; labelCanvas.height=128;
+      const labelCtx=labelCanvas.getContext('2d');
+      if(labelCtx){
+        labelCtx.fillStyle='rgba(4,16,28,0.88)'; labelCtx.fillRect(0,0,512,128);
+        labelCtx.strokeStyle='#45d8f0'; labelCtx.lineWidth=5; labelCtx.strokeRect(5,5,502,118);
+        labelCtx.fillStyle='#d9f9ff'; labelCtx.font='bold 38px Arial'; labelCtx.textAlign='center';
+        const labelText:Record<string,string>={command:'PPDC COMMAND',hangar:'JAEGER HANGAR',reactor:'ENERGY REACTOR',workshop:'MAINTENANCE',medical:'MEDICAL / EVAC',defense:'PERIMETER DEFENSE',evacuation:'CIVILIAN ZONE'};
+        labelCtx.fillText(labelText[id]||id.toUpperCase(),256,78);
+        const texture=new THREE.CanvasTexture(labelCanvas); texture.colorSpace=THREE.SRGBColorSpace;
+        const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true}));
+        sprite.position.set(0,footprint[1]+1.3,0); sprite.scale.set(4.6,1.15,1); group.add(sprite);
+      }
     }
     this.refreshBuildingVisuals();
     // Marked rescue lane
