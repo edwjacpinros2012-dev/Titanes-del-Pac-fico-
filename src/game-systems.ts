@@ -208,8 +208,7 @@ export function getUnlockedJaegers(completed: number[]): JaegerId[] {
   const count = completed.length;
   return (['gipsy','striker','cherno'] as JaegerId[]).filter(id => count >= ({gipsy:0,striker:2,cherno:4}[id]));
 }
-export function getCampaignRank(xp: number): string { return getCampaignRank(xp); }
-function getCampaignRank(xp: number): string {
+export function getCampaignRank(xp: number): string {
   if (xp >= 3000) return 'MARSHAL';
   if (xp >= 1600) return 'VETERANO';
   if (xp >= 800) return 'PILOTO ELITE';
