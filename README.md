@@ -101,6 +101,8 @@ Documentación:
 
 - `docs/DIAGNOSTICO_CAMPANA_JAEGERS_RECOMPENSAS_2026-11-19.md` — auditoría verificada de la demo web, campaña, Jaegers, recompensas, desbloqueos y prioridades.
 
+- `docs/NIVELACION_UNIFORME_DE_SISTEMAS.md` — estándar común G0–G7 para nivelar todos los sistemas con pruebas y criterios de finalización.
+
 ## Exportar e instalar
 
 - Android APK: `scripts/build_android.ps1`
