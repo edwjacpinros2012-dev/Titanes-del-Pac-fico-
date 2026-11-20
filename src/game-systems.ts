@@ -83,7 +83,7 @@ export class TitanesSystems {
     } catch { /* storage may be disabled or full; gameplay remains in memory */ }
   }
   snapshot(): Readonly<TitanesSave> { return JSON.parse(JSON.stringify(this.data)) as TitanesSave; }
-  setJaeger(id: JaegerId) { this.data.selectedJaeger = id; this.save(); }
+  setJaeger(id: JaegerId) { const required: Record<JaegerId, number> = { gipsy: 0, striker: 2, cherno: 4 }; if (this.data.completedMissions.length < required[id]) return false; this.data.selectedJaeger = id; this.save(); return true; }
   addResources(values: Partial<Record<ResourceKey, number>>) {
     for (const key of Object.keys(values) as ResourceKey[]) this.data.resources[key] = clamp(this.data.resources[key] + Math.max(0, values[key] ?? 0), 0, 999999);
     this.save();
@@ -153,5 +153,12 @@ export const MISSION_LIST = [
   { id: 2, name: 'ALERTA EN EL PUERTO', sector: 'SECTOR 08', description: 'Recupera el perímetro portuario.' },
   { id: 3, name: 'BRECHA DE CONTENCIÓN', sector: 'SECTOR 09', description: 'Asegura la zona de contención.' },
   { id: 4, name: 'CIUDAD EN PELIGRO', sector: 'SECTOR 10', description: 'Protege la infraestructura costera.' },
-  { id: 5, name: 'OPERACIÓN DE RESCATE', sector: 'SECTOR 11', description: 'Completa la extracción y vuelve al Shatterdome.' }
+  { id: 5, name: 'OPERACIÓN DE RESCATE', sector: 'SECTOR 11', description: 'Completa la extracción y vuelve al Shatterdome.' },
+  { id: 6, name: 'RUTA DE SUMINISTROS', sector: 'SECTOR 12', description: 'Asegura el corredor de abastecimiento.' },
+  { id: 7, name: 'ALERTA DE FRONTERA', sector: 'SECTOR 13', description: 'Refuerza la vigilancia de la zona.' },
+  { id: 8, name: 'RECUPERACIÓN DE DATOS', sector: 'SECTOR 14', description: 'Recupera inteligencia para la PPDC.' },
+  { id: 9, name: 'DEFENSA DEL SHATTERDOME', sector: 'SECTOR 15', description: 'Responde a una alerta en la base.' },
+  { id: 10, name: 'EVACUACIÓN COSTERA', sector: 'SECTOR 16', description: 'Coordina la evacuación de civiles.' },
+  { id: 11, name: 'PATRULLA DE LA BRECHA', sector: 'SECTOR 17', description: 'Explora el perímetro de la brecha.' },
+  { id: 12, name: 'ÚLTIMA LÍNEA', sector: 'SECTOR 18', description: 'Completa la operación final de la campaña inicial.' }
 ] as const;
