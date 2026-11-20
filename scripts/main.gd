@@ -46,6 +46,8 @@ var helicopter_label: Label
 var creature_label: Label
 var market_label: Label
 var gameplay_loop: GameLoopManager
+var crafting_manager: CraftingManager
+var crafting_inventory: Inventory
 var loop_status_label: Label
 var market_open: bool = false
 var research_data: int = 0
@@ -170,6 +172,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_toggle_expedition()
 	if event.is_action_pressed("save_profile"):
 		_save_local_profile()
+	if event.is_action_pressed("craft_alloy"):
+		_craft_alloy_plate()
 	if event.is_action_pressed("tech_select_next"):
 		_select_next_technology()
 	if event.is_action_pressed("tech_research"):
@@ -214,6 +218,7 @@ func _setup_input() -> void:
 	_add_key("save_profile", KEY_F5)
 	_add_key("tech_select_next", KEY_O)
 	_add_key("tech_research", KEY_I)
+	_add_key("craft_alloy", KEY_L)
 	_add_key("market_buy_metal", KEY_1)
 	_add_key("market_buy_energy", KEY_2)
 	_add_key("market_buy_crystal", KEY_3)
@@ -397,11 +402,41 @@ func _create_gameplay_systems() -> void:
 	gameplay_loop.region_unlocked.connect(_on_loop_region_unlocked)
 	gameplay_loop.status_changed.connect(_show_status)
 
+	crafting_manager = CraftingManager.new()
+	crafting_manager.name = "CraftingManager"
+	add_child(crafting_manager)
+	crafting_inventory = Inventory.new()
+	var alloy_recipe := RecipeData.new()
+	alloy_recipe.recipe_id = "alloy_plate"
+	alloy_recipe.display_name = "Placa de aleacion"
+	alloy_recipe.ingredients = {"metal": 3, "energia": 1}
+	alloy_recipe.outputs = {"alloy_plate": 1}
+	alloy_recipe.crafting_seconds = 0.0
+	crafting_manager.register_recipe(alloy_recipe)
+	crafting_manager.crafting_failed.connect(_on_crafting_failed)
+
 	community_client = CommunityClient.new()
 	community_client.name = "CommunityClient"
 	add_child(community_client)
 	community_client.auth_changed.connect(_on_online_auth_changed)
 	community_client.request_failed.connect(_on_online_error)
+
+
+func _craft_alloy_plate() -> void:
+	if crafting_manager == null:
+		_show_status("Fabricacion no disponible.")
+		return
+	crafting_inventory.items = resources.duplicate(true)
+	var crafted: bool = await crafting_manager.craft_async("alloy_plate", crafting_inventory, [])
+	if crafted:
+		resources = crafting_inventory.items.duplicate(true)
+		_show_status("Fabricacion completada: +1 placa de aleacion. Se consumieron 3 metal y 1 energia.")
+		_update_hud()
+		_save_local_profile()
+
+func _on_crafting_failed(reason: String) -> void:
+	_show_status("Fabricacion cancelada: " + reason)
+
 
 func _on_base_research_generated(amount: int) -> void:
 	research_data += amount
@@ -694,6 +729,41 @@ func _on_platform_action(action_name: String) -> void:
 			_select_next_technology()
 		"tech_research":
 			_research_selected_technology()
+		"craft_alloy":
+			_craft_alloy_plate()
+		"scout_helicopters":
+			if helicopter_manager and player:
+				_show_status("Helicópteros enviados." if helicopter_manager.dispatch_scout(player.global_position) else "Los helicópteros ya están en una misión.")
+		"alliance_join":
+			if alliance_manager and alliance_manager.join_demo_alliance():
+				_show_status("Te has unido a Guardianes del Abismo. Alianza local de demostración.")
+		"alliance_create":
+			if alliance_manager and alliance_manager.create_alliance("Vanguardia del Pacífico", "VDP"):
+				_show_status("Alianza local creada: Vanguardia del Pacífico.")
+		"save_profile":
+			_save_local_profile()
+			_show_status("Progreso guardado en este dispositivo.")
+		"market_buy_metal":
+			_complete_market_trade("metal", "buy", 3)
+		"market_buy_energy":
+			_complete_market_trade("energia", "buy", 3)
+		"market_buy_crystal":
+			_complete_market_trade("cristal", "buy", 2)
+		"market_sell_metal":
+			_complete_market_trade("metal", "sell", 3)
+		"market_sell_energy":
+			_complete_market_trade("energia", "sell", 3)
+		"market_sell_crystal":
+			_complete_market_trade("cristal", "sell", 2)
+
+func _complete_market_trade(good_id: String, direction: String, quantity: int) -> void:
+	if trade_manager == null:
+		return
+	var completed := trade_manager.buy_good(good_id, quantity, resources) if direction == "buy" else trade_manager.sell_good(good_id, quantity, resources)
+	_show_status(trade_manager.last_message if completed else "Operación no realizada: " + trade_manager.last_message)
+	_update_hud()
+	if completed:
+		_save_local_profile()
 
 func _create_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -922,6 +992,8 @@ func _save_local_profile() -> void:
 		"version": 1,
 		"resources": resources,
 		"credits": trade_manager.credits if trade_manager else 250,
+		"trade_state": trade_manager.export_state() if trade_manager else {},
+		"contract_state": contract_manager.export_state() if contract_manager else {},
 		"research_data": research_data,
 		"base_level": base_level,
 		"base_development": base_development.export_state() if base_development else {},
@@ -957,13 +1029,22 @@ func _load_local_profile() -> void:
 	titan_level = int(snapshot.get("titan_level", titan_level))
 	research_data = int(snapshot.get("research_data", research_data))
 	if trade_manager:
-		trade_manager.credits = int(snapshot.get("credits", trade_manager.credits))
+		var saved_trade: Variant = snapshot.get("trade_state", {})
+		if saved_trade is Dictionary and not saved_trade.is_empty():
+			trade_manager.import_state(saved_trade)
+		else:
+			trade_manager.credits = maxi(0, int(snapshot.get("credits", trade_manager.credits)))
+	if contract_manager:
+		var saved_contracts: Variant = snapshot.get("contract_state", {})
+		if saved_contracts is Dictionary and not saved_contracts.is_empty():
+			contract_manager.import_state(saved_contracts)
 	if technology_tree:
 		var saved_technology: Variant = snapshot.get("technology_state", {})
 		if typeof(saved_technology) == TYPE_DICTIONARY:
 			technology_tree.import_state(saved_technology)
 	if campaign:
 		campaign.set_player_level(int(snapshot.get("campaign_level", 1)))
+		campaign.jaeger_generation = maxi(1, int(snapshot.get("jaeger_generation", campaign.jaeger_generation)))
 	if warfront_state:
 		var saved_warfront: Variant = snapshot.get("warfront_state", {})
 		if saved_warfront is Dictionary:

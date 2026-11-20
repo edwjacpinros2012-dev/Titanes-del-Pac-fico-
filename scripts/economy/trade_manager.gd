@@ -4,6 +4,9 @@ class_name TradeManager
 signal credits_changed(total: int)
 signal trade_completed(good_id: String, direction: String, quantity: int)
 
+const STATE_VERSION := 1
+const MAX_STOCK := 1000000
+
 var credits: int = 250
 var last_message: String = "Mercado costero disponible."
 var buy_prices: Dictionary = {"metal": 12, "energia": 18, "cristal": 28}
@@ -37,7 +40,7 @@ func sell_good(good_id: String, quantity: int, inventory: Dictionary) -> bool:
 		last_message = "No tienes suficientes unidades para vender."
 		return false
 	inventory[good_id] = int(inventory[good_id]) - quantity
-	market_stock[good_id] = int(market_stock.get(good_id, 0)) + quantity
+	market_stock[good_id] = mini(MAX_STOCK, int(market_stock.get(good_id, 0)) + quantity)
 	var payment := int(sell_prices[good_id]) * quantity
 	credits += payment
 	last_message = "Vendiste %d de %s y recibiste %d créditos." % [quantity, good_id, payment]
@@ -49,6 +52,22 @@ func add_credits(amount: int) -> void:
 	if amount <= 0:
 		return
 	credits += amount
+	credits_changed.emit(credits)
+
+func export_state() -> Dictionary:
+	return {
+		"version": STATE_VERSION,
+		"credits": maxi(0, credits),
+		"market_stock": market_stock.duplicate(true)
+	}
+
+func import_state(data: Dictionary) -> void:
+	credits = maxi(0, int(data.get("credits", credits)))
+	var saved_stock: Variant = data.get("market_stock", {})
+	if saved_stock is Dictionary:
+		for good_id in buy_prices:
+			if saved_stock.has(good_id):
+				market_stock[good_id] = clampi(int(saved_stock[good_id]), 0, MAX_STOCK)
 	credits_changed.emit(credits)
 
 func get_market_text() -> String:
