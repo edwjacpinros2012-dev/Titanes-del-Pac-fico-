@@ -120,6 +120,17 @@ export class TitanesSystems {
     this.save();
     return { ok: true, level: level + 1, cost };
   }
+  collectProduction() {
+    const buildings = this.data.buildings;
+    const reward = {
+      alloy: Math.max(0, (buildings.workshop || 0) * 35 + (buildings.defense || 0) * 10),
+      energy: Math.max(0, (buildings.reactor || 0) * 45),
+      intel: Math.max(0, (buildings.command || 0) * 2 + (buildings.medical || 0))
+    };
+    if (!reward.alloy && !reward.energy && !reward.intel) return { ok: false, reward, reason: 'Mejora el generador, taller, centro médico o mando para activar producción.' };
+    this.addResources(reward);
+    return { ok: true, reward };
+  }
   rescueCivilians(count: number) {
     const safeCount = Math.max(0, Math.floor(count));
     this.data.civiliansRescued += safeCount;
