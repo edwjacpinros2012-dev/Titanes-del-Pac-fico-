@@ -148,17 +148,27 @@ export class TitanesSystems {
     return { rescued: safeCount, total: this.data.civiliansRescued };
   }
   completeMission(missionId: number) {
-    if (missionId !== this.data.unlockedMissions || this.data.completedMissions.includes(missionId)) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 } };
-    const reward = { alloy: 240 + missionId * 60, energy: 180 + missionId * 40, intel: 1 };
+    if (missionId !== this.data.unlockedMissions || this.data.completedMissions.includes(missionId)) {
+      return { ok: false, reward: { alloy: 0, energy: 0, intel: 0, xp: 0 }, unlocks: [] as string[] };
+    }
+    const reward = getMissionReward(missionId);
+    const previouslyUnlocked = getCampaignUnlocks(this.data.completedMissions);
     this.data.completedMissions.push(missionId);
     this.data.unlockedMissions = Math.min(12, missionId + 1);
-    this.data.xp += 100 + missionId * 25;
-    this.addResources(reward);
+    this.data.xp += reward.xp;
+    this.addResources({ alloy: reward.alloy, energy: reward.energy, intel: reward.intel });
+    const unlocks = getCampaignUnlocks(this.data.completedMissions).filter(item => !previouslyUnlocked.includes(item));
     this.save();
-    return { ok: true, reward };
+    return { ok: true, reward, unlocks };
   }
   missionStatus(id: number) {
-    return { unlocked: id <= this.data.unlockedMissions, completed: this.data.completedMissions.includes(id), current: id === this.data.unlockedMissions };
+    const completed = this.data.completedMissions.includes(id);
+    return { unlocked: id <= this.data.unlockedMissions, completed, current: id === this.data.unlockedMissions && !completed, reward: getMissionReward(id), unlocks: getMissionMilestones(id) };
+  }
+  campaignProgress() {
+    const completed = this.data.completedMissions.length;
+    const rank = getCampaignRank(this.data.xp);
+    return { completed, total: 12, xp: this.data.xp, rank, campaignComplete: Array.from({ length: 12 }, (_, i) => i + 1).every(id => this.data.completedMissions.includes(id)), unlockedJaegers: getUnlockedJaegers(this.data.completedMissions) };
   }
   reset() { this.data = cloneStart(); this.save(); }
 }
@@ -181,3 +191,28 @@ export const MISSION_LIST = [
   { id: 11, name: 'PATRULLA DE LA BRECHA', sector: 'SECTOR 17', description: 'Explora el perímetro de la brecha.' },
   { id: 12, name: 'ÚLTIMA LÍNEA', sector: 'SECTOR 18', description: 'Completa la operación final de la campaña inicial.' }
 ] as const;
+
+export interface MissionReward { alloy: number; energy: number; intel: number; xp: number; }
+const CAMPAIGN_MILESTONES: Record<number, string[]> = {
+  2: ['Jaeger Striker disponible en hangar'],
+  4: ['Jaeger Cherno disponible en hangar'],
+  12: ['Campaña inicial completada · rango final disponible']
+};
+export function getMissionReward(id: number): MissionReward {
+  if (!Number.isInteger(id) || id < 1 || id > 12) return { alloy: 0, energy: 0, intel: 0, xp: 0 };
+  return { alloy: 240 + id * 60, energy: 180 + id * 40, intel: 1 + Math.floor((id - 1) / 4), xp: 100 + id * 25 };
+}
+export function getMissionMilestones(id: number): string[] { return CAMPAIGN_MILESTONES[id] ? [...CAMPAIGN_MILESTONES[id]] : []; }
+export function getCampaignUnlocks(completed: number[]): string[] { return Object.entries(CAMPAIGN_MILESTONES).filter(([mission]) => completed.includes(Number(mission))).flat(([,items]) => items); }
+export function getUnlockedJaegers(completed: number[]): JaegerId[] {
+  const count = completed.length;
+  return (['gipsy','striker','cherno'] as JaegerId[]).filter(id => count >= ({gipsy:0,striker:2,cherno:4}[id]));
+}
+export function getCampaignRank(xp: number): string { return getCampaignRank(xp); }
+function getCampaignRank(xp: number): string {
+  if (xp >= 3000) return 'MARSHAL';
+  if (xp >= 1600) return 'VETERANO';
+  if (xp >= 800) return 'PILOTO ELITE';
+  if (xp >= 300) return 'PILOTO';
+  return 'CADETE';
+}
