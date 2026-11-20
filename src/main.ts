@@ -48,6 +48,7 @@ class TitanesScene extends Phaser.Scene {
     this.renderer3d.toneMapping = THREE.ACESFilmicToneMapping;
     this.buildWorld();
     this.applySelectedJaeger(this.systems.snapshot().selectedJaeger);
+    this.animate3d();
     this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE') as Record<string, Phaser.Input.Keyboard.Key>;
     this.buildHud();
     this.buildMainMenu();
@@ -56,8 +57,7 @@ class TitanesScene extends Phaser.Scene {
       this.camera3d.updateProjectionMatrix();
       this.renderer3d.setSize(size.width, size.height);
     });
-    this.events.once('destroy', () => { this.renderer3d.dispose(); canvas.remove(); });
-    this.animate3d();
+    this.events.once('destroy', () => { this.renderer3d.setAnimationLoop(null); this.renderer3d.dispose(); canvas.remove(); });
   }
 
   private buildMainMenu() {
@@ -266,7 +266,7 @@ class TitanesScene extends Phaser.Scene {
     this.kaiju.rotation.y=Math.sin(_time*0.0005)*0.12;
     this.renderer3d.render(this.world,this.camera3d);
   }
-  private animate3d() { this.game.events.on('step',()=>{}); }
+  private animate3d() { this.renderer3d.setAnimationLoop(() => { if (this.world && this.camera3d) this.renderer3d.render(this.world, this.camera3d); }); }
 }
 
 new Phaser.Game({
