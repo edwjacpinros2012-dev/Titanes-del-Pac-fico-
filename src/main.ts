@@ -232,12 +232,13 @@ class TitanesScene extends Phaser.Scene {
     this.kaijuBar=this.add.rectangle(24,143,180,7,0xff654b).setOrigin(0,0.5);
     this.status=this.add.text(w-24,22,'OBJETIVO: NEUTRALIZAR AL KAIJU',{fontSize:'11px',color:'#ffb36b'}).setOrigin(1,0);
     this.add.text(24,this.scale.height-30,'WASD / FLECHAS: MOVER   •   ESPACIO: IMPACTO   •   MÓVIL: USA LOS CONTROLES',{fontSize:'10px',color:'#b4c7d2'}).setScrollFactor(0);
-    const btn=(x:number,label:string,fn:()=>void)=>{const b=this.add.text(x,this.scale.height-95,label,{fontSize:'12px',color:'#ffffff',backgroundColor:'#12394b',padding:{x:13,y:12}}).setOrigin(.5).setInteractive();b.on('pointerdown',fn);return b;};
-    btn(this.scale.width-190,'◀',()=>this.moveX=-1).on('pointerup',()=>this.moveX=0).on('pointerout',()=>this.moveX=0);
-    btn(this.scale.width-135,'▶',()=>this.moveX=1).on('pointerup',()=>this.moveX=0).on('pointerout',()=>this.moveX=0);
-    btn(this.scale.width-80,'IMPACTO',()=>this.attack());
-    btn(this.scale.width-245,'▲',()=>this.moveZ=-1).on('pointerup',()=>this.moveZ=0).on('pointerout',()=>this.moveZ=0);
-    btn(this.scale.width-245,'▼',()=>this.moveZ=1).on('pointerup',()=>this.moveZ=0).on('pointerout',()=>this.moveZ=0);
+    const btn=(x:number,y:number,label:string,fn:()=>void)=>{const b=this.add.text(x,y,label,{fontSize:'12px',color:'#ffffff',backgroundColor:'#12394b',padding:{x:13,y:12}}).setOrigin(.5).setInteractive();b.on('pointerdown',fn);return b;};
+    const controlX=this.scale.width-142, controlY=this.scale.height-110, gap=48;
+    btn(controlX,controlY-gap,'▲',()=>this.moveZ=-1).on('pointerup',()=>this.moveZ=0).on('pointerout',()=>this.moveZ=0);
+    btn(controlX-gap,controlY,'◀',()=>this.moveX=-1).on('pointerup',()=>this.moveX=0).on('pointerout',()=>this.moveX=0);
+    btn(controlX+gap,controlY,'▶',()=>this.moveX=1).on('pointerup',()=>this.moveX=0).on('pointerout',()=>this.moveX=0);
+    btn(controlX,controlY+gap,'▼',()=>this.moveZ=1).on('pointerup',()=>this.moveZ=0).on('pointerout',()=>this.moveZ=0);
+    btn(this.scale.width-58,this.scale.height-110,'IMPACTO',()=>this.attack());
   }
   private attack() {
     if(this.attackCooldown>0 || this.energy<12 || this.kaijuDefeated) return;
