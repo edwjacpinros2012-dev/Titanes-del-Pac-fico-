@@ -88,8 +88,14 @@ export class TitanesSystems {
   }
   snapshot(): Readonly<TitanesSave> { return JSON.parse(JSON.stringify(this.data)) as TitanesSave; }
   setJaeger(id: JaegerId) { const required: Record<JaegerId, number> = { gipsy: 0, striker: 2, cherno: 4 }; if (consecutiveMissionCount(this.data.completedMissions) < required[id]) return false; this.data.selectedJaeger = id; this.save(); return true; }
+  storageCapacity() { return 2500 + (this.data.buildings.warehouse || 1) * 1500; }
+  productionRates() {
+    const b = this.data.buildings;
+    return { alloy: Math.max(0, (b.workshop || 0) * 35 + (b.defense || 0) * 10), energy: Math.max(0, (b.reactor || 0) * 45), intel: Math.max(0, (b.command || 0) * 2 + (b.medical || 0)) };
+  }
   addResources(values: Partial<Record<ResourceKey, number>>) {
-    for (const key of Object.keys(values) as ResourceKey[]) this.data.resources[key] = clamp(this.data.resources[key] + Math.max(0, values[key] ?? 0), 0, 999999);
+    const cap = this.storageCapacity();
+    for (const key of Object.keys(values) as ResourceKey[]) this.data.resources[key] = clamp(this.data.resources[key] + Math.max(0, values[key] ?? 0), 0, cap);
     this.save();
   }
   spendResources(cost: Partial<Record<ResourceKey, number>>) {
