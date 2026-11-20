@@ -93,6 +93,7 @@ Documentación:
 - `docs/ROADMAP.md`
 - `docs/CONTENT_STATUS.md`
 - `docs/SYSTEMS_REFERENCE_RESEARCH_EXPANSION.md` — nueva investigación de sistemas, referencias y propuestas de expansión.
+- `docs/RESEARCH_WEEKLY_2026-11-20.md` — informe semanal de sistemas, referencias, brechas, prioridades P0–P4 y criterios de aceptación.
 - `docs/SYSTEMS_RESEARCH_AND_ARCHITECTURE.md
 - `docs/DIAGNOSTICO_COMUNICACION_QA_REFERENCIAS.md` — matriz de comunicación entre sistemas, riesgos, pruebas P0, criterios de integración y referencias adicionales.
 - `docs/DIAGNOSTICO_REAL_2026-11-18.md` — diagnóstico técnico con correcciones, resultados CI y bloqueos verificados.
