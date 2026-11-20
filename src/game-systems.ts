@@ -42,7 +42,10 @@ export class TitanesSystems {
       const safe = cloneStart();
       safe.resources = resources as Record<ResourceKey, number>;
       safe.completedMissions = [...new Set(completed)];
-      safe.unlockedMissions = clamp(Number(parsed.unlockedMissions) || 1, 1, 12);
+      // Mission access is derived from consecutive completions; a damaged or edited save cannot skip the campaign.
+      let nextMission = 1;
+      while (safe.completedMissions.includes(nextMission) && nextMission < 12) nextMission += 1;
+      safe.unlockedMissions = nextMission;
       safe.selectedJaeger = selected === 'striker' || selected === 'cherno' ? selected : 'gipsy';
       safe.upgrades = numberMap(parsed.upgrades, START.upgrades);
       safe.inventory = numberMap(parsed.inventory, START.inventory);
