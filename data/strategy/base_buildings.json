@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "note": "Original PPDC-style building catalog; inspired by strategy-game conventions, not copied assets or code.",
+  "resource_caps_base": {
+    "alloy": 2500,
+    "energy": 1800,
+    "intel": 900,
+    "parts": 600
+  },
+  "buildings": [
+    {
+      "id": "command",
+      "name": "Centro de mando",
+      "role": "core",
+      "max_level": 10,
+      "unlock_level": 1,
+      "cost_per_level": {
+        "alloy": 180,
+        "energy": 90,
+        "intel": 0
+      },
+      "production": {
+        "intel": 2
+      },
+      "storage_bonus": {}
+    },
+    {
+      "id": "hangar",
+      "name": "Hangar",
+      "role": "units",
+      "max_level": 10,
+      "unlock_level": 1,
+      "cost_per_level": {
+        "alloy": 220,
+        "energy": 130,
+        "intel": 25
+      },
+      "production": {},
+      "storage_bonus": {}
+    },
+    {
+      "id": "reactor",
+      "name": "Reactor",
+      "role": "economy",
+      "max_level": 10,
+      "unlock_level": 1,
+      "cost_per_level": {
+        "alloy": 160,
+        "energy": 100,
+        "intel": 10
+      },
+      "production": {
+        "energy": 45
+      },
+      "storage_bonus": {}
+    },
+    {
+      "id": "workshop",
+      "name": "Taller",
+      "role": "economy",
+      "max_level": 10,
+      "unlock_level": 2,
+      "cost_per_level": {
+        "alloy": 240,
+        "energy": 150,
+        "intel": 20
+      },
+      "production": {
+        "alloy": 35,
+        "parts": 4
+      },
+      "storage_bonus": {}
+    },
+    {
+      "id": "research",
+      "name": "Laboratorio",
+      "role": "research",
+      "max_level": 10,
+      "unlock_level": 2,
+      "cost_per_level": {
+        "alloy": 200,
+        "energy": 170,
+        "intel": 35
+      },
+      "production": {
+        "intel": 1
+      },
+      "storage_bonus": {}
+    },
+    {
+      "id": "medical",
+      "name": "Centro de recuperación",
+      "role": "support",
+      "max_level": 8,
+      "unlock_level": 2,
+      "cost_per_level": {
+        "alloy": 190,
+        "energy": 130,
+        "intel": 15
+      },
+      "production": {
+        "parts": 1
+      },
+      "storage_bonus": {}
+    },
+    {
+      "id": "defense",
+      "name": "Defensa perimetral",
+      "role": "protection",
+      "max_level": 8,
+      "unlock_level": 3,
+      "cost_per_level": {
+        "alloy": 280,
+        "energy": 160,
+        "intel": 25
+      },
+      "production": {
+        "alloy": 10
+      },
+      "storage_bonus": {}
+    },
+    {
+      "id": "warehouse",
+      "name": "Almacén central",
+      "role": "storage",
+      "max_level": 10,
+      "unlock_level": 1,
+      "cost_per_level": {
+        "alloy": 200,
+        "energy": 110,
+        "intel": 5
+      },
+      "production": {},
+      "storage_bonus": {
+        "alloy": 1500,
+        "energy": 1200,
+        "intel": 500,
+        "parts": 450
+      }
+    },
+    {
+      "id": "intel",
+      "name": "Centro de inteligencia",
+      "role": "missions",
+      "max_level": 8,
+      "unlock_level": 3,
+      "cost_per_level": {
+        "alloy": 240,
+        "energy": 190,
+        "intel": 40
+      },
+      "production": {
+        "intel": 2
+      },
+      "storage_bonus": {}
+    },
+    {
+      "id": "evacuation",
+      "name": "Centro de evacuación",
+      "role": "civilians",
+      "max_level": 8,
+      "unlock_level": 4,
+      "cost_per_level": {
+        "alloy": 260,
+        "energy": 150,
+        "intel": 20
+      },
+      "production": {},
+      "storage_bonus": {}
+    }
+  ],
+  "rules": {
+    "offline_production_cap_hours": 8,
+    "claim_min_interval_minutes": 3,
+    "building_upgrade_requires_all_costs": true,
+    "resources_never_go_negative": true,
+    "online_progress_must_be_server_authoritative": true
+  }
+}
