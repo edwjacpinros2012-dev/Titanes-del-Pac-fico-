@@ -247,7 +247,7 @@ class TitanesScene extends Phaser.Scene {
       this.kaijuHp=Math.max(0,this.kaijuHp-this.attackPower); this.kaiju.position.x+=this.kaiju.position.x>this.titan.position.x?1.3:-1.3; this.score+=100;
       if(this.kaijuHp<=0){
         this.kaijuDefeated=true; this.kaiju.visible=false;
-        const result=this.systems.completeMission(1);
+        const activeMission=this.systems.snapshot().unlockedMissions;const result=this.systems.completeMission(activeMission);
         this.status.setText(result.ok?'KAIJU DERROTADO · MISIÓN COMPLETADA · RECURSOS RECIBIDOS':'KAIJU DERROTADO · VICTORIA');
       } else this.status.setText('IMPACTO CONFIRMADO · KAIJU '+this.kaijuHp+'% · +100');
     } else this.status.setText('ACÉRCATE PARA ALCANZAR AL KAIJU');
@@ -264,7 +264,6 @@ class TitanesScene extends Phaser.Scene {
     this.camera3d.position.lerp(new THREE.Vector3(this.titan.position.x,7,this.titan.position.z+12),dt*2);
     this.camera3d.lookAt(this.titan.position.x,2,this.titan.position.z-3);
     this.kaiju.rotation.y=Math.sin(_time*0.0005)*0.12;
-    this.renderer3d.render(this.world,this.camera3d);
   }
   private animate3d() { this.renderer3d.setAnimationLoop(() => { if (this.world && this.camera3d) this.renderer3d.render(this.world, this.camera3d); }); }
 }
