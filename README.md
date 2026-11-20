@@ -98,6 +98,9 @@ Documentación:
 - `docs/DIAGNOSTICO_REAL_2026-11-18.md` — diagnóstico técnico con correcciones, resultados CI y bloqueos verificados.
 - `docs/SECOND_PHASE_GAP_AUDIT_2026-11-18.md` — auditoría de segunda fase con brechas de integración, módulos no conectados, prioridades P0/P1/P2 y plan de vertical slice.
 
+
+- `docs/DIAGNOSTICO_CAMPANA_JAEGERS_RECOMPENSAS_2026-11-19.md` — auditoría verificada de la demo web, campaña, Jaegers, recompensas, desbloqueos y prioridades.
+
 ## Exportar e instalar
 
 - Android APK: `scripts/build_android.ps1`
