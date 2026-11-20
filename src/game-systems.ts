@@ -25,15 +25,63 @@ export class TitanesSystems {
   private data: TitanesSave;
   constructor() { this.data = this.load(); }
   private load(): TitanesSave {
+    const normalize = (value: unknown): TitanesSave | null => {
+      if (!value || typeof value !== 'object') return null;
+      const parsed = value as Partial<TitanesSave>;
+      if (parsed.version !== 1 || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
+      const numberMap = (source: unknown, defaults: Record<string, number>) => {
+        const record = source && typeof source === 'object' ? source as Record<string, unknown> : {};
+        return Object.fromEntries(Object.keys(defaults).map(key => {
+          const rawValue = Number(record[key]);
+          return [key, Number.isFinite(rawValue) ? clamp(Math.floor(rawValue), 0, 999999) : defaults[key]];
+        })) as Record<string, number>;
+      };
+      const resources = numberMap(parsed.resources, START.resources);
+      const selected = parsed.selectedJaeger;
+      const completed = parsed.completedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12);
+      const safe = cloneStart();
+      safe.resources = resources as Record<ResourceKey, number>;
+      safe.completedMissions = [...new Set(completed)];
+      safe.unlockedMissions = clamp(Number(parsed.unlockedMissions) || 1, 1, 12);
+      safe.selectedJaeger = selected === 'striker' || selected === 'cherno' ? selected : 'gipsy';
+      safe.upgrades = numberMap(parsed.upgrades, START.upgrades);
+      safe.inventory = numberMap(parsed.inventory, START.inventory);
+      safe.buildings = numberMap(parsed.buildings, START.buildings);
+      safe.civiliansRescued = clamp(Math.floor(Number(parsed.civiliansRescued) || 0), 0, 999999);
+      safe.xp = clamp(Math.floor(Number(parsed.xp) || 0), 0, 99999999);
+      return safe;
+    };
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return cloneStart();
-      const parsed = JSON.parse(raw) as Partial<TitanesSave>;
-      if (parsed.version !== 1 || !parsed.resources || !Array.isArray(parsed.completedMissions)) return cloneStart();
-      return { ...cloneStart(), ...parsed, resources: { ...START.resources, ...parsed.resources }, upgrades: { ...START.upgrades, ...parsed.upgrades }, inventory: { ...START.inventory, ...parsed.inventory }, buildings: { ...START.buildings, ...parsed.buildings }, civiliansRescued: Math.max(0, Number(parsed.civiliansRescued) || 0) } as TitanesSave;
-    } catch { return cloneStart(); }
+      if (raw) {
+        const current = normalize(JSON.parse(raw));
+        if (current) return current;
+      }
+    } catch { /* try backup below */ }
+    try {
+      const backup = localStorage.getItem(STORAGE_KEY + '-backup');
+      if (backup) {
+        const recovered = normalize(JSON.parse(backup));
+        if (recovered) {
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(recovered)); } catch { /* recovery is still usable in memory */ }
+          return recovered;
+        }
+      }
+    } catch { /* use safe starter state */ }
+    return cloneStart();
   }
-  private save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data)); } catch { /* storage may be disabled */ } }
+  private save() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw) as Partial<TitanesSave>;
+          if (parsed.version === 1 && parsed.resources && Array.isArray(parsed.completedMissions)) localStorage.setItem(STORAGE_KEY + '-backup', raw);
+        } catch { /* never replace backup with corrupted data */ }
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+    } catch { /* storage may be disabled or full; gameplay remains in memory */ }
+  }
   snapshot(): Readonly<TitanesSave> { return JSON.parse(JSON.stringify(this.data)) as TitanesSave; }
   setJaeger(id: JaegerId) { this.data.selectedJaeger = id; this.save(); }
   addResources(values: Partial<Record<ResourceKey, number>>) {
