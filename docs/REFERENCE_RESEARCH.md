@@ -59,3 +59,8 @@ Aplicación al proyecto:
 - Contratos y economía local inspiran el mercado costero y las recompensas.
 - Bases, depósitos y exploración automatizada inspiran las expediciones y los helicópteros de reconocimiento.
 - Las brechas y el enlace de pilotos se mantienen como ideas generales de ciencia ficción, con nombres, historia y diseños originales.
+
+
+## Informe semanal del 20 de noviembre de 2026
+
+La comparación de esta semana prioriza especialistas asignables, logística/ledger, misiones emergentes, mapa de sectores, integración clima/ecología, progresión funcional Mark I–V y accesibilidad. Se comparó contra managers y auditorías existentes para evitar duplicar sistemas. Informe detallado, criterios, dependencias, riesgos y fuentes: [`RESEARCH_WEEKLY_2026-11-20.md`](RESEARCH_WEEKLY_2026-11-20.md).
