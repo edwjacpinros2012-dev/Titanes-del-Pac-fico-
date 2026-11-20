@@ -207,7 +207,7 @@ export function getMissionReward(id: number): MissionReward {
   return { alloy: 240 + id * 60, energy: 180 + id * 40, intel: 1 + Math.floor((id - 1) / 4), xp: 100 + id * 25 };
 }
 export function getMissionMilestones(id: number): string[] { return CAMPAIGN_MILESTONES[id] ? [...CAMPAIGN_MILESTONES[id]] : []; }
-export function getCampaignUnlocks(completed: number[]): string[] { return Object.entries(CAMPAIGN_MILESTONES).filter(([mission]) => completed.includes(Number(mission))).flat(([,items]) => items); }
+export function getCampaignUnlocks(completed: number[]): string[] { return Object.entries(CAMPAIGN_MILESTONES).filter(([mission]) => completed.includes(Number(mission))).flatMap(([, items]) => items); }
 export function getUnlockedJaegers(completed: number[]): JaegerId[] {
   const count = consecutiveMissionCount(completed);
   return (['gipsy','striker','cherno'] as JaegerId[]).filter(id => count >= ({gipsy:0,striker:2,cherno:4}[id]));
