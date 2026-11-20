@@ -195,3 +195,14 @@ No se añadió una mecánica nueva ni se afirmó que la UI de especialistas est�
 - [Celeste — Official changelog](https://www.celestegame.com/changelog.html)
 
 Las referencias describen patrones; los nombres, personajes, criaturas, mapas, UI, assets y código del proyecto deben permanecer originales.
+
+
+## Commits de esta revisión
+
+- [Prueba de solicitudes NPC y guardado/restauración](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/76725ce2aae8b0223c683371eb42286d693c1473)
+- [Creación del informe semanal](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/ae47a06228f201230e2da338d9edda526e23d37a)
+- [Enlace desde el índice de referencias](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/71fca8200c457446fcb74aa52dfc56f78a46ea46)
+- [Enlace desde README](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/cecb09cdbefbfdbaa85384bc3cce9d5e9e3c571e)
+- [Actualización del resultado CI en este informe](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/66ef1b9d26555cb19d1e1edf8906623d0b2ebbc2)
+
+No se abrió PR: los cambios pequeños se aplicaron directamente a `main`.
