@@ -249,7 +249,7 @@ class TitanesScene extends Phaser.Scene {
       if(this.kaijuHp<=0){
         this.kaijuDefeated=true; this.kaiju.visible=false;
         const activeMission=this.systems.snapshot().unlockedMissions;const result=this.systems.completeMission(activeMission);
-        this.status.setText(result.ok?'KAIJU DERROTADO · MISIÓN COMPLETADA · RECURSOS RECIBIDOS':'KAIJU DERROTADO · VICTORIA');
+        this.status.setText(result.ok?'MISIÓN COMPLETADA · +'+result.reward.alloy+' ALEACIÓN · +'+result.reward.energy+' ENERGÍA · +'+result.reward.intel+' DATOS · +'+result.reward.xp+' XP'+(result.unlocks.length?' · DESBLOQUEO: '+result.unlocks.join(' / '):''):'OBJETIVO COMPLETADO');
       } else this.status.setText('IMPACTO CONFIRMADO · KAIJU '+this.kaijuHp+'% · +100');
     } else this.status.setText('ACÉRCATE PARA ALCANZAR AL KAIJU');
   }
