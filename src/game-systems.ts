@@ -128,8 +128,16 @@ export class TitanesSystems {
       intel: Math.max(0, (buildings.command || 0) * 2 + (buildings.medical || 0))
     };
     if (!reward.alloy && !reward.energy && !reward.intel) return { ok: false, reward, reason: 'Mejora el generador, taller, centro médico o mando para activar producción.' };
+    const productionKey = STORAGE_KEY + '-production-last-claim';
+    const cooldownMs = 60 * 60 * 1000;
+    let lastClaim = 0;
+    try { lastClaim = Math.max(0, Number(localStorage.getItem(productionKey)) || 0); } catch { /* local storage unavailable */ }
+    const now = Date.now();
+    const remaining = cooldownMs - (now - lastClaim);
+    if (lastClaim > 0 && remaining > 0) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, remainingMs: remaining, reason: 'La producción ya fue reclamada. Vuelve cuando termine el ciclo de 60 minutos.' };
     this.addResources(reward);
-    return { ok: true, reward };
+    try { localStorage.setItem(productionKey, String(now)); } catch { /* still grant once for this session */ }
+    return { ok: true, reward, remainingMs: cooldownMs };
   }
   rescueCivilians(count: number) {
     const safeCount = Math.max(0, Math.floor(count));
