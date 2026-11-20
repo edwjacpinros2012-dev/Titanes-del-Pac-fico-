@@ -20,6 +20,7 @@ const START: TitanesSave = {
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+const consecutiveMissionCount = (completed: number[]) => { let count = 0; while (completed.includes(count + 1) && count < 12) count += 1; return count; };
 
 export class TitanesSystems {
   private data: TitanesSave;
@@ -86,7 +87,7 @@ export class TitanesSystems {
     } catch { /* storage may be disabled or full; gameplay remains in memory */ }
   }
   snapshot(): Readonly<TitanesSave> { return JSON.parse(JSON.stringify(this.data)) as TitanesSave; }
-  setJaeger(id: JaegerId) { const required: Record<JaegerId, number> = { gipsy: 0, striker: 2, cherno: 4 }; if (this.data.completedMissions.length < required[id]) return false; this.data.selectedJaeger = id; this.save(); return true; }
+  setJaeger(id: JaegerId) { const required: Record<JaegerId, number> = { gipsy: 0, striker: 2, cherno: 4 }; if (consecutiveMissionCount(this.data.completedMissions) < required[id]) return false; this.data.selectedJaeger = id; this.save(); return true; }
   addResources(values: Partial<Record<ResourceKey, number>>) {
     for (const key of Object.keys(values) as ResourceKey[]) this.data.resources[key] = clamp(this.data.resources[key] + Math.max(0, values[key] ?? 0), 0, 999999);
     this.save();
@@ -169,7 +170,7 @@ export class TitanesSystems {
     return { unlocked: id <= this.data.unlockedMissions, completed, current: id === this.data.unlockedMissions && !completed, reward: getMissionReward(id), unlocks: getMissionMilestones(id) };
   }
   campaignProgress() {
-    const completed = this.data.completedMissions.length;
+    const completed = consecutiveMissionCount(this.data.completedMissions);
     const rank = getCampaignRank(this.data.xp);
     return { completed, total: 12, xp: this.data.xp, rank, campaignComplete: Array.from({ length: 12 }, (_, i) => i + 1).every(id => this.data.completedMissions.includes(id)), unlockedJaegers: getUnlockedJaegers(this.data.completedMissions) };
   }
@@ -208,7 +209,7 @@ export function getMissionReward(id: number): MissionReward {
 export function getMissionMilestones(id: number): string[] { return CAMPAIGN_MILESTONES[id] ? [...CAMPAIGN_MILESTONES[id]] : []; }
 export function getCampaignUnlocks(completed: number[]): string[] { return Object.entries(CAMPAIGN_MILESTONES).filter(([mission]) => completed.includes(Number(mission))).flat(([,items]) => items); }
 export function getUnlockedJaegers(completed: number[]): JaegerId[] {
-  const count = completed.length;
+  const count = consecutiveMissionCount(completed);
   return (['gipsy','striker','cherno'] as JaegerId[]).filter(id => count >= ({gipsy:0,striker:2,cherno:4}[id]));
 }
 export function getCampaignRank(xp: number): string {
