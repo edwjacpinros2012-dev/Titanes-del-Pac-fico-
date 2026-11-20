@@ -7,8 +7,8 @@ Esta semana se compararon patrones de gestión de población, logística, explor
 La revisión de la rama `main` confirma que el proyecto ya tiene ocho NPC con rutas simples y solicitudes; economía/mercado, contratos, expediciones, regiones, criaturas, clima, eventos, campaña Mark I–V y guardado local. Hay módulos que todavía no están conectados a la escena principal. Por eso las propuestas siguientes se adaptan a esas piezas y no crean una segunda economía, un segundo director de misiones, otro sistema de regiones o una población paralela.
 
 **Base revisada:** commit `c308d9de` (20-11-2026).  
-**Cambios de QA de esta semana:** prueba adicional de solicitud de NPC, progreso, restauración y reclamación de recompensa; CI en ejecución al redactar este informe.  
-**No se verificó:** recorrido visual en PC, dispositivo Android ni exportación APK.
+**Cambios de QA de esta semana:** prueba adicional de solicitud de NPC, progreso, restauración y reclamación de recompensa. El commit de código `76725ce2` obtuvo CI de Godot **72 aprobadas, 0 fallidas**, importación, sanity check y smoke run completados. El smoke run sigue mostrando mensajes repetidos del renderer dummy (`Parameter \"m\" is null`); el job pasa, pero no es evidencia visual.  
+**No se verificó:** recorrido visual en PC, dispositivo Android ni exportación APK. Las ejecuciones de CI disparadas por los commits de documentación todavía estaban en curso al revisar el estado.
 
 ## Comparación con sistemas que ya están documentados
 
