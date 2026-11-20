@@ -16,7 +16,7 @@ const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
 const START: TitanesSave = {
   version: 1, resources: { alloy: 650, energy: 500, intel: 0 },
   unlockedMissions: 1, completedMissions: [], selectedJaeger: 'gipsy',
-  upgrades: { defense: 0, reactor: 0, training: 0 }, inventory: { repairKit: 0, armorParts: 0, researchData: 0 }, buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, evacuation: 0 }, civiliansRescued: 0, xp: 0
+  upgrades: { defense: 0, reactor: 0, training: 0 }, inventory: { repairKit: 0, armorParts: 0, researchData: 0 }, buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, evacuation: 0, warehouse: 1 }, civiliansRescued: 0, xp: 0
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -116,7 +116,7 @@ export class TitanesSystems {
     const level = this.data.buildings[id] || 0;
     if (id === 'command') return { ok: false, level, reason: 'El centro de mando se mejora mediante progresión de base.' };
     const baseLevel = 1 + Math.floor((this.data.upgrades.defense || 0) / 2);
-    const unlockAt: Record<string, number> = { hangar: 1, reactor: 1, workshop: 1, medical: 1, defense: 1, evacuation: 2 };
+    const unlockAt: Record<string, number> = { hangar: 1, reactor: 1, workshop: 1, medical: 1, defense: 1, warehouse: 1, evacuation: 2 };
     if (baseLevel < (unlockAt[id] || 1)) return { ok: false, level, reason: 'Requiere base nivel ' + (unlockAt[id] || 1) };
     const cost = { alloy: 160 + level * 125, energy: 90 + level * 80 };
     if (!this.spendResources(cost)) return { ok: false, level, reason: 'Recursos insuficientes' };
@@ -125,23 +125,27 @@ export class TitanesSystems {
     return { ok: true, level: level + 1, cost };
   }
   collectProduction() {
-    const buildings = this.data.buildings;
-    const reward = {
-      alloy: Math.max(0, (buildings.workshop || 0) * 35 + (buildings.defense || 0) * 10),
-      energy: Math.max(0, (buildings.reactor || 0) * 45),
-      intel: Math.max(0, (buildings.command || 0) * 2 + (buildings.medical || 0))
-    };
-    if (!reward.alloy && !reward.energy && !reward.intel) return { ok: false, reward, reason: 'Mejora el generador, taller, centro médico o mando para activar producción.' };
+    const rates = this.productionRates();
+    if (!rates.alloy && !rates.energy && !rates.intel) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, reason: 'Mejora el taller o reactor para activar producción.' };
     const productionKey = STORAGE_KEY + '-production-last-claim';
-    const cooldownMs = 60 * 60 * 1000;
     let lastClaim = 0;
-    try { lastClaim = Math.max(0, Number(localStorage.getItem(productionKey)) || 0); } catch { /* local storage unavailable */ }
+    try { lastClaim = Math.max(0, Number(localStorage.getItem(productionKey)) || 0); } catch { /* storage unavailable */ }
     const now = Date.now();
-    const remaining = cooldownMs - (now - lastClaim);
-    if (lastClaim > 0 && remaining > 0) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, remainingMs: remaining, reason: 'La producción ya fue reclamada. Vuelve cuando termine el ciclo de 60 minutos.' };
-    this.addResources(reward);
-    try { localStorage.setItem(productionKey, String(now)); } catch { /* still grant once for this session */ }
-    return { ok: true, reward, remainingMs: cooldownMs };
+    const elapsedHours = lastClaim > 0 ? clamp((now - lastClaim) / 3600000, 0, 8) : 1;
+    if (elapsedHours < 0.05) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, remainingMs: (0.05 - elapsedHours) * 3600000, reason: 'La producción todavía se está acumulando.' };
+    const cap = this.storageCapacity();
+    const reward = {
+      alloy: Math.min(Math.floor(rates.alloy * elapsedHours), Math.max(0, cap - this.data.resources.alloy)),
+      energy: Math.min(Math.floor(rates.energy * elapsedHours), Math.max(0, cap - this.data.resources.energy)),
+      intel: Math.min(Math.floor(rates.intel * elapsedHours), Math.max(0, cap - this.data.resources.intel))
+    };
+    if (!reward.alloy && !reward.energy && !reward.intel) return { ok: false, reward, reason: 'Almacén lleno o producción todavía en curso. Mejora el almacén.' };
+    this.data.resources.alloy += reward.alloy;
+    this.data.resources.energy += reward.energy;
+    this.data.resources.intel += reward.intel;
+    this.save();
+    try { localStorage.setItem(productionKey, String(now)); } catch { /* production remains available in memory */ }
+    return { ok: true, reward, elapsedHours, remainingMs: 8 * 3600000 };
   }
   rescueCivilians(count: number) {
     const safeCount = Math.max(0, Math.floor(count));
