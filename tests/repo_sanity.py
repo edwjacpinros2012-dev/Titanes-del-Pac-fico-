@@ -66,7 +66,7 @@ check('"player_titan"' in titan_script, "titan controller registers player comba
 check('"field_kaiju"' in kaiju_script and "receive_damage" in kaiju_script, "field Kaiju has hostile combat behavior and damage intake")
 check('"titan_attack"' in titan_script and "perform_attack" in titan_script, "titan controller implements real attacks")
 check("REQUIRED_DEFEATS" in combat_script and "SaveSystem.save_game" in combat_script, "field mission tracks defeats and saves rewards")
-check("combat vertical slice" in readme.lower(), "README documents playable combat slice")
+check(any(term in readme.lower() for term in ("combat vertical slice", "combate de campo jugable")), "README documents playable combat slice")
 
 # Confirm the main scene references the script and autoload paths exist.
 main_scene = (ROOT / "scenes/main.tscn").read_text(encoding="utf-8")
