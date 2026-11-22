@@ -29,12 +29,14 @@ check("gameplay_loop.report_collection" in main_script, "resource collection fee
 check("gameplay_loop_state" in main_script, "profile save includes gameplay loop state")
 touch_script = (ROOT / "scripts/platform/platform_input.gd").read_text(encoding="utf-8")
 check('"M", "expedition_toggle"' in touch_script, "touch controls include expedition action")
+check('"ATK", "titan_attack"' in touch_script, "touch controls include titan attack")
+check('"PULSO", "titan_special"' in touch_script, "touch controls include titan special attack")
+check('"DEF", "titan_guard"' in touch_script, "touch controls include held titan guard")
 check("expedition_toggle" in main_script, "main script handles expedition input action")
 check("docs/DIAGNOSTICO_COMUNICACION_QA_REFERENCIAS.md" in readme, "README links system QA diagnostic")
 check((ROOT / "data").is_dir(), "data directory exists")
 check((ROOT / "scripts").is_dir(), "scripts directory exists")
 check((ROOT / "docs").is_dir(), "docs directory exists")
-
 
 # Parse all project JSON data to catch malformed content early.
 import json
@@ -52,6 +54,19 @@ migration_files = sorted((ROOT / "backend/supabase/migrations").glob("*.sql"))
 migration_versions = [path.name.split("_", 1)[0] for path in migration_files]
 check(len(migration_versions) == len(set(migration_versions)), "Supabase migration versions are unique")
 check(migration_versions == sorted(migration_versions), "Supabase migration files sort by version")
+
+# Combat vertical-slice integration paths.
+main_scene = (ROOT / "scenes/main.tscn").read_text(encoding="utf-8")
+titan_scene = (ROOT / "scenes/characters/titans/titan_alpha.tscn").read_text(encoding="utf-8")
+combat_script = (ROOT / "scripts/combat/field_combat_director.gd").read_text(encoding="utf-8")
+titan_script = (ROOT / "scripts/titans/titan_controller.gd").read_text(encoding="utf-8")
+kaiju_script = (ROOT / "scripts/combat/field_kaiju.gd").read_text(encoding="utf-8")
+check("res://scripts/combat/field_combat_director.gd" in main_scene, "main scene connects field combat director")
+check('"player_titan"' in titan_script, "titan controller registers player combat target")
+check('"field_kaiju"' in kaiju_script and "receive_damage" in kaiju_script, "field Kaiju has hostile combat behavior and damage intake")
+check('"titan_attack"' in titan_script and "perform_attack" in titan_script, "titan controller implements real attacks")
+check("REQUIRED_DEFEATS" in combat_script and "SaveSystem.save_game" in combat_script, "field mission tracks defeats and saves rewards")
+check("combat vertical slice" in readme.lower(), "README documents playable combat slice")
 
 # Confirm the main scene references the script and autoload paths exist.
 main_scene = (ROOT / "scenes/main.tscn").read_text(encoding="utf-8")

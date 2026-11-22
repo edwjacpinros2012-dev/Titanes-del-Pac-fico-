@@ -1,6 +1,6 @@
 # Titanes del Pacífico
 
-Juego 3D de exploración, supervivencia, recolección, fabricación, construcción y guerra de robots gigantes contra monstruos colosales, desarrollado con Godot 4. El nombre es provisional y debe pasar una revisión de marcas y originalidad antes de publicarse.
+Juego 3D de exploración, supervivencia, recolección, fabricación, construcción y guerra de robots gigantes contra monstruos colosales, desarrollado con Godot 4. El nombre es provisional y debe cambiarse antes de una publicación comercial.
 
 ## Abrir el proyecto
 1. Instala Godot 4.
@@ -24,6 +24,12 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - Esquema inicial Supabase para perfiles, alianzas, chat moderado, bloqueos y denuncias.
 - Base de datos adicional para guardado en nube, vinculación de identidad Google Play Games y progreso regional, con escrituras reservadas al servidor.
 
+## Combate de campo jugable
+- Al desplegarse, aparece una operación local con tres Kaijus hostiles que detectan al Titán, lo persiguen y atacan con una breve señal de preparación.
+- **Espacio:** golpe frontal. **Clic derecho o F:** pulso de área con coste de energía y enfriamiento. **Mayús:** bloquear y reducir el daño recibido.
+- El HUD de combate muestra integridad, energía, objetivo y controles; al neutralizar los tres enemigos se entregan materiales y se guarda el progreso con el `SaveSystem` existente.
+- En pantallas táctiles se agregan botones de golpe, pulso y defensa junto con la cruceta virtual. La operación usa geometría provisional y no requiere assets externos.
+
 ## Economía y distribución
 - El juego se prepara como **gratuito para descargar**.
 - No habrá compras dentro de la aplicación, microtransacciones, suscripciones, anuncios ni Google Play Billing.
@@ -45,11 +51,12 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - **V:** seleccionar instalación de base.
 - **N:** mejorar la instalación seleccionada.
 - **T:** evolucionar el titán.
-- **F:** sincronizar pilotos.
+- **F:** sincronizar pilotos; en combate también activa el pulso del titán.
 - **R:** estabilizar una brecha.
 - **H:** enviar helicópteros.
 - **C:** abrir/cerrar mercado interno; con el mercado abierto, 1–3 compra y 4–6 vende con créditos ficticios.
 - **J:** iniciar/resolver encuentro Kaiju; tecla de retirada según configuración del prototipo.
+- **Espacio / clic derecho / Mayús:** atacar, pulso especial y bloquear en combate de campo.
 
 ## Loop inicial integrado (prototipo)
 - Misión inicial de recolección de metal con progreso y recompensa de energía/investigación.
@@ -69,22 +76,22 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - `web/`: página informativa; no es todavía una exportación jugable del juego.
 
 ## Cuentas, comunidad y seguridad
-La autenticación y las alianzas online todavía no están conectadas a un servicio real. Supabase Auth y el esquema SQL son una base de arquitectura, no un backend desplegado. El chat global permanece desactivado hasta tener moderación, reportes, bloqueos, controles de privacidad y revisión operativa.
+La autenticación y las alianzas online todavía no están conectadas a un servicio real. Supabase Auth y el esquema SQL son una base de arquitectura, no un backend desplegado. El chat global permanece deshabilitado hasta que se implementen moderación, controles parentales y revisión operativa.
 
-Las credenciales privadas y claves de servicio nunca deben guardarse en el cliente Godot ni en GitHub. Las escrituras del progreso en nube y la vinculación de Google Play Games deben validarse desde servidor.
+Las credenciales privadas y claves de servicio nunca deben guardarse en el cliente Godot ni en GitHub. Las escrituras del progreso en nube y la vinculación de Google Play Games deben validarse desde un servidor confiable.
 
 ## Proceso de desarrollo
 
 Consulta docs/DEVELOPMENT_PROCESS.md para el pipeline, gates de QA, pruebas mínimas, cadencia de revisión y criterios de lanzamiento.
 
 ## Validación automática
-Se añadió `.github/workflows/godot-validation.yml` para que GitHub Actions intente importar el proyecto y ejecutar brevemente la escena con Godot 4.3 en cada cambio. El estado real de la ejecución se consulta en la pestaña Actions del repositorio.
+Se añadió `.github/workflows/godot-validation.yml` para que GitHub Actions intente importar el proyecto y ejecutar brevemente la escena con Godot 4.3 en cada cambio. El estado real de la ejecución debe comprobarse en Actions.
 
 ## Estado real
-No se ha verificado la compilación de todos los scripts en una ejecución local de Godot. Los modelos, rig y animaciones finales, biomas completos, IA avanzada, multijugador, exportación Android y conexión real a backend siguen pendientes. No se debe considerar un módulo terminado solo porque exista su archivo.
+El combate de campo añadido es un vertical slice provisional integrado a la escena principal; usa geometría básica. No se verificó aquí su ejecución en Godot ni se probaron exportaciones en dispositivos. Modelos, rig y animaciones finales, biomas completos, IA avanzada, multijugador y exportación Android/Web requieren trabajo y validación adicional.
 
 ## Publicación
-Google Play requiere una cuenta de desarrollador y revisión de la aplicación. El creador menor de 18 años necesita que un padre, madre o tutor adulto gestione la cuenta y los acuerdos. La publicación pública completa tiene una tasa única de registro de desarrollador según las condiciones oficiales vigentes; que el juego sea gratuito no elimina esa tasa. Google, no el equipo del juego, decide la aprobación.
+Google Play requiere una cuenta de desarrollador y revisión de la aplicación. El creador menor de 18 años necesita que un padre, madre o tutor adulto gestione la cuenta y los acuerdos. La publicación y el cumplimiento de políticas deben verificarse antes de distribuir el juego.
 
 Documentación:
 - `docs/ANDROID_FREE_RELEASE.md`
@@ -92,16 +99,11 @@ Documentación:
 - `docs/ABC_MASTER_AUDIT.md` — auditoría completa A–Z, estado real y prioridades de cierre.
 - `docs/ROADMAP.md`
 - `docs/CONTENT_STATUS.md`
-- `docs/SYSTEMS_REFERENCE_RESEARCH_EXPANSION.md` — nueva investigación de sistemas, referencias y propuestas de expansión.
-- `docs/RESEARCH_WEEKLY_2026-11-20.md` — informe semanal de sistemas, referencias, brechas, prioridades P0–P4 y criterios de aceptación.
-- `docs/SYSTEMS_RESEARCH_AND_ARCHITECTURE.md
+- `docs/SYSTEMS_RESEARCH_AND_ARCHITECTURE.md`
 - `docs/DIAGNOSTICO_COMUNICACION_QA_REFERENCIAS.md` — matriz de comunicación entre sistemas, riesgos, pruebas P0, criterios de integración y referencias adicionales.
 - `docs/DIAGNOSTICO_REAL_2026-11-18.md` — diagnóstico técnico con correcciones, resultados CI y bloqueos verificados.
 - `docs/SECOND_PHASE_GAP_AUDIT_2026-11-18.md` — auditoría de segunda fase con brechas de integración, módulos no conectados, prioridades P0/P1/P2 y plan de vertical slice.
-
-
 - `docs/DIAGNOSTICO_CAMPANA_JAEGERS_RECOMPENSAS_2026-11-19.md` — auditoría verificada de la demo web, campaña, Jaegers, recompensas, desbloqueos y prioridades.
-
 - `docs/NIVELACION_UNIFORME_DE_SISTEMAS.md` — estándar común G0–G7 para nivelar todos los sistemas con pruebas y criterios de finalización.
 
 ## Exportar e instalar
@@ -110,7 +112,7 @@ Documentación:
 - Android/Web/Windows/Linux: `scripts/build_all.ps1`
 - Instalar APK en un Android conectado por ADB: `scripts/install_android.ps1`
 
-Lee `docs/ANDROID_BUILD.md`, `docs/PLATFORM_TARGETS.md` y `docs/QA_TEST_MATRIX.md` antes de exportar. La configuración prepara los destinos, pero las exportaciones requieren plantillas y SDK locales y pruebas en dispositivos reales.
+Lee `docs/ANDROID_BUILD.md`, `docs/PLATFORM_TARGETS.md` y `docs/QA_TEST_MATRIX.md` antes de exportar. Las exportaciones requieren plantillas y SDK locales.
 
 ## Preparar Windows sin tener Godot instalado
 

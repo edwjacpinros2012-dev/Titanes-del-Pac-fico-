@@ -9,7 +9,8 @@ const GAME_ACTIONS := [
 	["T", "evolve_titan"], ["B", "upgrade_base"], ["V", "base_select_next"],
 	["N", "base_upgrade_selected"], ["C", "market_toggle"],
 	["O", "tech_select_next"], ["I", "tech_research"],
-	["Q", "tactic_flank"], ["X", "tactic_guard"], ["U", "tactic_precision"], ["Y", "repair_titan"], ["Z", "talk_npc"], ["M", "expedition_toggle"]
+	["Q", "tactic_flank"], ["X", "tactic_guard"], ["U", "tactic_precision"], ["Y", "repair_titan"], ["Z", "talk_npc"], ["M", "expedition_toggle"],
+	["ATK", "titan_attack"], ["PULSO", "titan_special"]
 ]
 
 func _ready() -> void:
@@ -53,6 +54,7 @@ func _build_touch_controls() -> void:
 	actions_panel.add_child(actions_grid)
 	for item in GAME_ACTIONS:
 		_add_tap_button(actions_grid, str(item[0]), str(item[1]))
+	_add_hold_button(actions_grid, "DEF", "titan_guard")
 
 func _add_spacer(parent: GridContainer) -> void:
 	var spacer := Control.new()
@@ -79,5 +81,6 @@ func _add_tap_button(parent: GridContainer, caption: String, action_name: String
 	button.focus_mode = Control.FOCUS_NONE
 	button.pressed.connect(func() -> void:
 		action_tapped.emit(action_name)
+		get_tree().call_group("player_titan", "trigger_action", action_name)
 	)
 	parent.add_child(button)
