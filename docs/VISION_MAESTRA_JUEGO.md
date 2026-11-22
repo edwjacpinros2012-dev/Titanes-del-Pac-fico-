@@ -9,7 +9,7 @@ Titanes del Pacífico será un juego de estrategia, gestión, construcción, sup
 
 El juego no debe reducirse a una sucesión de combates. La preparación, la logística, la economía, la investigación, la población, las defensas, las alianzas y las decisiones estratégicas deben influir en el resultado de la guerra.
 
-## 2. Titantes / programa Jaeger
+## 2. Titanes / programa Jaeger
 
 - Comenzar la progresión con titanes de generación Mark I.
 - Investigar, fabricar y desbloquear generaciones posteriores.
