@@ -61,7 +61,7 @@ func _ensure_mouse_action(action_name: String, button_index: MouseButton) -> voi
 	InputMap.action_add_event(action_name, mouse_event)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_defeated:
+	if is_defeated or not input_enabled:
 		return
 	if event.is_action_pressed("titan_attack"):
 		perform_attack(false)
@@ -72,10 +72,10 @@ func _process(delta: float) -> void:
 	attack_timer = maxf(0.0, attack_timer - delta)
 	special_timer = maxf(0.0, special_timer - delta)
 	energy = minf(100.0, energy + 5.0 * delta)
-	is_guarding = not is_defeated and Input.is_action_pressed("titan_guard")
+	is_guarding = not is_defeated and input_enabled and Input.is_action_pressed("titan_guard")
 
 func _physics_process(delta: float) -> void:
-	if is_defeated:
+	if is_defeated or not input_enabled:
 		velocity.x = move_toward(velocity.x, 0.0, acceleration * delta)
 		velocity.z = move_toward(velocity.z, 0.0, acceleration * delta)
 	else:
@@ -96,13 +96,15 @@ func _physics_process(delta: float) -> void:
 		rotation.y = lerp_angle(rotation.y, atan2(velocity.x, velocity.z), delta * 7.0)
 
 func trigger_action(action_name: String) -> void:
+	if not input_enabled or is_defeated:
+		return
 	if action_name == "titan_attack":
 		perform_attack(false)
 	elif action_name == "titan_special":
 		perform_attack(true)
 
 func perform_attack(special: bool) -> bool:
-	if is_defeated or attack_timer > 0.0:
+	if is_defeated or not input_enabled or attack_timer > 0.0:
 		return false
 	if special and (special_timer > 0.0 or energy < special_energy_cost):
 		return false
