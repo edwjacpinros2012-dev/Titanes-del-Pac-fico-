@@ -220,6 +220,10 @@ export class TitanesSystems {
     return this.transact(cost, reward, next => { next.inventory[item] = (next.inventory[item] || 0) + 1; });
   }
 
+  buyIntelData() {
+    return this.transact({ energy: 120 }, { intel: 2 });
+  }
+
   upgrade(key: keyof TitanesSave['upgrades']) {
     if (!Object.hasOwn(this.data.upgrades, key)) return { ok: false, cost: { alloy: 0, energy: 0 }, level: 0 };
     const level = this.data.upgrades[key] ?? 0;
@@ -312,6 +316,10 @@ export class TitanesSystems {
     if ((this.data.inventory.repairKit || 0) > 0) {
       const ok = this.transact({}, {}, next => { next.inventory.repairKit -= 1; next.jaegerIntegrity = Math.min(100, next.jaegerIntegrity + 40); });
       return { ok, integrity: this.data.jaegerIntegrity, reason: ok ? 'Kit de reparación utilizado.' : 'No se pudo guardar la reparación.' };
+    }
+    if ((this.data.inventory.armorParts || 0) > 0) {
+      const ok = this.transact({}, {}, next => { next.inventory.armorParts -= 1; next.jaegerIntegrity = Math.min(100, next.jaegerIntegrity + 20); });
+      return { ok, integrity: this.data.jaegerIntegrity, reason: ok ? 'Componentes de armadura instalados.' : 'No se pudo guardar la reparación.' };
     }
     const ok = this.transact({ alloy: 120, energy: 80 }, {}, next => { next.jaegerIntegrity = Math.min(100, next.jaegerIntegrity + 35); });
     return { ok, integrity: this.data.jaegerIntegrity, reason: ok ? 'Reparación de taller completada.' : 'Se requieren 120 aleación y 80 energía.' };
