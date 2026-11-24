@@ -20,12 +20,15 @@ Videojuego web 3D en desarrollo con **Vite, TypeScript, Phaser y Three.js**. El 
 - Tres Jaegers de catálogo con roles y estadísticas.
 - Catálogo de cinco categorías Kaiju; no todos son enemigos activos.
 - Base, recursos, mejoras, instalaciones y defensa urbana con guardado local.
-- Campaña inicial: solo la misión 1 está conectada al combate jugable.
+- Campaña de 12 misiones con director táctico procedural, variaciones de amenaza y composición urbana; comparte el escenario base y aún no tiene 12 mapas artísticos únicos.
 - Tienda, tecnologías y progreso local.
-- Panel de alianza demostrativo, sin multijugador online.
+- Panel de alianza demostrativo y chat global visual preparado, todavía sin multijugador online.
 
 ## Estado online
 No hay actualmente un chat global operativo, autenticación conectada, matchmaking ni servidor autoritativo de partidas verificados. Vercel aloja el frontend, no la lógica multijugador. La arquitectura prevista para chat y servicios online está en `docs/ONLINE_SERVERS_AND_GLOBAL_CHAT.md`.
+
+## Director táctico
+El director local adapta el perfil de amenaza, comportamiento Kaiju, presión urbana y evacuación según progreso, Jaeger y defensas. Es lógica procedural local, no un modelo generativo remoto. Consulta `docs/AI_MISSION_DIRECTOR.md`.
 
 ## Estado visual
 Los Jaegers, Kaijus y entorno usan geometría procedural/provisional. No deben describirse como modelos GLB finales ni como animaciones profesionales. La dirección artística y el contrato de producción están en `docs/VISUAL_PRODUCTION_MASTER_PLAN.md`.
