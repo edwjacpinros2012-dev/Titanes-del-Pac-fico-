@@ -1,5 +1,7 @@
 export type ResourceKey = 'alloy' | 'energy' | 'intel';
 export type JaegerId = 'gipsy' | 'striker' | 'cherno';
+export type JaegerRole = 'equilibrado' | 'interceptor' | 'guardian';
+export type KaijuCategory = 1 | 2 | 3 | 4 | 5;
 export type TechnologyId = 'composite_armor' | 'neural_link' | 'reactor_efficiency';
 export interface TitanesSave {
   version: 4;
@@ -178,6 +180,23 @@ export class TitanesSystems {
     return { ok, reason: ok ? 'Investigación completada: ' + technology.label : 'Faltan recursos o no se pudo guardar la investigación.', cost: technology.cost };
   }
 
+  /** Defensive rating combines the perimeter, evacuation and medical infrastructure. */
+  getBaseDefenseProfile() {
+    const buildings = this.data.buildings;
+    const perimeter = Math.max(0, buildings.defense || 0);
+    const evacuation = Math.max(0, buildings.evacuation || 0);
+    const medical = Math.max(0, buildings.medical || 0);
+    const rating = Math.min(90, perimeter * 8 + evacuation * 4 + medical * 2);
+    return {
+      rating,
+      cityDamageReduction: Math.min(0.65, rating / 150),
+      civilianProtection: Math.min(90, evacuation * 12 + medical * 8),
+      perimeterLevel: perimeter,
+      evacuationLevel: evacuation,
+      medicalLevel: medical
+    };
+  }
+
   storageCapacity() {
     return 2500 + Math.max(0, this.data.buildings.warehouse || 0) * 1500;
   }
@@ -294,10 +313,12 @@ export class TitanesSystems {
     if (!Number.isInteger(missionId) || missionId !== this.data.unlockedMissions || this.data.completedMissions.includes(missionId)) return { ok: false, outcome, reward: emptyReward, unlocks: [] as string[], reason: 'Misión no disponible.' };
     if (!['victory', 'defeat', 'retreat'].includes(outcome) || !Number.isSafeInteger(jaegerDamage) || jaegerDamage < 0 || jaegerDamage > 100 || !Number.isSafeInteger(cityDamage) || cityDamage < 0 || cityDamage > 100) return { ok: false, outcome, reward: emptyReward, unlocks: [] as string[], reason: 'Resultado de misión inválido.' };
     const reward = outcome === 'victory' ? getMissionReward(missionId) : emptyReward;
+    const defenseProfile = this.getBaseDefenseProfile();
+    const mitigatedCityDamage = Math.max(0, Math.floor(cityDamage * (1 - defenseProfile.cityDamageReduction)));
     const previousUnlocks = getCampaignUnlocks(this.data.completedMissions);
     const ok = this.transact({}, { alloy: reward.alloy, energy: reward.energy, intel: reward.intel }, next => {
       next.jaegerIntegrity = Math.max(0, next.jaegerIntegrity - jaegerDamage);
-      next.cityIntegrity = Math.max(0, next.cityIntegrity - cityDamage);
+      next.cityIntegrity = Math.max(0, next.cityIntegrity - mitigatedCityDamage);
       next.lastMissionOutcome = outcome;
       if (outcome === 'victory') {
         next.completedMissions.push(missionId);
@@ -307,7 +328,7 @@ export class TitanesSystems {
     });
     if (!ok) return { ok: false, outcome, reward: emptyReward, unlocks: [] as string[], reason: 'No se pudo guardar el resultado.' };
     const unlocks = outcome === 'victory' ? getCampaignUnlocks(this.data.completedMissions).filter(item => !previousUnlocks.includes(item)) : [];
-    return { ok: true, outcome, reward, unlocks, jaegerIntegrity: this.data.jaegerIntegrity, cityIntegrity: this.data.cityIntegrity };
+    return { ok: true, outcome, reward, unlocks, jaegerIntegrity: this.data.jaegerIntegrity, cityIntegrity: this.data.cityIntegrity, cityDamageApplied: mitigatedCityDamage, defenseRating: defenseProfile.rating };
   }
 
   repairJaeger() {
@@ -348,11 +369,19 @@ export class TitanesSystems {
   }
 }
 
-export const JAEGERS: Record<JaegerId, { label: string; role: string; armor: number; power: number; agility: number }> = {
-  gipsy: { label: 'GIPSY-CLASS · MARK-I', role: 'Jaeger inicial · Nivel 1', armor: 58, power: 52, agility: 46 },
-  striker: { label: 'STRIKER-CLASS', role: 'Rápido', armor: 72, power: 91, agility: 88 },
-  cherno: { label: 'CHERNO-CLASS', role: 'Pesado', armor: 95, power: 68, agility: 48 }
+export const JAEGERS: Record<JaegerId, { label: string; role: string; category: JaegerRole; specialty: string; passive: string; armor: number; power: number; agility: number }> = {
+  gipsy: { label: 'GIPSY-CLASS · MARK-I', role: 'Equilibrado', category: 'equilibrado', specialty: 'Versátil · primera línea', passive: 'Sin penalización de movilidad ni defensa', armor: 58, power: 52, agility: 46 },
+  striker: { label: 'STRIKER-CLASS', role: 'Interceptor', category: 'interceptor', specialty: 'Movilidad y respuesta rápida', passive: 'Bonificación de agilidad para reposicionarse', armor: 72, power: 91, agility: 88 },
+  cherno: { label: 'CHERNO-CLASS', role: 'Guardián pesado', category: 'guardian', specialty: 'Resistencia y protección urbana', passive: 'Bonificación de armadura para resistir presión', armor: 95, power: 68, agility: 48 }
 };
+
+export const KAIJU_ARCHETYPES: Array<{ id: string; name: string; category: KaijuCategory; archetype: string; threat: string; trait: string; counterplay: string }> = [
+  { id: 'raker', name: 'RAKER', category: 1, archetype: 'Explorador', threat: 'Baja', trait: 'Ligero y veloz; busca puntos débiles del perímetro', counterplay: 'Priorizar detección temprana y evacuación rápida' },
+  { id: 'brineback', name: 'BRINEBACK', category: 2, archetype: 'Blindado', threat: 'Moderada', trait: 'Placas densas y avance constante', counterplay: 'Coordinar unidades y proteger infraestructura crítica' },
+  { id: 'razorfin', name: 'RAZORFIN', category: 3, archetype: 'Acuático', threat: 'Alta', trait: 'Se desplaza con rapidez por zonas costeras', counterplay: 'Activar sensores costeros y cerrar rutas vulnerables' },
+  { id: 'dreadmaw', name: 'DREADMAW', category: 4, archetype: 'Asedio', threat: 'Muy alta', trait: 'Gran resistencia y presión prolongada sobre la ciudad', counterplay: 'Reforzar el perímetro, mantener el reactor y evacuar sectores' },
+  { id: 'abyssal-crown', name: 'ABYSSAL CROWN', category: 5, archetype: 'Colosal', threat: 'Extrema', trait: 'Amenaza de escala estratégica con gran impacto territorial', counterplay: 'Despliegue coordinado, base avanzada y protección civil máxima' }
+];
 
 export const TECHNOLOGIES: Record<TechnologyId, { label: string; description: string; requiredMissions: number; cost: Partial<Record<ResourceKey, number>> }> = {
   composite_armor: { label: 'Blindaje compuesto', description: '+8 armadura para el Jaeger', requiredMissions: 1, cost: { alloy: 260, energy: 160, intel: 2 } },
