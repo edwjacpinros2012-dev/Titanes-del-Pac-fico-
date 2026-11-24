@@ -117,7 +117,7 @@ export class TitanesSystems {
       const previous = localStorage.getItem(STORAGE_KEY);
       if (previous) {
         try {
-          const parsed = JSON.parse(previous) as Partial<TitanesSave>;
+          const parsed = JSON.parse(previous) as Record<string, unknown>;
           if ((parsed.version === 1 || parsed.version === 2) && parsed.resources && Array.isArray(parsed.completedMissions)) {
             localStorage.setItem(STORAGE_KEY + '-backup', previous);
           }
