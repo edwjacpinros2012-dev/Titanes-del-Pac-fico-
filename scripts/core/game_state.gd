@@ -4,7 +4,7 @@ class_name GameState
 signal resources_changed
 signal progression_changed
 
-var resources: Dictionary = {"metal": 0, "energy": 0, "crystal": 0}
+var resources: Dictionary = {"metal": 80, "energia": 45, "cristal": 12}
 var base_level: int = 1
 var titan_level: int = 1
 var unlocked_regions: Array[String] = ["aurora_coast"]
