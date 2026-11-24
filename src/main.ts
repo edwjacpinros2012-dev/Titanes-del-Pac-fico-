@@ -202,6 +202,52 @@ class TitanesScene extends Phaser.Scene {
     }
     return g;
   }
+  private buildCoastalCity() {
+    // Coastal skyline and evacuation corridor to give the combat zone a readable cinematic scale.
+    const city = new THREE.Group();
+    this.world.add(city);
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(15, 62), this.material(0x101d27, 0.08));
+    road.rotation.x = -Math.PI / 2;
+    road.position.set(0, 0.015, -29);
+    city.add(road);
+    for (let i = 0; i < 18; i++) {
+      const side = i % 2 === 0 ? -1 : 1;
+      const row = Math.floor(i / 2);
+      const x = side * (10 + (row % 3) * 5.2);
+      const z = -13 - row * 3.7;
+      const height = 5 + ((row * 7) % 6) * 1.65;
+      const width = 2.8 + (row % 2) * 1.1;
+      const tower = new THREE.Group();
+      tower.position.set(x, 0, z);
+      city.add(tower);
+      this.box(tower, [width, height, 3.2], [0, height / 2, 0], row % 3 === 0 ? 0x243c4b : 0x172d3d);
+      this.box(tower, [width + 0.22, 0.22, 3.35], [0, height * 0.72, 0], 0x31586a);
+      this.box(tower, [width * 0.55, 0.16, 0.12], [0, height + 0.12, 1.62], 0x42c9df);
+      for (let floor = 1; floor < Math.floor(height / 1.5); floor++) {
+        for (const windowX of [-0.65, 0, 0.65]) {
+          const window = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.42, 0.07),
+            this.material((row + floor) % 4 === 0 ? 0xffb66e : 0x45cde5, 0.15));
+          window.position.set(windowX * (width / 2), floor * 1.35, 1.64);
+          tower.add(window);
+        }
+      }
+    }
+    // Road beacons and coastal warning pylons.
+    for (let i = 0; i < 12; i++) {
+      const z = -4 - i * 4.5;
+      for (const x of [-7.1, 7.1]) {
+        this.box(city, [0.12, 1.2, 0.12], [x, 0.6, z], 0x36586a);
+        this.box(city, [0.32, 0.16, 0.32], [x, 1.28, z], 0x48e4f2);
+      }
+      this.box(city, [0.16, 0.035, 1.5], [0, 0.04, z], 0xd9a66a);
+    }
+    const water = new THREE.Mesh(new THREE.PlaneGeometry(180, 75),
+      new THREE.MeshStandardMaterial({ color: 0x082b3b, metalness: 0.38, roughness: 0.24 }));
+    water.rotation.x = -Math.PI / 2;
+    water.position.set(0, -0.12, -83);
+    city.add(water);
+  }
+
   private buildWorld() {
     this.world.add(new THREE.HemisphereLight(0x9ccfff,0x15212b,2.1));
     const sun = new THREE.DirectionalLight(0xffffff,2.5); sun.position.set(-8,15,8); sun.castShadow = true; this.world.add(sun);
@@ -209,6 +255,7 @@ class TitanesScene extends Phaser.Scene {
     floor.rotation.x=-Math.PI/2; floor.position.y=-0.08; floor.receiveShadow=true; this.world.add(floor);
     const grid = new THREE.GridHelper(100,50,0x1b8095,0x1b3d50); grid.position.y=0.01; this.world.add(grid);
     this.buildBase();
+    this.buildCoastalCity();
     for(let i=0;i<18;i++){
       const h=2+Math.random()*8, x=(Math.random()-.5)*55, z=-12-Math.random()*35;
       const b=new THREE.Mesh(new THREE.BoxGeometry(2+Math.random()*3,h,2),this.material(0x1b3343,0.25));
