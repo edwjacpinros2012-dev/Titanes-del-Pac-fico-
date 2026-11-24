@@ -190,7 +190,7 @@ export class TitanesSystems {
     return { ok: true, cost, level: level + 1 };
   }
 
-  upgradeBuilding(id: keyof TitanesSave['buildings']) {
+  upgradeBuilding(id: keyof TitanesSave['buildings']): { ok: boolean; level: number; reason?: string; cost?: { alloy: number; energy: number } } {
     if (!Object.hasOwn(this.data.buildings, id)) return { ok: false, level: 0, reason: 'Instalación desconocida.' };
     const level = this.data.buildings[id] || 0;
     if (id === 'command') return { ok: false, level, reason: 'El centro de mando se mejora mediante progresión de base.' };
