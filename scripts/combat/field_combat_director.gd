@@ -7,7 +7,7 @@ const KaijuScript = preload("res://scripts/combat/field_kaiju.gd")
 const REQUIRED_DEFEATS := 3
 const COMPLETION_REWARD := {"metal": 20, "energia": 12}
 
-var player: Node3D
+var player: TitanController
 var defeated_count := 0
 var status_text := ""
 var mission_finished := false
@@ -33,7 +33,7 @@ func _begin_field_mission() -> void:
 	if players.is_empty():
 		push_warning("FieldCombatDirector: no se encontró un Titán en el grupo player_titan.")
 		return
-	player = players[0] as Node3D
+	player = players[0] as TitanController
 	if player.has_signal("health_changed"):
 		player.health_changed.connect(_on_health_changed)
 	var layer := CanvasLayer.new()
