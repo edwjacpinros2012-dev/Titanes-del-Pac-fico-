@@ -46,3 +46,11 @@
 .tp-nav button{border-radius:3px}
 .tp-nav button:active{transform:translateY(1px)}
 @media(max-width:480px){.tp-res span{flex:1;min-width:90px}.tp-grid{grid-template-columns:1fr}.tp-grid article{min-height:110px}.tp-window{inset:2% 2% 74px}.tp-nav button{font-size:9px;padding:8px 6px}}
+
+/* Dedicated construction and upgrade panels */
+.tp-build-grid article,.tp-upgrade-grid article{min-height:190px}
+.tp-grid article .tp-cost{display:block;color:#8fc6d8;font-size:10px;letter-spacing:.06em;line-height:1.4;padding:5px 0}
+.tp-build-grid article.locked{filter:saturate(.55);opacity:.52}
+.tp-build-grid article button,.tp-upgrade-grid article button{min-height:38px}
+.tp-nav button[data-panel="build"]{border-color:#5c9a78!important;color:#a8ffd0}
+.tp-nav button[data-panel="upgrades"]{border-color:#7e9eb5!important;color:#b9e8ff}
