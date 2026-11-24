@@ -24,6 +24,7 @@ class TitanesScene extends Phaser.Scene {
   private energyBar!: Phaser.GameObjects.Rectangle;
   private kaijuBar!: Phaser.GameObjects.Rectangle;
   private attackCooldown = 0;
+  private kaijuAttackCooldown = 1.2;
   private moveX = 0;
   private moveZ = 0;
   private attackPower = 20;
@@ -308,10 +309,29 @@ class TitanesScene extends Phaser.Scene {
     this.titan.position.x+=x*dt*this.moveSpeed; this.titan.position.z+=z*dt*this.moveSpeed;
     if(this.keys.SPACE.isDown) this.attack();
     this.energy=Math.min(100,this.energy+dt*5);
-    this.hpBar.width=180*this.hp/100; this.energyBar.width=180*this.energy/100; this.kaijuBar.width=180*this.kaijuHp/100;
+    // Kaiju combat AI: pursue the Jaeger, telegraph a close-range strike, and damage armor.
+    this.kaijuAttackCooldown=Math.max(0,this.kaijuAttackCooldown-dt);
+    if(!this.kaijuDefeated && this.hp>0){
+      const dx=this.titan.position.x-this.kaiju.position.x;
+      const dz=this.titan.position.z-this.kaiju.position.z;
+      const distance=Math.hypot(dx,dz);
+      if(distance>3.8){
+        const step=Math.min(distance-3.8,1.25*dt);
+        this.kaiju.position.x+=(dx/distance)*step;
+        this.kaiju.position.z+=(dz/distance)*step;
+        this.kaiju.rotation.y=Math.atan2(dx,dz);
+      } else if(this.kaijuAttackCooldown<=0){
+        this.kaijuAttackCooldown=1.65;
+        this.hp=Math.max(0,this.hp-9);
+        this.titan.position.x+=(dx/(distance||1))*0.7;
+        this.titan.position.z+=(dz/(distance||1))*0.7;
+        this.status.setText(this.hp>0?'IMPACTO KAIJU · INTEGRIDAD '+this.hp+'%':'JAEGER FUERA DE SERVICIO · MISIÓN FALLIDA');
+      }
+    }
+    this.hpBar.width=180*Math.max(0,this.hp)/100; this.energyBar.width=180*this.energy/100; this.kaijuBar.width=180*this.kaijuHp/100;
     this.camera3d.position.lerp(new THREE.Vector3(this.titan.position.x,7,this.titan.position.z+12),dt*2);
     this.camera3d.lookAt(this.titan.position.x,2,this.titan.position.z-3);
-    this.kaiju.rotation.y=Math.sin(_time*0.0005)*0.12;
+    if(!this.kaijuDefeated && this.hp>0) this.kaiju.rotation.y+=(Math.sin(_time*0.001)*0.12-this.kaiju.rotation.y)*dt;
   }
   private animate3d() { this.renderer3d.setAnimationLoop(() => { if (this.world && this.camera3d) this.renderer3d.render(this.world, this.camera3d); }); }
 }
