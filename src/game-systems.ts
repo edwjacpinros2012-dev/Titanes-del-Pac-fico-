@@ -163,7 +163,7 @@ export class TitanesSystems {
   }
 
   storageCapacity() {
-    return 2500 + (this.data.buildings.warehouse || 1) * 1500;
+    return 2500 + Math.max(0, this.data.buildings.warehouse || 0) * 1500;
   }
 
   productionRates() {
@@ -207,6 +207,7 @@ export class TitanesSystems {
   upgrade(key: keyof TitanesSave['upgrades']) {
     if (!Object.hasOwn(this.data.upgrades, key)) return { ok: false, cost: { alloy: 0, energy: 0 }, level: 0 };
     const level = this.data.upgrades[key] ?? 0;
+    if (!Number.isSafeInteger(level) || level < 0 || level >= 10) return { ok: false, cost: { alloy: 0, energy: 0 }, level, reason: 'Nivel máximo alcanzado.' };
     const cost = { alloy: 180 + level * 140, energy: 120 + level * 100 };
     const ok = this.transact(cost, {}, next => { next.upgrades[key] = level + 1; });
     return { ok, cost, level: ok ? level + 1 : level };
@@ -215,6 +216,7 @@ export class TitanesSystems {
   upgradeBuilding(id: keyof TitanesSave['buildings']) {
     if (!Object.hasOwn(this.data.buildings, id)) return { ok: false, level: 0, reason: 'Instalación desconocida.' };
     const level = this.data.buildings[id] || 0;
+    if (!Number.isSafeInteger(level) || level < 0 || level >= 10) return { ok: false, level, reason: 'Nivel máximo de instalación alcanzado.' };
     if (id === 'command') return { ok: false, level, reason: 'El centro de mando se mejora mediante progresión de base.' };
     const baseLevel = 1 + Math.floor((this.data.upgrades.defense || 0) / 2);
     const unlockAt: Record<string, number> = { hangar: 1, reactor: 1, workshop: 1, medical: 1, defense: 1, warehouse: 1, evacuation: 2 };
