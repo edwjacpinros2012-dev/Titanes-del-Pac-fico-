@@ -94,32 +94,61 @@ export class TitanesSystems {
     return { alloy: Math.max(0, (b.workshop || 0) * 35 + (b.defense || 0) * 10), energy: Math.max(0, (b.reactor || 0) * 45), intel: Math.max(0, (b.command || 0) * 2 + (b.medical || 0)) };
   }
   addResources(values: Partial<Record<ResourceKey, number>>) {
+    const keys = Object.keys(values) as ResourceKey[];
+    const normalized: Partial<Record<ResourceKey, number>> = {};
+    for (const key of keys) {
+      const raw = values[key];
+      if (!['alloy', 'energy', 'intel'].includes(key) || !Number.isFinite(raw) || (raw ?? 0) < 0) return false;
+      normalized[key] = Math.floor(raw ?? 0);
+    }
     const cap = this.storageCapacity();
-    for (const key of Object.keys(values) as ResourceKey[]) this.data.resources[key] = clamp(this.data.resources[key] + Math.max(0, values[key] ?? 0), 0, cap);
-    this.save();
-  }
-  spendResources(cost: Partial<Record<ResourceKey, number>>) {
-    for (const key of Object.keys(cost) as ResourceKey[]) if (this.data.resources[key] < Math.max(0, cost[key] ?? 0)) return false;
-    for (const key of Object.keys(cost) as ResourceKey[]) this.data.resources[key] -= Math.max(0, cost[key] ?? 0);
+    for (const key of keys) this.data.resources[key] = clamp(this.data.resources[key] + (normalized[key] ?? 0), 0, cap);
     this.save();
     return true;
   }
-  buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>) {
-    if (!this.spendResources(cost)) return false;
-    this.data.inventory[item] = (this.data.inventory[item] || 0) + 1;
+    spendResources(cost: Partial<Record<ResourceKey, number>>) {
+    const keys = Object.keys(cost) as ResourceKey[];
+    const normalized: Partial<Record<ResourceKey, number>> = {};
+    for (const key of keys) {
+      const raw = cost[key];
+      if (!['alloy', 'energy', 'intel'].includes(key) || !Number.isFinite(raw) || (raw ?? 0) < 0) return false;
+      normalized[key] = Math.floor(raw ?? 0);
+    }
+    if (keys.some(key => this.data.resources[key] < (normalized[key] ?? 0))) return false;
+    for (const key of keys) this.data.resources[key] -= normalized[key] ?? 0;
     this.save();
     return true;
   }
-  upgrade(key: keyof TitanesSave['upgrades']) {
+    buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>) {
+    const keys = Object.keys(cost) as ResourceKey[];
+    const normalized: Partial<Record<ResourceKey, number>> = {};
+    for (const key of keys) {
+      const raw = cost[key];
+      if (!['alloy', 'energy', 'intel'].includes(key) || !Number.isFinite(raw) || (raw ?? 0) < 0) return false;
+      normalized[key] = Math.floor(raw ?? 0);
+    }
+    const currentItemCount = this.data.inventory[item] || 0;
+    if (!Number.isFinite(currentItemCount) || currentItemCount >= 999999) return false;
+    if (keys.some(key => this.data.resources[key] < (normalized[key] ?? 0))) return false;
+    for (const key of keys) this.data.resources[key] -= normalized[key] ?? 0;
+    this.data.inventory[item] = currentItemCount + 1;
+    this.save();
+    return true;
+  }
+    upgrade(key: keyof TitanesSave['upgrades']) {
+    if (!['defense', 'reactor', 'training'].includes(key)) return { ok: false, cost: { alloy: 0, energy: 0 }, level: 0, reason: 'Mejora desconocida.' };
     const level = this.data.upgrades[key] ?? 0;
     const cost = { alloy: 180 + level * 140, energy: 120 + level * 100 };
-    if (this.data.resources.alloy < cost.alloy || this.data.resources.energy < cost.energy) return { ok: false, cost, level };
+    if (level >= 50) return { ok: false, cost, level, reason: 'Nivel máximo alcanzado.' };
+    if (this.data.resources.alloy < cost.alloy || this.data.resources.energy < cost.energy) return { ok: false, cost, level, reason: 'Recursos insuficientes.' };
     this.data.resources.alloy -= cost.alloy; this.data.resources.energy -= cost.energy;
     this.data.upgrades[key] = level + 1; this.save();
     return { ok: true, cost, level: level + 1 };
   }
-  upgradeBuilding(id: keyof TitanesSave['buildings']) {
+    upgradeBuilding(id: keyof TitanesSave['buildings']) {
     const level = this.data.buildings[id] || 0;
+    if (!['command', 'hangar', 'reactor', 'workshop', 'medical', 'defense', 'evacuation', 'warehouse'].includes(id)) return { ok: false, level, reason: 'Instalación desconocida.' };
+    if (level >= 50) return { ok: false, level, reason: 'Nivel máximo alcanzado.' };
     if (id === 'command') return { ok: false, level, reason: 'El centro de mando se mejora mediante progresión de base.' };
     const baseLevel = 1 + Math.floor((this.data.upgrades.defense || 0) / 2);
     const unlockAt: Record<string, number> = { hangar: 1, reactor: 1, workshop: 1, medical: 1, defense: 1, warehouse: 1, evacuation: 2 };
@@ -154,14 +183,15 @@ export class TitanesSystems {
     return { ok: true, reward, elapsedHours, remainingMs: 8 * 3600000 };
   }
   rescueCivilians(count: number) {
-    const safeCount = Math.max(0, Math.floor(count));
-    this.data.civiliansRescued += safeCount;
-    this.data.xp += safeCount * 5;
+    if (!Number.isFinite(count) || count <= 0) return { rescued: 0, total: this.data.civiliansRescued };
+    const safeCount = clamp(Math.floor(count), 0, 1000);
+    this.data.civiliansRescued = clamp(this.data.civiliansRescued + safeCount, 0, 999999);
+    this.data.xp = clamp(this.data.xp + safeCount * 5, 0, 99999999);
     this.addResources({ alloy: safeCount * 8, energy: safeCount * 4 });
     this.save();
     return { rescued: safeCount, total: this.data.civiliansRescued };
   }
-  completeMission(missionId: number) {
+    completeMission(missionId: number) {
     if (missionId !== this.data.unlockedMissions || this.data.completedMissions.includes(missionId)) {
       return { ok: false, reward: { alloy: 0, energy: 0, intel: 0, xp: 0 }, unlocks: [] as string[] };
     }
