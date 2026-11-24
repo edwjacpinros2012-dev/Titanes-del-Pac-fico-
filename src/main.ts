@@ -25,6 +25,7 @@ class TitanesScene extends Phaser.Scene {
   private kaijuBar!: Phaser.GameObjects.Rectangle;
   private attackCooldown = 0;
   private kaijuAttackCooldown = 1.5;
+  private battleStarted = false;
   private battleEnded = false;
   private startingIntegrity = 100;
   private moveX = 0;
@@ -67,7 +68,7 @@ class TitanesScene extends Phaser.Scene {
     const menu=document.createElement('section'); menu.id='titan-menu';
     menu.innerHTML=`<header><b>PPDC // DEFENSE NETWORK</b><span>● ALERTA COSTERA</span><div class="menu-rank">PROTOCOLO DE DEFENSA · 2047</div></header><main><div class="menu-copy"><small>OPERACIÓN · PACÍFICO</small><h1>EL PACÍFICO<br><em>NO CAERÁ.</em></h1><p>La brecha sigue abierta. Despliega tu Jaeger, protege la costa y responde a la amenaza Kaiju.</p><div class="mission-card"><small>▰ MISIÓN ACTIVA · SECTOR 07</small><b>DEFENSA DE LA COSTA</b><span>OBJETIVO: interceptar al Kaiju y proteger la zona urbana.</span><div id="tm-resources" class="resource-strip"></div><div class="mission-progress"><i></i></div><label><span>AMENAZA DETECTADA</span><b>CLASE III</b></label></div><button id="tm-start">▶ DESPLEGAR JAEGER</button><button id="tm-hangar">▣ HANGAR / UNIDADES</button><button id="tm-upgrade">⬆ MEJORAR DEFENSA</button><small id="tm-system-notice"></small><footer><span>SECTOR<b>SHATTERDOME · COSTA</b></span><span>ESTADO<b>● SISTEMAS EN LÍNEA</b></span></footer></div><div class="tm-mech"><div class="rings"></div><div class="robot"><i class="head"><b></b></i><i class="body"><b></b></i><i class="arm a"></i><i class="arm b"></i><i class="leg c"></i><i class="leg d"></i></div><label>JAEGER // GIPSY-CLASS<small>UNIDAD DE COMBATE · MARK-III</small></label></div></main><div class="tm-bottom">PPDC · PAN-PACIFIC DEFENSE CORPS <span>INTERFAZ TÁCTICA v0.3</span></div><aside id="tm-roster"><div class="roster-window"><button id="tm-close">×</button><small>HANGAR / SELECCIÓN DE UNIDADES</small><h2>ESCUADRÓN JAEGER</h2><p>Selecciona una unidad para la misión. Las estadísticas son prototipos de juego.</p><div class="roster-cards"><article class="selected"><span class="unit-icon">01</span><b>GIPSY-CLASS</b><small>Equilibrado · Mark III</small><div class="unit-bars"><label>ARMADURA <i><b style="width:86%"></b></i></label><label>ENERGÍA <i><b style="width:74%"></b></i></label><label>AGILIDAD <i><b style="width:62%"></b></i></label></div></article><article class="locked"><span class="unit-icon">02</span><b>STRIKER-CLASS</b><small>Rápido · Mark V</small><div class="unit-bars"><label>ARMADURA <i><b style="width:72%"></b></i></label><label>ENERGÍA <i><b style="width:91%"></b></i></label><label>AGILIDAD <i><b style="width:88%"></b></i></label></div></article><article class="locked"><span class="unit-icon">03</span><b>CHERNO-CLASS</b><small>Pesado · Mark I</small><div class="unit-bars"><label>ARMADURA <i><b style="width:95%"></b></i></label><label>ENERGÍA <i><b style="width:68%"></b></i></label><label>AGILIDAD <i><b style="width:48%"></b></i></label></div></article></div><button id="tm-select">CONFIRMAR UNIDAD</button></div></aside>`;
     document.body.appendChild(menu);
-    menu.querySelector('#tm-start')?.addEventListener('click',()=>{menu.classList.add('started'); mountGamePanels(this.systems, (id)=>this.applySelectedJaeger(id), (id)=>this.refreshBuildingVisuals(id)); });
+    menu.querySelector('#tm-start')?.addEventListener('click',()=>{this.battleStarted=true;menu.classList.add('started'); mountGamePanels(this.systems, (id)=>this.applySelectedJaeger(id), (id)=>this.refreshBuildingVisuals(id)); });
     menu.querySelector('#tm-hangar')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.add('open'));
     menu.querySelector('#tm-close')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
     menu.querySelector('#tm-select')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
@@ -248,7 +249,7 @@ class TitanesScene extends Phaser.Scene {
     btn(this.scale.width-86,76,'RETIRADA',()=>this.finishMission('retreat'));
   }
   private finishMission(outcome: 'victory' | 'defeat' | 'retreat') {
-    if (this.battleEnded) return;
+    if (!this.battleStarted || this.battleEnded) return;
     this.battleEnded = true;
     const missionId = this.systems.snapshot().unlockedMissions;
     const damageTaken = Math.max(0, this.startingIntegrity - this.hp);
@@ -268,7 +269,7 @@ class TitanesScene extends Phaser.Scene {
   }
 
   private attack() {
-    if(this.battleEnded || this.attackCooldown>0 || this.energy<12 || this.kaijuDefeated) return;
+    if(!this.battleStarted || this.battleEnded || this.attackCooldown>0 || this.energy<12 || this.kaijuDefeated) return;
     this.attackCooldown=0.7; this.energy=Math.max(0,this.energy-12);
     const d=this.titan.position.distanceTo(this.kaiju.position);
     if(d<12){
@@ -281,6 +282,7 @@ class TitanesScene extends Phaser.Scene {
   }
   update(_time:number,delta:number) {
     const dt=Math.min(delta/1000,0.04);
+    if (!this.battleStarted || this.battleEnded) return;
     this.attackCooldown=Math.max(0,this.attackCooldown-dt);
     this.kaijuAttackCooldown=Math.max(0,this.kaijuAttackCooldown-dt);
     const x=(this.keys.A.isDown||this.keys.LEFT.isDown?-1:0)+(this.keys.D.isDown||this.keys.RIGHT.isDown?1:0)+this.moveX;
