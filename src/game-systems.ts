@@ -27,7 +27,13 @@ const START: TitanesSave = {
   selectedJaeger: 'gipsy',
   upgrades: { defense: 0, reactor: 0, training: 0 },
   inventory: { repairKit: 0, armorParts: 0, researchData: 0 },
-  buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, warehouse: 0, evacuation: 0 }
+  buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, warehouse: 0, evacuation: 0 },
+  civiliansRescued: 0,
+  xp: 0,
+  jaegerIntegrity: 100,
+  cityIntegrity: 100,
+  failedMissions: [],
+  lastMissionOutcome: null
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -106,7 +112,16 @@ export class TitanesSystems {
   private commit(next: TitanesSave): boolean {
     try {
       const previous = localStorage.getItem(STORAGE_KEY);
-      if (previous) localStorage.setItem(STORAGE_KEY + '-backup', previous);
+      if (previous) {
+        try {
+          const parsed = JSON.parse(previous) as Partial<TitanesSave>;
+          if ((parsed.version === 1 || parsed.version === 2) && parsed.resources && Array.isArray(parsed.completedMissions)) {
+            localStorage.setItem(STORAGE_KEY + '-backup', previous);
+          }
+        } catch {
+          // Never replace a valid backup with a corrupt primary save.
+        }
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       this.data = next;
       return true;
@@ -121,7 +136,7 @@ export class TitanesSystems {
 
   setJaeger(id: JaegerId) {
     const required: Record<JaegerId, number> = { gipsy: 0, striker: 2, cherno: 4 };
-    if (consecutiveMissionCount(this.data.completedMissions) < required[id]) return false;
+    if (!Object.hasOwn(required, id) || consecutiveMissionCount(this.data.completedMissions) < required[id]) return false;
     const next = structuredClone(this.data);
     next.selectedJaeger = id;
     return this.commit(next);
