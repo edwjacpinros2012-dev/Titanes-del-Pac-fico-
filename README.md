@@ -121,3 +121,9 @@ Lee `docs/ANDROID_BUILD.md`, `docs/PLATFORM_TARGETS.md` y `docs/QA_TEST_MATRIX.m
 - [Script de preparación automática para Windows](tools/preparar_proyecto_windows.ps1)
 
 El script descarga el proyecto en Documentos sin sobrescribir una carpeta existente. Godot debe descargarse desde el sitio oficial; el script no instala software ni requiere permisos de administrador.
+
+## Fase 2 y dirección visual
+
+- [Vertical slice jugable — Fase 2](docs/PHASE_2_VERTICAL_SLICE.md)
+- [Dirección artística y referencia visual](docs/ART_DIRECTION_VISUAL_REFERENCE.md)
+- [Pruebas de aceptación — Fase 2](docs/QA_PHASE_2.md)
