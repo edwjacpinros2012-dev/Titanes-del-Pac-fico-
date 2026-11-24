@@ -81,6 +81,7 @@ class TitanesScene extends Phaser.Scene {
     renderResources();
     menu.querySelector('#tm-upgrade')?.addEventListener('click', () => {
       const result = this.systems.upgrade('defense');
+      if (result.ok) this.applySelectedJaeger(this.systems.snapshot().selectedJaeger);
       const notice = menu.querySelector('#tm-system-notice');
       if (notice) notice.textContent = result.ok ? 'DEFENSA MEJORADA · NIVEL ' + result.level : 'RECURSOS INSUFICIENTES';
       renderResources();
