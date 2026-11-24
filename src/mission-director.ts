@@ -42,10 +42,11 @@ export class MissionDirector {
     const archetype = KAIJU_ARCHETYPES[category - 1] ?? KAIJU_ARCHETYPES[0];
     const experienceFactor = progress.completed * 0.035;
     const pressureFactor = Math.max(0.78, 1 + experienceFactor - failures * 0.08);
+    const readinessFactor = clamp(1 + (playerReadiness - 190) / 900, 0.88, 1.12);
     const threat = clamp(category * 16 + missionId * 1.4, 18, 92);
-    const integrity = Math.round(clamp((82 + missionId * 9 + category * 7) * pressureFactor, 75, 220));
+    const integrity = Math.round(clamp((82 + missionId * 9 + category * 7) * pressureFactor * readinessFactor, 75, 220));
     const attackInterval = clamp(2.7 - category * 0.16 - missionId * 0.025 + failures * 0.12, 1.35, 2.8);
-    const kaijuDamage = Math.round(clamp((7 + category * 1.8 + missionId * 0.35) * pressureFactor, 6, 22));
+    const kaijuDamage = Math.round(clamp((7 + category * 1.8 + missionId * 0.35) * pressureFactor * readinessFactor, 6, 22));
     const cityPressure = Math.round(clamp(5 + category + missionId * 0.35, 4, 11));
     const civilianCount = clamp(4 + (missionId % 3) * 2 + Math.floor(defense.civilianProtection / 30), 4, 10);
     const objectives = [
