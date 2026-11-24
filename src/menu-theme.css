@@ -166,3 +166,12 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;background:line
   }
   body:after{display:none}
 }
+
+/* Cinematic art assets integrated into the menu and hangar roster. */
+.tm-mech{background-image:linear-gradient(90deg,#06111c 0%,transparent 38%),url('/assets/jaeger-gipsy.svg');background-repeat:no-repeat;background-size:cover,contain;background-position:center,right center;}
+.tm-mech .robot{opacity:.12;}
+.roster-cards article{overflow:hidden;}
+.roster-art{display:block;width:100%;height:112px;object-fit:cover;object-position:center 35%;border:1px solid #31586a;background:#071521;margin:0 0 12px;}
+.roster-cards article:nth-child(2) .roster-art{filter:hue-rotate(105deg) saturate(1.35);}
+.roster-cards article:nth-child(3) .roster-art{filter:hue-rotate(175deg) saturate(.8) brightness(.8);}
+@media(max-width:700px){.tm-mech{background-position:center,right center;opacity:.72}.roster-art{height:90px}}
