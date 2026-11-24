@@ -8,6 +8,7 @@ var resources: Dictionary = {"metal": 80, "energia": 45, "cristal": 12}
 var base_level: int = 1
 var titan_level: int = 1
 var unlocked_regions: Array[String] = ["aurora_coast"]
+var completed_missions: Array[String] = []
 
 func add_resource(resource_id: String, amount: int) -> void:
 	if amount <= 0:
