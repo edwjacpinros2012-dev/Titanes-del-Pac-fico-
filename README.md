@@ -105,6 +105,7 @@ Documentación:
 - `docs/SECOND_PHASE_GAP_AUDIT_2026-11-18.md` — auditoría de segunda fase con brechas de integración, módulos no conectados, prioridades P0/P1/P2 y plan de vertical slice.
 - `docs/DIAGNOSTICO_CAMPANA_JAEGERS_RECOMPENSAS_2026-11-19.md` — auditoría verificada de la demo web, campaña, Jaegers, recompensas, desbloqueos y prioridades.
 - `docs/NIVELACION_UNIFORME_DE_SISTEMAS.md` — estándar común G0–G7 para nivelar todos los sistemas con pruebas y criterios de finalización.
+- `docs/INVESTIGACION_DISENO_JUEGOS_Y_ARQUITECTURA_2026-11-24.md` — investigación de referencias de diseño, diagnóstico de la versión web, arquitectura objetivo y prioridades P0–P2.
 
 ## Exportar e instalar
 
