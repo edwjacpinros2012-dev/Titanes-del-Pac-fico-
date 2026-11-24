@@ -37,6 +37,8 @@ class TitanesScene extends Phaser.Scene {
   private cityDamageTaken = 0;
   private civilianGroup!: THREE.Group;
   private rescueUsed = false;
+  private civiliansEvacuating = false;
+  private civilianRescuePoint = new THREE.Vector3(11, 0, -14);
   private moveX = 0;
   private moveZ = 0;
   private attackPower = 20;
@@ -77,7 +79,13 @@ class TitanesScene extends Phaser.Scene {
     const menu=document.createElement('section'); menu.id='titan-menu';
     menu.innerHTML=`<header><b>PPDC // DEFENSE NETWORK</b><span>● ALERTA COSTERA</span><div class="menu-rank">PROTOCOLO DE DEFENSA · 2047</div></header><main><div class="menu-copy"><small>OPERACIÓN · PACÍFICO</small><h1>EL PACÍFICO<br><em>NO CAERÁ.</em></h1><p>La brecha sigue abierta. Despliega tu Jaeger, protege la costa y responde a la amenaza Kaiju.</p><div class="mission-card"><small>▰ MISIÓN ACTIVA · SECTOR 07</small><b>DEFENSA DE LA COSTA</b><span>OBJETIVO: interceptar al Kaiju y proteger la zona urbana.</span><div id="tm-resources" class="resource-strip"></div><div class="mission-progress"><i></i></div><label><span>AMENAZA DETECTADA</span><b>CLASE III</b></label></div><button id="tm-start">▶ DESPLEGAR JAEGER</button><button id="tm-hangar">▣ HANGAR / UNIDADES</button><button id="tm-upgrade">⬆ MEJORAR DEFENSA</button><small id="tm-system-notice"></small><footer><span>SECTOR<b>SHATTERDOME · COSTA</b></span><span>ESTADO<b>● SISTEMAS EN LÍNEA</b></span></footer></div><div class="tm-mech"><div class="rings"></div><div class="robot"><i class="head"><b></b></i><i class="body"><b></b></i><i class="arm a"></i><i class="arm b"></i><i class="leg c"></i><i class="leg d"></i></div><label>JAEGER // GIPSY-CLASS<small>UNIDAD DE COMBATE · MARK-III</small></label></div></main><div class="tm-bottom">PPDC · PAN-PACIFIC DEFENSE CORPS <span>INTERFAZ TÁCTICA v0.3</span></div><aside id="tm-roster"><div class="roster-window"><button id="tm-close">×</button><small>HANGAR / SELECCIÓN DE UNIDADES</small><h2>ESCUADRÓN JAEGER</h2><p>Selecciona una unidad para la misión. Las estadísticas son prototipos de juego.</p><div class="roster-cards"><article class="${this.systems.snapshot().selectedJaeger === "gipsy" ? "selected" : ""}"><span class="unit-icon">01</span><b>GIPSY-CLASS</b><small>Equilibrado · Mark III</small><div class="unit-bars"><label>ARMADURA <i><b style="width:86%"></b></i></label><label>ENERGÍA <i><b style="width:74%"></b></i></label><label>AGILIDAD <i><b style="width:62%"></b></i></label></div></article><article class="${this.systems.snapshot().selectedJaeger === "striker" ? "selected" : this.systems.campaignProgress().completed >= 2 ? "" : "locked"}"><span class="unit-icon">02</span><b>STRIKER-CLASS</b><small>Rápido · Mark V</small><div class="unit-bars"><label>ARMADURA <i><b style="width:72%"></b></i></label><label>ENERGÍA <i><b style="width:91%"></b></i></label><label>AGILIDAD <i><b style="width:88%"></b></i></label></div></article><article class="${this.systems.snapshot().selectedJaeger === "cherno" ? "selected" : this.systems.campaignProgress().completed >= 4 ? "" : "locked"}"><span class="unit-icon">03</span><b>CHERNO-CLASS</b><small>Pesado · Mark I</small><div class="unit-bars"><label>ARMADURA <i><b style="width:95%"></b></i></label><label>ENERGÍA <i><b style="width:68%"></b></i></label><label>AGILIDAD <i><b style="width:48%"></b></i></label></div></article></div><button id="tm-select">CONFIRMAR UNIDAD</button></div></aside>`;
     document.body.appendChild(menu);
-    menu.querySelector('#tm-start')?.addEventListener('click',()=>{this.battleStarted=true;menu.classList.add('started'); mountGamePanels(this.systems, (id)=>this.applySelectedJaeger(id), (id)=>this.refreshBuildingVisuals(id)); });
+    menu.querySelector('#tm-start')?.addEventListener('click',()=>{this.battleStarted=true;menu.classList.add('started'); mountGamePanels(this.systems, (id) => {
+      if (this.battleStarted && !this.battleEnded) {
+        const stats = this.systems.getJaegerCombatStats();
+        this.attackPower = Math.max(12, Math.round(stats.power / 4));
+        this.moveSpeed = 3.2 + stats.agility / 30;
+      } else this.applySelectedJaeger(id);
+    }, (id) => this.refreshBuildingVisuals(id), () => !this.battleStarted || this.battleEnded); });
     menu.querySelector('#tm-hangar')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.add('open'));
     menu.querySelector('#tm-close')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
     menu.querySelector('#tm-select')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.remove('open'));
@@ -323,6 +331,7 @@ class TitanesScene extends Phaser.Scene {
   private buildCivilians() {
     this.civilianGroup = new THREE.Group();
     this.civilianGroup.position.set(11, 0, -14);
+    this.civilianRescuePoint.set(11, 0, -14);
     for (let i = 0; i < 6; i++) {
       const civilian = new THREE.Group();
       const body = new THREE.Mesh(new THREE.BoxGeometry(0.48, 1.0, 0.36), this.material(i % 2 ? 0x4b8794 : 0xc08b52, 0.15));
@@ -424,7 +433,18 @@ class TitanesScene extends Phaser.Scene {
     const x=(this.keys.A.isDown||this.keys.LEFT.isDown?-1:0)+(this.keys.D.isDown||this.keys.RIGHT.isDown?1:0)+this.moveX;
     const z=(this.keys.W.isDown||this.keys.UP.isDown?-1:0)+(this.keys.S.isDown||this.keys.DOWN.isDown?1:0)+this.moveZ;
     this.titan.position.x+=x*dt*this.moveSpeed; this.titan.position.z+=z*dt*this.moveSpeed;
-    if (!this.battleEnded && !this.rescueUsed && this.civilianGroup.visible && this.titan.position.distanceTo(this.civilianGroup.position) < 6) {
+    if (this.civilianGroup.visible) {
+      this.civilianGroup.children.forEach((npc, index) => {
+        npc.rotation.y = Math.sin(_time * 0.0008 + index * 1.7) * 0.07;
+        if (this.civiliansEvacuating) {
+          const target = new THREE.Vector3(-3.2 + (index % 3) * 0.65, 0, 6.2 + Math.floor(index / 3) * 0.75);
+          npc.position.lerp(target, Math.min(1, dt * 0.45));
+        } else {
+          npc.position.y = Math.abs(Math.sin(_time * 0.0014 + index)) * 0.035;
+        }
+      });
+    }
+    if (!this.battleEnded && !this.rescueUsed && this.civilianGroup.visible && this.titan.position.distanceTo(this.civilianRescuePoint) < 6) {
       this.status.setText('ZONA DE EVACUACIÓN · PRESIONA E PARA RESCATAR 6 CIVILES');
       if (Phaser.Input.Keyboard.JustDown(this.keys.E)) {
         const missionId = this.systems.snapshot().unlockedMissions;
@@ -446,6 +466,8 @@ class TitanesScene extends Phaser.Scene {
         if (this.hp <= 0) this.finishMission('defeat');
       } else {
         this.cityDamageTaken = Math.min(100, this.cityDamageTaken + 8);
+        this.civiliansEvacuating = true;
+        this.civilianRescuePoint.set(8, 0, -8);
         const remainingCityIntegrity = Math.max(0, this.systems.snapshot().cityIntegrity - this.cityDamageTaken);
         this.status.setText('KAIJU ATACA LA CIUDAD · INTEGRIDAD ' + remainingCityIntegrity + '%');
         if (remainingCityIntegrity <= 0) this.finishMission('defeat');
