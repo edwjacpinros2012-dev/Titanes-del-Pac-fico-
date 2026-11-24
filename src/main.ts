@@ -486,6 +486,12 @@ class TitanesScene extends Phaser.Scene {
         } else this.status.setText(result.reason || 'NO SE PUDO REGISTRAR LA EVACUACIÓN');
       }
     }
+    if (!this.battleEnded) {
+      const jaegerDistance = this.titan.position.distanceTo(this.kaiju.position);
+      const kaijuTarget = jaegerDistance < 22 ? this.titan.position : new THREE.Vector3(0, 0, 9);
+      const pursuit = kaijuTarget.clone().sub(this.kaiju.position);
+      if (pursuit.length() > 8) this.kaiju.position.addScaledVector(pursuit.normalize(), dt * (1.15 + (this.activeMission?.category ?? 1) * 0.12));
+    }
     if (!this.battleEnded && this.kaijuAttackCooldown <= 0) {
       this.kaijuAttackCooldown = this.activeMission?.kaijuAttackInterval ?? 2.2;
       if (this.titan.position.distanceTo(this.kaiju.position) < 16) {
