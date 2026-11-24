@@ -25,13 +25,13 @@ Videojuego web 3D en desarrollo con **Vite, TypeScript, Phaser y Three.js**. El 
 - Panel de alianza demostrativo y chat global visual preparado, todavía sin multijugador online.
 
 ## Estado online
-No hay actualmente un chat global operativo, autenticación conectada, matchmaking ni servidor autoritativo de partidas verificados. Vercel aloja el frontend, no la lógica multijugador. La arquitectura prevista para chat y servicios online está en `docs/ONLINE_SERVERS_AND_GLOBAL_CHAT.md`.
+No hay actualmente un chat global operativo, autenticación conectada, matchmaking ni servidor autoritativo de partidas verificados. Vercel aloja el frontend, no la lógica multijugador. La arquitectura prevista para chat y servicios online está en `docs/ONLINE_SERVERS_AND_GLOBAL_CHAT.md`. El esquema inicial de tablas y RLS está preparado en `supabase/schema.sql`, pero **no se ha aplicado** a una instancia Supabase.
 
 ## Director táctico
-El director local adapta el perfil de amenaza, comportamiento Kaiju, presión urbana y evacuación según progreso, Jaeger y defensas. Es lógica procedural local, no un modelo generativo remoto. Consulta `docs/AI_MISSION_DIRECTOR.md`.
+El director local adapta el perfil de amenaza, comportamiento Kaiju, presión urbana y evacuación según progreso, Jaeger y defensas. Es lógica procedural local, no un modelo generativo remoto. Consulta `docs/AI_MISSION_DIRECTOR.md` y `docs/AI_WORLD_RUNTIME.md`. El director de mundo añade eventos deterministas, distritos, clima y contramedidas a cada operación.
 
 ## Estado visual
-Los Jaegers, Kaijus y entorno usan geometría procedural/provisional. No deben describirse como modelos GLB finales ni como animaciones profesionales. La dirección artística y el contrato de producción están en `docs/VISUAL_PRODUCTION_MASTER_PLAN.md`.
+Los Jaegers, Kaijus y entorno usan geometría procedural/provisional. No deben describirse como modelos GLB finales ni como animaciones profesionales. La dirección artística y el contrato de producción están en `docs/VISUAL_PRODUCTION_MASTER_PLAN.md` y `docs/HIGGSFIELD_VISUAL_WORKFLOW.md`.
 
 ## Próximos hitos
 1. Completar el loop jugable y las misiones restantes.
