@@ -14,7 +14,8 @@ func save_game(state: GameState) -> bool:
 		"resources": state.resources.duplicate(true),
 		"base_level": maxi(1, state.base_level),
 		"titan_level": maxi(1, state.titan_level),
-		"unlocked_regions": state.unlocked_regions.duplicate()
+		"unlocked_regions": state.unlocked_regions.duplicate(),
+		"completed_missions": state.completed_missions.duplicate()
 	}
 	if not _write_json_atomic(SAVE_PATH, payload):
 		push_error("No se pudo guardar el progreso.")
@@ -43,6 +44,15 @@ func load_game(state: GameState) -> bool:
 	for resource_id in loaded_resources:
 		merged_resources[str(resource_id)] = int(loaded_resources[resource_id])
 	state.resources = merged_resources
+	var loaded_missions: Variant = parsed.get("completed_missions", [])
+	if typeof(loaded_missions) != TYPE_ARRAY:
+		load_completed.emit(false)
+		return false
+	state.completed_missions.clear()
+	for mission_value in loaded_missions:
+		var mission_id := str(mission_value).strip_edges()
+		if not mission_id.is_empty() and mission_id not in state.completed_missions:
+			state.completed_missions.append(mission_id)
 	state.base_level = maxi(1, int(parsed.get("base_level", 1)))
 	state.titan_level = maxi(1, int(parsed.get("titan_level", 1)))
 	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
