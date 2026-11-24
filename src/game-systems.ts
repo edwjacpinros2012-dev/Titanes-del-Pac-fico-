@@ -175,9 +175,9 @@ export class TitanesSystems {
     return this.transact(cost, {});
   }
 
-  buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>) {
-    if (!isValidResourceMap(cost)) return false;
-    return this.transact(cost, {}, next => { next.inventory[item] = (next.inventory[item] || 0) + 1; });
+  buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>, reward: Partial<Record<ResourceKey, number>> = {}) {
+    if (!isValidResourceMap(cost) || !isValidResourceMap(reward)) return false;
+    return this.transact(cost, reward, next => { next.inventory[item] = (next.inventory[item] || 0) + 1; });
   }
 
   upgrade(key: keyof TitanesSave['upgrades']) {
