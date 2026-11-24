@@ -7,7 +7,7 @@ export function mountGamePanels(systems: TitanesSystems, onJaegerSelected?: (id:
   host.id = 'titan-panels';
   host.innerHTML = `
     <nav class="tp-nav">
-      <button data-panel="base">BASE</button><button data-panel="missions">CAMPAÑA</button><button data-panel="hangar">HANGAR</button><button data-panel="shop">TIENDA</button><button data-panel="alliance">ALIANZA</button>
+      <button data-panel="base">BASE</button><button data-panel="build">CONSTRUIR</button><button data-panel="upgrades">MEJORAS</button><button data-panel="missions">CAMPAÑA</button><button data-panel="hangar">HANGAR</button><button data-panel="shop">TIENDA</button><button data-panel="alliance">ALIANZA</button>
     </nav>
     <section class="tp-window" aria-live="polite"><button class="tp-close">×</button><div class="tp-content"></div></section>`;
   document.body.appendChild(host);
@@ -34,6 +34,28 @@ export function mountGamePanels(systems: TitanesSystems, onJaegerSelected?: (id:
       content.querySelectorAll('[data-building]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-building') as keyof typeof s.buildings;const r=systems.upgradeBuilding(id);if(r.ok)onBuildingUpgraded?.(id);render('base');const notice=content.querySelector('#tp-msg');if(notice)notice.textContent=r.ok?'Instalación mejorada al nivel '+r.level:r.reason||'No se pudo mejorar.';}));
       content.querySelector('#tp-production')?.addEventListener('click',()=>{const result=systems.collectProduction();render('base');const notice=content.querySelector('#tp-msg');if(notice)notice.textContent=result.ok?'Producción reclamada: +'+result.reward.alloy+' aleación, +'+result.reward.energy+' energía, +'+result.reward.intel+' intel.':result.reason||'No hay producción.';});
 
+    } else if (which === 'build') {
+      const buildingNames: Record<string,string> = { hangar:'Hangar auxiliar',reactor:'Reactor de energía',workshop:'Taller de ingeniería',medical:'Centro médico',defense:'Defensa perimetral',warehouse:'Almacén central',evacuation:'Centro de evacuación' };
+      const buildingInfo: Record<string,string> = {
+        hangar:'Amplía el espacio de mantenimiento y preparación de Jaegers.',
+        reactor:'Aumenta la producción de energía de la base.',
+        workshop:'Produce aleación para nuevas construcciones.',
+        medical:'Apoya la recuperación y los servicios de emergencia.',
+        defense:'Refuerza el perímetro y mejora el nivel general de la base.',
+        warehouse:'Aumenta la capacidad de almacenamiento de recursos.',
+        evacuation:'Mejora la protección y organización de civiles.'
+      };
+      const ids = Object.keys(buildingNames);
+      content.innerHTML = res + `<small>INGENIERÍA PPDC / OBRAS</small><h2>CONSTRUIR INSTALACIONES</h2><p>Selecciona una instalación para construirla. Después podrás mejorarla desde el panel MEJORAS. Cada construcción consume recursos y queda guardada en esta partida.</p><div class="tp-grid tp-build-grid">${ids.map(id=>{const level=s.buildings[id]||0;const locked=id==='evacuation'&&baseLevel<2;const costAlloy=160+level*125;const costEnergy=90+level*80;return `<article class="${locked?'locked':''}"><b>${buildingNames[id]}</b><span>${buildingInfo[id]}</span><strong>${level===0?'NO CONSTRUIDO':'NIVEL '+level}</strong><small class="tp-cost">COSTE: ${costAlloy} ALEACIÓN · ${costEnergy} ENERGÍA</small><button data-build="${id}" ${locked?'disabled':''}>${locked?'REQUIERE BASE NIVEL 2':level===0?'CONSTRUIR':'MEJORAR INSTALACIÓN'}</button></article>`}).join('')}</div><p class="tp-note" id="tp-msg">Las obras se guardan en este dispositivo.</p>`;
+      content.querySelectorAll('[data-build]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-build') as keyof typeof s.buildings;const result=systems.upgradeBuilding(id);if(result.ok)onBuildingUpgraded?.(id);render('build');const msg=content.querySelector('#tp-msg');if(msg)msg.textContent=result.ok?(result.level===1?'Construcción completada.':'Instalación mejorada al nivel '+result.level):result.reason||'No se pudo completar la obra.';}));
+    } else if (which === 'upgrades') {
+      const upgrades: Array<{id:'defense'|'reactor'|'training';name:string;desc:string}> = [
+        {id:'defense',name:'Blindaje del perímetro',desc:'Eleva el nivel de base y permite desbloquear nuevas instalaciones.'},
+        {id:'reactor',name:'Optimización del reactor',desc:'Mejora el sistema energético de la base.'},
+        {id:'training',name:'Simulador de pilotos',desc:'Mejora el programa de preparación del escuadrón.'}
+      ];
+      content.innerHTML = res + `<small>PROGRAMA DE DESARROLLO / PPDC</small><h2>MEJORAS DE BASE</h2><p>Invierte recursos en los sistemas principales. El coste aumenta con cada nivel.</p><div class="tp-grid tp-upgrade-grid">${upgrades.map(u=>{const level=s.upgrades[u.id]||0;return `<article><b>${u.name}</b><span>${u.desc}</span><strong>NIVEL ${level}</strong><small class="tp-cost">COSTE: ${180+level*140} ALEACIÓN · ${120+level*100} ENERGÍA</small><button data-upgrade="${u.id}">MEJORAR SISTEMA</button></article>`}).join('')}</div><p class="tp-note" id="tp-msg">Mejoras locales de prototipo.</p>`;
+      content.querySelectorAll('[data-upgrade]').forEach(b=>b.addEventListener('click',()=>{const id=b.getAttribute('data-upgrade') as 'defense'|'reactor'|'training';const result=systems.upgrade(id);render('upgrades');const msg=content.querySelector('#tp-msg');if(msg)msg.textContent=result.ok?'Sistema mejorado al nivel '+result.level:'Recursos insuficientes para esta mejora.';}));
     } else if (which === 'missions') {
       const progress = systems.campaignProgress();
       content.innerHTML = res + `<small>OPERACIONES / PACÍFICO</small><h2>CAMPAÑA PPDC</h2><p>RANGO ${progress.rank} · XP ${progress.xp} · ${progress.completed}/${progress.total} MISIONES COMPLETADAS</p><p>${progress.campaignComplete?'CAMPAÑA INICIAL COMPLETADA.':'Completa operaciones para recibir recursos, experiencia y desbloquear unidades.'} Solo la primera misión está conectada al combate jugable de este prototipo; las demás aún no son escenarios jugables.</p><div class="tp-missions">${MISSION_LIST.map(m=>{const st=systems.missionStatus(m.id);const reward=st.reward;const milestone=st.unlocks.length?'<strong>DESBLOQUEO: '+st.unlocks.join(' · ')+'</strong>':'';const status=st.completed?'COMPLETADA':st.unlocked?(m.id===1?'COMBATE PROTOTIPO':'ESCENARIO EN CONSTRUCCIÓN'):'BLOQUEADA';return `<article class="${st.completed?'done':st.unlocked?'active':'locked'}"><div><small>${m.sector} · MISIÓN ${m.id}</small><b>${m.name}</b><span>${m.description}</span><span>RECOMPENSA: +${reward.alloy} ALEACIÓN · +${reward.energy} ENERGÍA · +${reward.intel} DATOS · +${reward.xp} XP</span>${milestone}</div><button disabled>${status}</button></article>`}).join('')}</div>`;
