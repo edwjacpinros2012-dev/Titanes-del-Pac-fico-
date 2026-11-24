@@ -30,6 +30,8 @@ class TitanesScene extends Phaser.Scene {
   private battleEnded = false;
   private startingIntegrity = 100;
   private cityDamageTaken = 0;
+  private civilianGroup!: THREE.Group;
+  private rescueUsed = false;
   private moveX = 0;
   private moveZ = 0;
   private attackPower = 20;
@@ -55,7 +57,7 @@ class TitanesScene extends Phaser.Scene {
     this.buildWorld();
     this.applySelectedJaeger(this.systems.snapshot().selectedJaeger);
     this.animate3d();
-    this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE') as Record<string, Phaser.Input.Keyboard.Key>;
+    this.keys = this.input.keyboard!.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE,E') as Record<string, Phaser.Input.Keyboard.Key>;
     this.buildHud();
     this.buildMainMenu();
     this.scale.on('resize', (size: Phaser.Structs.Size) => {
@@ -212,6 +214,27 @@ class TitanesScene extends Phaser.Scene {
     }
     return g;
   }
+  private buildCivilians() {
+    this.civilianGroup = new THREE.Group();
+    this.civilianGroup.position.set(11, 0, -14);
+    for (let i = 0; i < 6; i++) {
+      const civilian = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.48, 1.0, 0.36), this.material(i % 2 ? 0x4b8794 : 0xc08b52, 0.15));
+      body.position.y = 0.72;
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), this.material(0xc79d7a, 0.05));
+      head.position.y = 1.38;
+      civilian.add(body, head);
+      civilian.position.set((i % 3 - 1) * 1.1, 0, Math.floor(i / 3) * 1.25);
+      this.civilianGroup.add(civilian);
+    }
+    const saved = this.systems.snapshot();
+    if (saved.rescuedMissions.includes(saved.unlockedMissions)) {
+      this.civilianGroup.visible = false;
+      this.rescueUsed = true;
+    }
+    this.world.add(this.civilianGroup);
+  }
+
   private buildWorld() {
     this.world.add(new THREE.HemisphereLight(0x9ccfff,0x15212b,2.1));
     const sun = new THREE.DirectionalLight(0xffffff,2.5); sun.position.set(-8,15,8); sun.castShadow = true; this.world.add(sun);
@@ -219,6 +242,7 @@ class TitanesScene extends Phaser.Scene {
     floor.rotation.x=-Math.PI/2; floor.position.y=-0.08; floor.receiveShadow=true; this.world.add(floor);
     const grid = new THREE.GridHelper(100,50,0x1b8095,0x1b3d50); grid.position.y=0.01; this.world.add(grid);
     this.buildBase();
+    this.buildCivilians();
     for(let i=0;i<18;i++){
       const h=2+Math.random()*8, x=(Math.random()-.5)*55, z=-12-Math.random()*35;
       const b=new THREE.Mesh(new THREE.BoxGeometry(2+Math.random()*3,h,2),this.material(0x1b3343,0.25));
@@ -241,7 +265,7 @@ class TitanesScene extends Phaser.Scene {
     this.add.rectangle(24,143,180,7,0x263b49).setOrigin(0,0.5);
     this.kaijuBar=this.add.rectangle(24,143,180,7,0xff654b).setOrigin(0,0.5);
     this.status=this.add.text(w-24,22,'OBJETIVO: NEUTRALIZAR AL KAIJU',{fontSize:'11px',color:'#ffb36b'}).setOrigin(1,0);
-    this.add.text(24,this.scale.height-30,'WASD / FLECHAS: MOVER   •   ESPACIO: IMPACTO   •   MÓVIL: USA LOS CONTROLES',{fontSize:'10px',color:'#b4c7d2'}).setScrollFactor(0);
+    this.add.text(24,this.scale.height-30,'WASD / FLECHAS: MOVER   •   ESPACIO: IMPACTO   •   E: RESCATAR CIVILES   •   MÓVIL: USA LOS CONTROLES',{fontSize:'10px',color:'#b4c7d2'}).setScrollFactor(0);
     const btn=(x:number,y:number,label:string,fn:()=>void)=>{const b=this.add.text(x,y,label,{fontSize:'12px',color:'#ffffff',backgroundColor:'#12394b',padding:{x:13,y:12}}).setOrigin(.5).setInteractive();b.on('pointerdown',fn);return b;};
     const controlX=this.scale.width-142, controlY=this.scale.height-110, gap=48;
     btn(controlX,controlY-gap,'▲',()=>this.moveZ=-1).on('pointerup',()=>this.moveZ=0).on('pointerout',()=>this.moveZ=0);
@@ -291,6 +315,18 @@ class TitanesScene extends Phaser.Scene {
     const x=(this.keys.A.isDown||this.keys.LEFT.isDown?-1:0)+(this.keys.D.isDown||this.keys.RIGHT.isDown?1:0)+this.moveX;
     const z=(this.keys.W.isDown||this.keys.UP.isDown?-1:0)+(this.keys.S.isDown||this.keys.DOWN.isDown?1:0)+this.moveZ;
     this.titan.position.x+=x*dt*this.moveSpeed; this.titan.position.z+=z*dt*this.moveSpeed;
+    if (!this.battleEnded && !this.rescueUsed && this.civilianGroup.visible && this.titan.position.distanceTo(this.civilianGroup.position) < 6) {
+      this.status.setText('ZONA DE EVACUACIÓN · PRESIONA E PARA RESCATAR 6 CIVILES');
+      if (Phaser.Input.Keyboard.JustDown(this.keys.E)) {
+        const missionId = this.systems.snapshot().unlockedMissions;
+        const result = this.systems.rescueCivilians(6, missionId);
+        if (result.ok) {
+          this.rescueUsed = true;
+          this.civilianGroup.visible = false;
+          this.status.setText('EVACUACIÓN COMPLETADA · 6 CIVILES A SALVO · +48 ALEACIÓN · +24 ENERGÍA · +30 XP');
+        } else this.status.setText(result.reason || 'NO SE PUDO REGISTRAR LA EVACUACIÓN');
+      }
+    }
     if (!this.battleEnded && this.kaijuAttackCooldown <= 0) {
       this.kaijuAttackCooldown = 2.2;
       if (this.titan.position.distanceTo(this.kaiju.position) < 16) {
