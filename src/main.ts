@@ -167,6 +167,17 @@ class TitanesScene extends Phaser.Scene {
     this.box(base,[0.8,4.5,9.2],[5.8,2.3,0],0x24495c);
     this.box(base,[12,0.7,0.7],[0,4.9,-4.8],0x38758b);
     this.box(base,[12,0.45,0.7],[0,0.6,4.8],0x24485a);
+    // Interior service gantry, crane rails and illuminated Jaeger deployment bay.
+    for (const side of [-1, 1]) {
+      this.box(base,[0.22,0.22,8.8],[side*5.05,3.9,-0.1],0x8196a0);
+      this.box(base,[0.18,3.4,0.18],[side*4.9,2.0,-0.2],0x536c79);
+      this.box(base,[0.32,0.16,8.4],[side*5.05,4.08,-0.1],0x36cce2);
+    }
+    for(let i=0;i<6;i++){
+      this.box(base,[0.16,0.04,6.8],[-4.4+i*1.76,0.34,0.1],i%2?0x477181:0x8da2a8);
+    }
+    this.box(base,[0.5,0.28,10.5],[0,5.0,-0.4],0x263d4a);
+    this.box(base,[0.18,0.18,11.0],[0,5.2,-0.4],0x4eddf1);
     // Command center, reactor, storage and clinic blocks
 
     // Perimeter walls and gate
@@ -469,19 +480,40 @@ class TitanesScene extends Phaser.Scene {
       const x=side*(13+levelRandom()*15);
       const z=-25+levelRandom()*43;
       const width=2.4+levelRandom()*3.6;
-      const building=new THREE.Mesh(new THREE.BoxGeometry(width,h,2.5+levelRandom()*3),this.material(i%4===0?0x294454:0x1b3343,0.32));
+      const depth=2.5+levelRandom()*3;
+      const building=new THREE.Mesh(new THREE.BoxGeometry(width,h,depth),this.material(i%4===0?0x294454:0x1b3343,0.32));
       building.position.set(x,h/2,z);
       building.castShadow=true;
       building.receiveShadow=true;
       missionBuildings.add(building);
+      // Repeated illuminated window bands make the coastal skyline read as a lived-in city.
+      const windowMat=new THREE.MeshStandardMaterial({color:0x76cfe0,emissive:0x246d80,emissiveIntensity:0.42,roughness:0.38});
+      for(let floorIndex=1;floorIndex<Math.min(7,Math.floor(h/1.8));floorIndex++){
+        for(let column=0;column<2;column++){
+          const windowMesh=new THREE.Mesh(new THREE.BoxGeometry(width*0.22,0.28,0.045),windowMat);
+          windowMesh.position.set(x+(column===0?-width*0.25:width*0.25),floorIndex*1.45,z+depth/2+0.025);
+          missionBuildings.add(windowMesh);
+        }
+      }
       const beacon=new THREE.Mesh(new THREE.BoxGeometry(width*0.72,0.08,0.06),new THREE.MeshStandardMaterial({color:0x58cde2,emissive:0x1c8ca8,emissiveIntensity:0.65,roughness:0.35}));
-      beacon.position.set(x,h*0.72,z+1.55);
+      beacon.position.set(x,h*0.72,z+depth/2+0.06);
       missionBuildings.add(beacon);
     }
     for(let i=0;i<8;i++){
       const crate=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.2,1.8),this.material(0x735b3c,0.75));
       crate.position.set((levelRandom()-.5)*18,0.6, -12+levelRandom()*26);
       missionBuildings.add(crate);
+    }
+    // Harbor gantry and navigation beacons tie the city skyline to the oceanfront concept.
+    const craneMetal=this.material(0x526b78,0.78);
+    const craneLight=new THREE.MeshStandardMaterial({color:0xffa34f,emissive:0x9b4c19,emissiveIntensity:0.7});
+    for(const x of [-22,22]){
+      const crane=new THREE.Group();
+      const mast=new THREE.Mesh(new THREE.BoxGeometry(0.55,10,0.55),craneMetal); mast.position.y=5; crane.add(mast);
+      const boom=new THREE.Mesh(new THREE.BoxGeometry(8,0.42,0.42),craneMetal); boom.position.set(x<0?3.8:-3.8,9.3,0); crane.add(boom);
+      const cable=new THREE.Mesh(new THREE.BoxGeometry(0.08,3.1,0.08),craneMetal); cable.position.set(x<0?6.8:-6.8,7.5,0); crane.add(cable);
+      const lamp=new THREE.Mesh(new THREE.BoxGeometry(0.35,0.35,0.35),craneLight); lamp.position.set(x<0?6.8:-6.8,5.8,0); crane.add(lamp);
+      crane.position.set(x,0,-34); crane.traverse(o=>{if(o instanceof THREE.Mesh){o.castShadow=true;o.receiveShadow=true;}}); missionBuildings.add(crane);
     }
     this.world.add(missionBuildings);
     this.activeJaegerId = this.systems.snapshot().selectedJaeger;
