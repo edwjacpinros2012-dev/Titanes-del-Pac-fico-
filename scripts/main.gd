@@ -946,7 +946,8 @@ func _save_local_profile() -> void:
 		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {},
 		"damage_model_state": damage_model.export_state() if damage_model else {},
 		"npc_state": npc_manager.export_state() if npc_manager else {},
-		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {}
+		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {},
+		"completed_field_missions": GlobalState.completed_missions.duplicate()
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -955,6 +956,13 @@ func _load_local_profile() -> void:
 	if snapshot.is_empty():
 		return
 	resources = snapshot.get("resources", resources)
+	var saved_field_missions: Variant = snapshot.get("completed_field_missions", [])
+	if saved_field_missions is Array:
+		GlobalState.completed_missions.clear()
+		for mission_value in saved_field_missions:
+			var mission_id := str(mission_value).strip_edges()
+			if not mission_id.is_empty() and mission_id not in GlobalState.completed_missions:
+				GlobalState.completed_missions.append(mission_id)
 	base_level = int(snapshot.get("base_level", base_level))
 	if base_development:
 		var saved_base: Variant = snapshot.get("base_development", {})
