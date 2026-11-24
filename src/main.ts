@@ -6,6 +6,7 @@ import { TitanesSystems, JAEGERS } from './game-systems';
 import type { JaegerId } from './game-systems';
 import { mountGamePanels } from './game-panels';
 import './game-panels.css';
+import { MissionDirector, type MissionBlueprint } from './mission-director';
 
 class TitanesScene extends Phaser.Scene {
   private world!: THREE.Scene;
@@ -45,6 +46,8 @@ class TitanesScene extends Phaser.Scene {
   private attackPower = 20;
   private moveSpeed = 5;
   private systems = new TitanesSystems();
+  private missionDirector = new MissionDirector(this.systems);
+  private activeMission: MissionBlueprint | null = null;
 
   constructor() { super('TitanesScene'); }
 
@@ -80,7 +83,7 @@ class TitanesScene extends Phaser.Scene {
     const menu=document.createElement('section'); menu.id='titan-menu';
     menu.innerHTML=`<header><b>PPDC // DEFENSE NETWORK</b><span>● ALERTA COSTERA</span><div class="menu-rank">PROTOCOLO DE DEFENSA · 2047</div></header><main><div class="menu-copy"><small>OPERACIÓN · PACÍFICO</small><h1>EL PACÍFICO<br><em>NO CAERÁ.</em></h1><p>La brecha sigue abierta. Despliega tu Jaeger, protege la costa y responde a la amenaza Kaiju.</p><div class="mission-card"><small>▰ MISIÓN ACTIVA · SECTOR 07</small><b>DEFENSA DE LA COSTA</b><span>OBJETIVO: interceptar al Kaiju y proteger la zona urbana.</span><div id="tm-resources" class="resource-strip"></div><div class="mission-progress"><i></i></div><label><span>AMENAZA DETECTADA</span><b>CAT-III · RAZORFIN</b></label></div><button id="tm-start">▶ DESPLEGAR JAEGER</button><button id="tm-hangar">▣ HANGAR / UNIDADES</button><button id="tm-upgrade">⬆ MEJORAR DEFENSA</button><small id="tm-system-notice"></small><footer><span>SECTOR<b>SHATTERDOME · COSTA</b></span><span>ESTADO<b>● SISTEMAS EN LÍNEA</b></span></footer></div><div class="tm-mech"><div class="rings"></div><div class="robot"><i class="head"><b></b></i><i class="body"><b></b></i><i class="arm a"></i><i class="arm b"></i><i class="leg c"></i><i class="leg d"></i></div><label>JAEGER // GIPSY-CLASS<small>UNIDAD DE COMBATE · MARK-III</small></label></div></main><div class="tm-bottom">PPDC · PAN-PACIFIC DEFENSE CORPS <span>INTERFAZ TÁCTICA v0.3</span></div><aside id="tm-roster"><div class="roster-window"><button id="tm-close">×</button><small>HANGAR / SELECCIÓN DE UNIDADES</small><h2>ESCUADRÓN JAEGER</h2><p>Selecciona una unidad para la misión. Las estadísticas son prototipos de juego.</p><div class="roster-cards"><article class="${this.systems.snapshot().selectedJaeger === "gipsy" ? "selected" : ""}"><span class="unit-icon">01</span><b>GIPSY-CLASS</b><small>Equilibrado · Mark III</small><div class="unit-bars"><label>ARMADURA <i><b style="width:86%"></b></i></label><label>ENERGÍA <i><b style="width:74%"></b></i></label><label>AGILIDAD <i><b style="width:62%"></b></i></label></div></article><article class="${this.systems.snapshot().selectedJaeger === "striker" ? "selected" : this.systems.campaignProgress().completed >= 2 ? "" : "locked"}"><span class="unit-icon">02</span><b>STRIKER-CLASS</b><small>Rápido · Mark V</small><div class="unit-bars"><label>ARMADURA <i><b style="width:72%"></b></i></label><label>ENERGÍA <i><b style="width:91%"></b></i></label><label>AGILIDAD <i><b style="width:88%"></b></i></label></div></article><article class="${this.systems.snapshot().selectedJaeger === "cherno" ? "selected" : this.systems.campaignProgress().completed >= 4 ? "" : "locked"}"><span class="unit-icon">03</span><b>CHERNO-CLASS</b><small>Pesado · Mark I</small><div class="unit-bars"><label>ARMADURA <i><b style="width:95%"></b></i></label><label>ENERGÍA <i><b style="width:68%"></b></i></label><label>AGILIDAD <i><b style="width:48%"></b></i></label></div></article></div><button id="tm-select">CONFIRMAR UNIDAD</button></div></aside>`;
     document.body.appendChild(menu);
-    menu.querySelector('#tm-start')?.addEventListener('click',()=>{this.battleStarted=true;menu.classList.add('started'); mountGamePanels(this.systems, (id) => {
+    menu.querySelector('#tm-start')?.addEventListener('click',()=>{this.activeMission=this.missionDirector.generate();this.kaijuHp=this.activeMission.kaijuIntegrity;this.kaijuAttackCooldown=this.activeMission.kaijuAttackInterval;this.battleStarted=true;menu.classList.add('started'); mountGamePanels(this.systems, (id) => {
       if (this.battleStarted && !this.battleEnded) {
         const stats = this.systems.getJaegerCombatStats();
         this.attackPower = Math.max(12, Math.round(stats.power / 4));
@@ -396,7 +399,7 @@ class TitanesScene extends Phaser.Scene {
   private buildHud() {
     const w=this.scale.width;
     this.add.text(24,18,'PACIFIC RIM  /  TITANES',{fontFamily:'Arial',fontSize:'18px',color:'#8defff',fontStyle:'bold'}).setScrollFactor(0);
-    this.add.text(24,45,'SECTOR: COSTA DEL PACÍFICO  •  ALERTA KAIJU',{fontSize:'10px',color:'#8ba8b8'}).setScrollFactor(0);
+    this.add.text(24,45,`${this.activeMission?.sector ?? 'SECTOR: COSTA DEL PACÍFICO'} · ${this.activeMission?.kaijuName ?? 'ALERTA KAIJU'}`,{fontSize:'10px',color:'#8ba8b8'}).setScrollFactor(0);
     this.add.rectangle(24,83,180,10,0x263b49).setOrigin(0,0.5);
     this.hpBar=this.add.rectangle(24,83,180,10,0x37e7a4).setOrigin(0,0.5);
     this.add.text(24,65,'INTEGRIDAD',{fontSize:'9px',color:'#b9d2dc'});
@@ -409,7 +412,7 @@ class TitanesScene extends Phaser.Scene {
     this.add.text(24,158,'CIUDAD / INTEGRIDAD',{fontSize:'9px',color:'#b9d2dc'}).setScrollFactor(0);
     this.add.rectangle(24,176,180,7,0x263b49).setOrigin(0,0.5);
     this.cityBar=this.add.rectangle(24,176,180*this.systems.snapshot().cityIntegrity/100,7,0xffb36d).setOrigin(0,0.5);
-    this.status=this.add.text(w-24,22,'OBJETIVO: NEUTRALIZAR AL KAIJU',{fontSize:'11px',color:'#ffb36b'}).setOrigin(1,0);
+    this.status=this.add.text(w-24,22,`OBJETIVO: ${this.activeMission?.objective ?? 'NEUTRALIZAR AL KAIJU'}`,{fontSize:'11px',color:'#ffb36b',wordWrap:{width:Math.min(360,w*0.42)}}).setOrigin(1,0);
     this.add.text(24,this.scale.height-30,'WASD / FLECHAS: MOVER   •   ESPACIO: IMPACTO   •   E: RESCATAR CIVILES   •   MÓVIL: USA LOS CONTROLES',{fontSize:'10px',color:'#b4c7d2'}).setScrollFactor(0);
     const btn=(x:number,y:number,label:string,fn:()=>void)=>{const b=this.add.text(x,y,label,{fontSize:'12px',color:'#ffffff',backgroundColor:'#12394b',padding:{x:13,y:12}}).setOrigin(.5).setInteractive();b.on('pointerdown',fn);return b;};
     const controlX=this.scale.width-142, controlY=this.scale.height-110, gap=48;
@@ -484,19 +487,19 @@ class TitanesScene extends Phaser.Scene {
       }
     }
     if (!this.battleEnded && this.kaijuAttackCooldown <= 0) {
-      this.kaijuAttackCooldown = 2.2;
+      this.kaijuAttackCooldown = this.activeMission?.kaijuAttackInterval ?? 2.2;
       if (this.titan.position.distanceTo(this.kaiju.position) < 16) {
         const armor = this.systems.getJaegerCombatStats().armor;
-        const damage = Math.max(5, 15 - Math.floor(armor / 12));
+        const damage = Math.max(5, Math.round((this.activeMission?.kaijuDamage ?? 15) - Math.floor(armor / 12)));
         this.hp = Math.max(0, this.hp - damage);
         this.status.setText('IMPACTO KAIJU · -' + damage + ' INTEGRIDAD');
         if (this.hp <= 0) this.finishMission('defeat');
       } else {
-        this.cityDamageTaken = Math.min(100, this.cityDamageTaken + 8);
+        this.cityDamageTaken = Math.min(100, this.cityDamageTaken + (this.activeMission?.cityPressure ?? 8));
         this.civiliansEvacuating = true;
         this.civilianRescuePoint.set(8, 0, -8);
         const remainingCityIntegrity = Math.max(0, this.systems.snapshot().cityIntegrity - this.cityDamageTaken);
-        this.status.setText('KAIJU ATACA LA CIUDAD · INTEGRIDAD ' + remainingCityIntegrity + '%');
+        this.status.setText((this.activeMission?.kaijuName ?? 'KAIJU') + ' PRESIONA LA CIUDAD · INTEGRIDAD ' + remainingCityIntegrity + '%');
         if (remainingCityIntegrity <= 0) this.finishMission('defeat');
       }
     }
