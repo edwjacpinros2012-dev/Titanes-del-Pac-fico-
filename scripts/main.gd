@@ -70,7 +70,7 @@ func _ready() -> void:
 	_sync_global_state_from_local()
 	var field_director := get_node_or_null("FieldCombatDirector")
 	if field_director != null and field_director.has_signal("mission_completed"):
-		field_director.mission_completed.connect(_on_field_mission_completed)
+		field_director.connect("mission_completed", _on_field_mission_completed)
 	_apply_technology_effects()
 	_spawn_resources()
 	_update_hud()
