@@ -65,6 +65,7 @@ class TitanesScene extends Phaser.Scene {
     this.renderer3d.setSize(innerWidth, innerHeight);
     this.renderer3d.shadowMap.enabled = true;
     this.renderer3d.toneMapping = THREE.ACESFilmicToneMapping;
+    this.activeMission = this.missionDirector.generate();
     this.buildWorld();
     this.applySelectedJaeger(this.systems.snapshot().selectedJaeger);
     this.animate3d();
@@ -386,11 +387,33 @@ class TitanesScene extends Phaser.Scene {
     const grid = new THREE.GridHelper(100,50,0x1b8095,0x1b3d50); grid.position.y=0.01; this.world.add(grid);
     this.buildBase();
     this.buildCivilians();
-    for(let i=0;i<18;i++){
-      const h=2+Math.random()*8, x=(Math.random()-.5)*55, z=-12-Math.random()*35;
-      const b=new THREE.Mesh(new THREE.BoxGeometry(2+Math.random()*3,h,2),this.material(0x1b3343,0.25));
-      b.position.set(x,h/2,z); this.world.add(b);
+    let levelSeed = this.activeMission?.seed ?? 1;
+    const levelRandom = () => {
+      levelSeed = (levelSeed * 1664525 + 1013904223) >>> 0;
+      return levelSeed / 4294967296;
+    };
+    const missionBuildings = new THREE.Group();
+    for(let i=0;i<24;i++){
+      const h=3+levelRandom()*12;
+      const side = i % 2 === 0 ? -1 : 1;
+      const x=side*(13+levelRandom()*15);
+      const z=-25+levelRandom()*43;
+      const width=2.4+levelRandom()*3.6;
+      const building=new THREE.Mesh(new THREE.BoxGeometry(width,h,2.5+levelRandom()*3),this.material(i%4===0?0x294454:0x1b3343,0.32));
+      building.position.set(x,h/2,z);
+      building.castShadow=true;
+      building.receiveShadow=true;
+      missionBuildings.add(building);
+      const beacon=new THREE.Mesh(new THREE.BoxGeometry(width*0.72,0.08,0.06),new THREE.MeshStandardMaterial({color:0x58cde2,emissive:0x1c8ca8,emissiveIntensity:0.65,roughness:0.35}));
+      beacon.position.set(x,h*0.72,z+1.55);
+      missionBuildings.add(beacon);
     }
+    for(let i=0;i<8;i++){
+      const crate=new THREE.Mesh(new THREE.BoxGeometry(1.8,1.2,1.8),this.material(0x735b3c,0.75));
+      crate.position.set((levelRandom()-.5)*18,0.6, -12+levelRandom()*26);
+      missionBuildings.add(crate);
+    }
+    this.world.add(missionBuildings);
     this.activeJaegerId = this.systems.snapshot().selectedJaeger;
     const jaegerColors: Record<JaegerId, number> = { gipsy: 0x315d70, striker: 0xb38b36, cherno: 0x465b60 };
     this.titan=this.buildMech(jaegerColors[this.activeJaegerId], this.activeJaegerId); this.titan.position.set(-3,0,3); this.world.add(this.titan);
