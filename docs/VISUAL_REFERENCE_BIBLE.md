@@ -148,3 +148,15 @@ Las imágenes de referencia deben mantenerse separadas de los modelos finales. U
 
 ---
 **Uso previsto:** fuente de consistencia visual para arte, modelado 3D, escenarios, interfaz y VFX de TITANES DEL PACÍFICO.
+
+## 10. Conexión implementada con el runtime
+
+La dirección artística ya tiene una primera conexión funcional con la escena Three.js:
+
+- `src/visual-direction.ts` contiene perfiles cinematográficos para lluvia/tormenta, niebla/bruma y cielo nublado/viento.
+- `src/mission-director.ts` entrega el clima de cada misión mediante `MissionBlueprint.weather`.
+- `src/main.ts` consulta ese clima para ajustar el color del cielo, la niebla, la iluminación ambiental, la luz principal, el acabado del suelo y el color del océano.
+- El escenario incluye una superficie oceánica separada y un corredor costero industrial.
+- El HUD identifica el distrito y el clima de la operación.
+
+**Alcance:** esta conexión aplica la paleta y la atmósfera al entorno procedural existente. Las láminas del PDF no se han convertido automáticamente en texturas ni modelos 3D; esos recursos deberán importarse como archivos de arte aprobados y optimizados.
