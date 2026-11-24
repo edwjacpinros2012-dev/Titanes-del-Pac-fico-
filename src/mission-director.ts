@@ -42,6 +42,7 @@ export class MissionDirector {
     const archetype = KAIJU_ARCHETYPES[category - 1] ?? KAIJU_ARCHETYPES[0];
     const experienceFactor = progress.completed * 0.035;
     const pressureFactor = Math.max(0.78, 1 + experienceFactor - failures * 0.08);
+    const playerReadiness = jaeger.armor + jaeger.power + jaeger.agility;
     const readinessFactor = clamp(1 + (playerReadiness - 190) / 900, 0.88, 1.12);
     const threat = clamp(category * 16 + missionId * 1.4, 18, 92);
     const integrity = Math.round(clamp((82 + missionId * 9 + category * 7) * pressureFactor * readinessFactor, 75, 220));
@@ -56,7 +57,6 @@ export class MissionDirector {
       'Defiende la infraestructura y completa el despliegue.'
     ];
     const objective = objectives[(missionId - 1) % objectives.length];
-    const playerReadiness = jaeger.armor + jaeger.power + jaeger.agility;
     const directorNote = failures > 0
       ? 'El director reduce ligeramente la presión tras una operación fallida; la amenaza sigue siendo peligrosa.'
       : playerReadiness < 170
