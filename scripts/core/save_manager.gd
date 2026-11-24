@@ -41,7 +41,8 @@ func load_game(state: GameState) -> bool:
 			load_completed.emit(false)
 			return false
 	var loaded_missions: Variant = parsed.get("completed_missions", [])
-	if typeof(loaded_missions) != TYPE_ARRAY:
+	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
+	if typeof(loaded_missions) != TYPE_ARRAY or typeof(loaded_regions) != TYPE_ARRAY:
 		load_completed.emit(false)
 		return false
 	var merged_resources: Dictionary = state.resources.duplicate(true)
@@ -55,10 +56,6 @@ func load_game(state: GameState) -> bool:
 			state.completed_missions.append(mission_id)
 	state.base_level = maxi(1, int(parsed.get("base_level", 1)))
 	state.titan_level = maxi(1, int(parsed.get("titan_level", 1)))
-	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
-	if typeof(loaded_regions) != TYPE_ARRAY:
-		load_completed.emit(false)
-		return false
 	state.unlocked_regions.clear()
 	for region_value in loaded_regions:
 		var region_id := str(region_value).strip_edges()
