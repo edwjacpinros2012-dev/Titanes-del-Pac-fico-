@@ -32,6 +32,8 @@ El director local adapta el perfil de amenaza, comportamiento Kaiju, presión ur
 
 ## Dirección visual conectada al runtime
 
+Consulta también el [mapa de integración de cada referencia visual con el código](docs/VISUAL_CODE_MAPPING.md), con el estado real de cada página del PDF.
+
 El módulo `src/visual-direction.ts` convierte la etiqueta de clima del director de misiones en perfiles de iluminación y atmósfera para Three.js. `src/main.ts` aplica esos perfiles al fondo, niebla, luces, suelo, superficie oceánica y corredor costero. La etiqueta del HUD también muestra el distrito y el clima de la misión.
 
 Esta integración mejora la coherencia cinematográfica del escenario procedural actual. No significa que se hayan importado las ilustraciones del PDF como texturas ni que existan todavía modelos GLB finales.
