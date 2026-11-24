@@ -61,7 +61,7 @@ export class TitanesSystems {
   private load(): TitanesSave {
     const normalize = (value: unknown): TitanesSave | null => {
       if (!value || typeof value !== 'object') return null;
-      const parsed = value as Partial<TitanesSave>;
+      const parsed = value as Record<string, unknown>;
       if ((parsed.version !== 1 && parsed.version !== 2) || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
       const numberMap = (source: unknown, defaults: Record<string, number>) => {
         const record = source && typeof source === 'object' ? source as Record<string, unknown> : {};
