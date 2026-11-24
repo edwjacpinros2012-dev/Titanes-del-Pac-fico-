@@ -42,3 +42,10 @@ Los Jaegers, Kaijus y entorno usan geometría procedural/provisional. No deben d
 
 ## Seguridad
 No subir claves privadas, service-role keys, contraseñas ni tokens al repositorio. Nunca usar variables `VITE_*` para secretos. Para servicios online aplicar RLS y validar operaciones sensibles en servidor.
+
+
+## Sistemas de mundo y economía local
+
+La partida guarda recursos, inventario, instalaciones, reputación de especialistas, contratos NPC completados, intercambios y nombre de alianza local en el guardado versionado del navegador. El mercado permite intercambios de recursos y los tres especialistas ofrecen contratos de una sola reclamación con recompensas y XP. Las alianzas se pueden nombrar y guardar en la partida local cuando la base alcanza nivel 2.
+
+**Límite actual:** comercio, NPC y alianza todavía son sistemas de un solo jugador en este dispositivo. No representan mercado global, jugadores reales ni alianzas sincronizadas. Para habilitar economía compartida y multijugador hace falta desplegar Supabase con autenticación, tablas, políticas RLS y operaciones validadas en servidor. El chat global continúa desconectado hasta completar esa integración.
