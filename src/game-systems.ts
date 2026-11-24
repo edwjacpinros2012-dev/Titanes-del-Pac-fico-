@@ -257,7 +257,7 @@ export class TitanesSystems {
 
   /** Exchange resources at the PPDC quartermaster. Rates are fixed and validated locally. */
   tradeResources(from: ResourceKey, to: ResourceKey, amount: number) {
-    const rates: Record<ResourceKey, number> = { alloy: 1, energy: 1, intel: 1 };
+    const rates: Record<ResourceKey, number> = { alloy: 1, energy: 1, intel: 60 };
     if (!RESOURCE_KEYS.includes(from) || !RESOURCE_KEYS.includes(to) || from === to || !Number.isSafeInteger(amount) || amount < 10 || amount > 1000) {
       return { ok: false, reason: 'Intercambio inválido. Elige entre 10 y 1.000 unidades.' };
     }
