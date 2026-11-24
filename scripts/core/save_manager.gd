@@ -40,14 +40,14 @@ func load_game(state: GameState) -> bool:
 		if amount < 0:
 			load_completed.emit(false)
 			return false
-	var merged_resources: Dictionary = state.resources.duplicate(true)
-	for resource_id in loaded_resources:
-		merged_resources[str(resource_id)] = int(loaded_resources[resource_id])
-	state.resources = merged_resources
 	var loaded_missions: Variant = parsed.get("completed_missions", [])
 	if typeof(loaded_missions) != TYPE_ARRAY:
 		load_completed.emit(false)
 		return false
+	var merged_resources: Dictionary = state.resources.duplicate(true)
+	for resource_id in loaded_resources:
+		merged_resources[str(resource_id)] = int(loaded_resources[resource_id])
+	state.resources = merged_resources
 	state.completed_missions.clear()
 	for mission_value in loaded_missions:
 		var mission_id := str(mission_value).strip_edges()
