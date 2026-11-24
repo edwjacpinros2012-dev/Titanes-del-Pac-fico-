@@ -149,7 +149,7 @@ class TitanesScene extends Phaser.Scene {
     const facilities: Array<[string,[number,number,number],number]> = [
       ['command',[-8.0,0,-1.2],0x36586a],['hangar',[0,0,-4.6],0x1b3444],['reactor',[7.4,0,-3.0],0x287080],
       ['workshop',[7.4,0,1.2],0x345363],['medical',[-7.7,0,4.0],0x3a6577],
-      ['defense',[0,0,7.0],0x45687a],['evacuation',[0,0,4.8],0x9a7651]
+      ['defense',[0,0,7.0],0x45687a],['evacuation',[0,0,4.8],0x9a7651],['warehouse',[7.4,0,5.0],0x526b7a]
     ];
     for(const [id,pos,color] of facilities){
       const group=new THREE.Group(); group.position.set(...pos); base.add(group); this.buildingGroups[id]=group;
