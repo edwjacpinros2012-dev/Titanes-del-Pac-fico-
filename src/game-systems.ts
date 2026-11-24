@@ -1,7 +1,7 @@
 export type ResourceKey = 'alloy' | 'energy' | 'intel';
 export type JaegerId = 'gipsy' | 'striker' | 'cherno';
 export interface TitanesSave {
-  version: 2;
+  version: 3;
   resources: Record<ResourceKey, number>;
   unlockedMissions: number;
   completedMissions: number[];
@@ -16,12 +16,13 @@ export interface TitanesSave {
   failedMissions: number[];
   lastMissionOutcome: 'victory' | 'defeat' | 'retreat' | null;
   productionClaimAt: number;
+  rescuedMissions: number[];
 }
 
 const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
 const RESOURCE_KEYS: ResourceKey[] = ['alloy', 'energy', 'intel'];
 const START: TitanesSave = {
-  version: 2,
+  version: 3,
   resources: { alloy: 650, energy: 500, intel: 0 },
   unlockedMissions: 1,
   completedMissions: [],
@@ -35,7 +36,8 @@ const START: TitanesSave = {
   cityIntegrity: 100,
   failedMissions: [],
   lastMissionOutcome: null,
-  productionClaimAt: 0
+  productionClaimAt: 0,
+  rescuedMissions: []
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -62,7 +64,7 @@ export class TitanesSystems {
     const normalize = (value: unknown): TitanesSave | null => {
       if (!value || typeof value !== 'object') return null;
       const parsed = value as Record<string, unknown>;
-      if ((parsed.version !== 1 && parsed.version !== 2) || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
+      if ((parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3) || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
       const numberMap = (source: unknown, defaults: Record<string, number>) => {
         const record = source && typeof source === 'object' ? source as Record<string, unknown> : {};
         return Object.fromEntries(Object.keys(defaults).map(key => {
@@ -73,7 +75,7 @@ export class TitanesSystems {
       const resources = numberMap(parsed.resources, START.resources);
       const completed = parsed.completedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12);
       const safe = cloneStart();
-      safe.version = 2;
+      safe.version = 3;
       safe.resources = resources as Record<ResourceKey, number>;
       safe.completedMissions = [...new Set(completed)];
       let nextMission = 1;
@@ -92,6 +94,7 @@ export class TitanesSystems {
       safe.failedMissions = Array.isArray(parsed.failedMissions) ? [...new Set(parsed.failedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12))] : [];
       safe.lastMissionOutcome = parsed.lastMissionOutcome === 'victory' || parsed.lastMissionOutcome === 'defeat' || parsed.lastMissionOutcome === 'retreat' ? parsed.lastMissionOutcome : null;
       safe.productionClaimAt = clamp(Math.floor(Number(parsed.productionClaimAt) || 0), 0, Number.MAX_SAFE_INTEGER);
+      safe.rescuedMissions = Array.isArray(parsed.rescuedMissions) ? [...new Set(parsed.rescuedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12))] : [];
       return safe;
     };
     try {
@@ -120,7 +123,7 @@ export class TitanesSystems {
       if (previous) {
         try {
           const parsed = JSON.parse(previous) as Record<string, unknown>;
-          if ((parsed.version === 1 || parsed.version === 2) && parsed.resources && Array.isArray(parsed.completedMissions)) {
+          if ((parsed.version === 1 || parsed.version === 2 || parsed.version === 3) && parsed.resources && Array.isArray(parsed.completedMissions)) {
             localStorage.setItem(STORAGE_KEY + '-backup', previous);
           }
         } catch {
@@ -245,19 +248,23 @@ export class TitanesSystems {
     return { ok: true, reward, elapsedHours, remainingMs: 8 * 3600000 };
   }
 
-  rescueCivilians(count: number) {
-    if (!Number.isSafeInteger(count) || count < 0 ||
+  rescueCivilians(count: number, missionId = this.data.unlockedMissions) {
+    if (!Number.isSafeInteger(count) || count <= 0 || count > 100 ||
+        missionId !== this.data.unlockedMissions ||
+        this.data.completedMissions.includes(missionId) ||
+        this.data.rescuedMissions.includes(missionId) ||
         count > Math.floor((Number.MAX_SAFE_INTEGER - this.data.civiliansRescued) / 8) ||
         count > Math.floor((Number.MAX_SAFE_INTEGER - this.data.xp) / 5)) {
-      return { ok: false, rescued: 0, total: this.data.civiliansRescued };
+      return { ok: false, rescued: 0, total: this.data.civiliansRescued, reason: 'Rescate no disponible o ya completado.' };
     }
     const reward = { alloy: count * 8, energy: count * 4 };
-    if (!isValidResourceMap(reward)) return { ok: false, rescued: 0, total: this.data.civiliansRescued };
+    if (!isValidResourceMap(reward)) return { ok: false, rescued: 0, total: this.data.civiliansRescued, reason: 'Recompensa inválida.' };
     const ok = this.transact({}, reward, next => {
       next.civiliansRescued += count;
       next.xp += count * 5;
+      next.rescuedMissions.push(missionId);
     });
-    return { ok, rescued: ok ? count : 0, total: this.data.civiliansRescued };
+    return { ok, rescued: ok ? count : 0, total: this.data.civiliansRescued, reason: ok ? 'Civiles evacuados y guardados.' : 'No se pudo guardar el rescate.' };
   }
 
   resolveMission(missionId: number, outcome: 'victory' | 'defeat' | 'retreat', jaegerDamage = 0, cityDamage = 0) {
