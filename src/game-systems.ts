@@ -21,6 +21,10 @@ export interface TitanesSave {
   productionClaimAt: number;
   rescuedMissions: number[];
   researchedTech: TechnologyId[];
+  npcReputation: Record<string, number>;
+  completedContracts: string[];
+  tradeCount: number;
+  allianceName: string;
 }
 
 const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
@@ -42,7 +46,11 @@ const START: TitanesSave = {
   lastMissionOutcome: null,
   productionClaimAt: 0,
   rescuedMissions: [],
-  researchedTech: []
+  researchedTech: [],
+  npcReputation: { engineer: 0, quartermaster: 0, medic: 0 },
+  completedContracts: [],
+  tradeCount: 0,
+  allianceName: ''
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -69,7 +77,7 @@ export class TitanesSystems {
     const normalize = (value: unknown): TitanesSave | null => {
       if (!value || typeof value !== 'object') return null;
       const parsed = value as Record<string, unknown>;
-      if ((parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3 && parsed.version !== 4) || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
+      if ((parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3 && parsed.version !== 4 && parsed.version !== 5) || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
       const numberMap = (source: unknown, defaults: Record<string, number>) => {
         const record = source && typeof source === 'object' ? source as Record<string, unknown> : {};
         return Object.fromEntries(Object.keys(defaults).map(key => {
@@ -80,7 +88,7 @@ export class TitanesSystems {
       const resources = numberMap(parsed.resources, START.resources);
       const completed = parsed.completedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12);
       const safe = cloneStart();
-      safe.version = 4;
+      safe.version = 5;
       safe.resources = resources as Record<ResourceKey, number>;
       safe.completedMissions = [...new Set(completed)];
       let nextMission = 1;
@@ -102,6 +110,10 @@ export class TitanesSystems {
       safe.rescuedMissions = Array.isArray(parsed.rescuedMissions) ? [...new Set(parsed.rescuedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12))] : [];
       const techIds: TechnologyId[] = ['composite_armor', 'neural_link', 'reactor_efficiency'];
       safe.researchedTech = Array.isArray(parsed.researchedTech) ? [...new Set(parsed.researchedTech.filter((id): id is TechnologyId => techIds.includes(id as TechnologyId)))] : [];
+      safe.npcReputation = numberMap(parsed.npcReputation, START.npcReputation);
+      safe.completedContracts = Array.isArray(parsed.completedContracts) ? [...new Set(parsed.completedContracts.filter((id): id is string => typeof id === 'string' && ['engineer_repair','quartermaster_supply','medic_evacuation'].includes(id)))] : [];
+      safe.tradeCount = clamp(Math.floor(Number(parsed.tradeCount) || 0), 0, 999999);
+      safe.allianceName = typeof parsed.allianceName === 'string' ? parsed.allianceName.trim().slice(0, 24) : '';
       return safe;
     };
     try {
@@ -130,7 +142,7 @@ export class TitanesSystems {
       if (previous) {
         try {
           const parsed = JSON.parse(previous) as Record<string, unknown>;
-          if ((parsed.version === 1 || parsed.version === 2 || parsed.version === 3 || parsed.version === 4) && parsed.resources && Array.isArray(parsed.completedMissions)) {
+          if ((parsed.version === 1 || parsed.version === 2 || parsed.version === 3 || parsed.version === 4 || parsed.version === 5) && parsed.resources && Array.isArray(parsed.completedMissions)) {
             localStorage.setItem(STORAGE_KEY + '-backup', previous);
           }
         } catch {
@@ -241,6 +253,43 @@ export class TitanesSystems {
 
   buyIntelData() {
     return this.transact({ energy: 120 }, { intel: 2 });
+  }
+
+  /** Exchange resources at the PPDC quartermaster. Rates are fixed and validated locally. */
+  tradeResources(from: ResourceKey, to: ResourceKey, amount: number) {
+    const rates: Record<ResourceKey, number> = { alloy: 1, energy: 1, intel: 1 };
+    if (!RESOURCE_KEYS.includes(from) || !RESOURCE_KEYS.includes(to) || from === to || !Number.isSafeInteger(amount) || amount < 10 || amount > 1000) {
+      return { ok: false, reason: 'Intercambio inválido. Elige entre 10 y 1.000 unidades.' };
+    }
+    const output = Math.floor(amount * rates[from] / rates[to]);
+    const ok = this.transact({ [from]: amount }, { [to]: output }, next => { next.tradeCount += 1; next.npcReputation.quartermaster = Math.min(100, next.npcReputation.quartermaster + 1); });
+    return { ok, received: ok ? output : 0, reason: ok ? 'Intercambio completado con el intendente.' : 'Recursos insuficientes o almacén lleno.' };
+  }
+
+  /** NPC contracts are finite, claim-once tasks; rewards are committed atomically. */
+  completeNpcContract(id: string) {
+    const contracts: Record<string, { cost: Partial<Record<ResourceKey, number>>; reward: Partial<Record<ResourceKey, number>>; reputation: string; xp: number }> = {
+      engineer_repair: { cost: { alloy: 90, energy: 40 }, reward: { energy: 150 }, reputation: 'engineer', xp: 35 },
+      quartermaster_supply: { cost: { alloy: 120 }, reward: { energy: 100, intel: 1 }, reputation: 'quartermaster', xp: 40 },
+      medic_evacuation: { cost: { energy: 80 }, reward: { alloy: 90, intel: 1 }, reputation: 'medic', xp: 45 }
+    };
+    const contract = contracts[id];
+    if (!contract || this.data.completedContracts.includes(id)) return { ok: false, reason: 'Contrato desconocido o ya reclamado.' };
+    const ok = this.transact(contract.cost, contract.reward, next => {
+      next.completedContracts.push(id);
+      next.npcReputation[contract.reputation] = Math.min(100, (next.npcReputation[contract.reputation] || 0) + 10);
+      next.xp += contract.xp;
+    });
+    return { ok, reason: ok ? 'Contrato completado. Recompensa y reputación guardadas.' : 'Faltan recursos o espacio en el almacén.' };
+  }
+
+  setAllianceName(name: string) {
+    const clean = name.trim().replace(/[^\\p{L}\\p{N} _-]/gu, '').slice(0, 24);
+    if (clean.length < 3) return { ok: false, reason: 'El nombre debe tener entre 3 y 24 caracteres.' };
+    if (this.data.buildings.command < 1 || this.data.upgrades.defense < 2) return { ok: false, reason: 'Requiere centro de mando y base nivel 2.' };
+    const next = structuredClone(this.data);
+    next.allianceName = clean;
+    return { ok: this.commit(next), reason: 'Alianza guardada en esta partida local. La red online aún no está conectada.' };
   }
 
   upgrade(key: keyof TitanesSave['upgrades']) {
