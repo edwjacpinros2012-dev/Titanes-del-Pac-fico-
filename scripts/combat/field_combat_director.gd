@@ -5,6 +5,7 @@ signal mission_completed(reward: Dictionary)
 
 const KaijuScript = preload("res://scripts/combat/field_kaiju.gd")
 const REQUIRED_DEFEATS := 3
+const COMPLETION_REWARD := {"metal": 20, "energia": 12}
 
 var player: Node3D
 var defeated_count := 0
@@ -13,6 +14,7 @@ var mission_finished := false
 var hud_label: Label
 var health_label: Label
 var save_timer := 0.0
+var mission_started := false
 
 func _ready() -> void:
 	call_deferred("_begin_field_mission")
@@ -53,6 +55,7 @@ func _begin_field_mission() -> void:
 	column.add_child(hud_label)
 	health_label = Label.new()
 	column.add_child(health_label)
+	mission_started = true
 	_spawn_initial_wave()
 	_update_hud()
 
@@ -74,12 +77,11 @@ func _on_kaiju_defeated(reward: Dictionary) -> void:
 		GlobalState.add_resource(str(resource_id), int(reward[resource_id]))
 	if defeated_count >= REQUIRED_DEFEATS:
 		mission_finished = true
-		var completion_reward := {"metal": 20, "energy": 12}
-		for resource_id in completion_reward:
-			GlobalState.add_resource(str(resource_id), int(completion_reward[resource_id]))
+		for resource_id in COMPLETION_REWARD:
+			GlobalState.add_resource(str(resource_id), int(COMPLETION_REWARD[resource_id]))
 		SaveSystem.save_game(GlobalState)
 		status_text = "Objetivo cumplido. Recompensas guardadas en el perfil local."
-		mission_completed.emit(completion_reward)
+		mission_completed.emit(COMPLETION_REWARD.duplicate(true))
 	else:
 		status_text = "Amenaza neutralizada. Recupera suministros y continúa."
 		SaveSystem.save_game(GlobalState)
@@ -95,7 +97,8 @@ func _on_health_changed(current: float, maximum: float) -> void:
 func _update_hud() -> void:
 	if hud_label == null:
 		return
-	var objective := "OBJETIVO: neutraliza Kaijus (%d/%d)" % [defeated_count, REQUIRED_DEFEATS]
+	var remaining := maxi(0, REQUIRED_DEFEATS - defeated_count)
+	var objective := "OBJETIVO: neutraliza amenazas (%d/%d)" % [defeated_count, REQUIRED_DEFEATS]
 	if mission_finished:
 		objective = "MISIÓN COMPLETADA"
 	elif player != null and player.is_defeated:
@@ -103,6 +106,6 @@ func _update_hud() -> void:
 	var controls := "SPACE: golpe | RMB/F: pulso (35 energía) | SHIFT: bloquear"
 	if OS.has_feature("mobile") or DisplayServer.is_touchscreen_available():
 		controls = "Usa la cruceta y los botones táctiles de combate."
-	hud_label.text = objective + "\n" + (status_text if not status_text.is_empty() else "Detectados: 3 hostiles. Acércate, apunta y ataca.") + "\n" + controls
+	hud_label.text = objective + "\n" + (status_text if not status_text.is_empty() else "Amenazas restantes: %d. Acércate y usa los controles de combate." % remaining) + "\n" + controls
 	if health_label and player != null:
 		health_label.text = "INTEGRIDAD %d / %d    ENERGÍA %d%%" % [roundi(player.health), roundi(player.max_health), roundi(player.energy)]
