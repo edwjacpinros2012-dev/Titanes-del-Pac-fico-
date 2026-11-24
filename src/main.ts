@@ -28,6 +28,7 @@ class TitanesScene extends Phaser.Scene {
   private battleStarted = false;
   private battleEnded = false;
   private startingIntegrity = 100;
+  private cityDamageTaken = 0;
   private moveX = 0;
   private moveZ = 0;
   private attackPower = 20;
@@ -253,7 +254,7 @@ class TitanesScene extends Phaser.Scene {
     this.battleEnded = true;
     const missionId = this.systems.snapshot().unlockedMissions;
     const damageTaken = Math.max(0, this.startingIntegrity - this.hp);
-    const cityDamage = outcome === 'defeat' ? 18 : outcome === 'retreat' ? 6 : 0;
+    const cityDamage = Math.min(100, this.cityDamageTaken + (outcome === 'defeat' ? 18 : outcome === 'retreat' ? 6 : 0));
     const result = this.systems.resolveMission(missionId, outcome, damageTaken, cityDamage);
     if (!result.ok) {
       this.status.setText('RESULTADO NO GUARDADO · ' + (result.reason || 'Comprueba el almacenamiento'));
@@ -288,13 +289,19 @@ class TitanesScene extends Phaser.Scene {
     const x=(this.keys.A.isDown||this.keys.LEFT.isDown?-1:0)+(this.keys.D.isDown||this.keys.RIGHT.isDown?1:0)+this.moveX;
     const z=(this.keys.W.isDown||this.keys.UP.isDown?-1:0)+(this.keys.S.isDown||this.keys.DOWN.isDown?1:0)+this.moveZ;
     this.titan.position.x+=x*dt*this.moveSpeed; this.titan.position.z+=z*dt*this.moveSpeed;
-    if (!this.battleEnded && this.kaijuAttackCooldown <= 0 && this.titan.position.distanceTo(this.kaiju.position) < 16) {
-      const armor = this.systems.getJaegerCombatStats().armor;
-      const damage = Math.max(5, 15 - Math.floor(armor / 12));
-      this.hp = Math.max(0, this.hp - damage);
+    if (!this.battleEnded && this.kaijuAttackCooldown <= 0) {
       this.kaijuAttackCooldown = 2.2;
-      this.status.setText('IMPACTO KAIJU · -' + damage + ' INTEGRIDAD');
-      if (this.hp <= 0) this.finishMission('defeat');
+      if (this.titan.position.distanceTo(this.kaiju.position) < 16) {
+        const armor = this.systems.getJaegerCombatStats().armor;
+        const damage = Math.max(5, 15 - Math.floor(armor / 12));
+        this.hp = Math.max(0, this.hp - damage);
+        this.status.setText('IMPACTO KAIJU · -' + damage + ' INTEGRIDAD');
+        if (this.hp <= 0) this.finishMission('defeat');
+      } else {
+        this.cityDamageTaken = Math.min(100, this.cityDamageTaken + 8);
+        this.status.setText('KAIJU ATACA LA CIUDAD · DAÑO ' + this.cityDamageTaken + '%');
+        if (this.cityDamageTaken >= 100) this.finishMission('defeat');
+      }
     }
     if(!this.battleEnded && this.keys.SPACE.isDown) this.attack();
     this.energy=Math.min(100,this.energy+dt*5);
