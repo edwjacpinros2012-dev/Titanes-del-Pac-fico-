@@ -55,15 +55,22 @@ var titan_level := 1
 var collected_nodes: Array[Node3D] = []
 var world_time := 0.0
 var autosave_elapsed := 0.0
+var syncing_game_state := false
 const AUTOSAVE_INTERVAL := 60.0
 
 func _ready() -> void:
+	if not GlobalState.resources_changed.is_connected(_on_global_resources_changed):
+		GlobalState.resources_changed.connect(_on_global_resources_changed)
 	_setup_input()
 	_create_world()
 	_create_player()
 	_create_gameplay_systems()
 	_create_hud()
 	_load_local_profile()
+	_sync_global_state_from_local()
+	var field_director := get_node_or_null("FieldCombatDirector")
+	if field_director != null and field_director.has_signal("mission_completed"):
+		field_director.mission_completed.connect(_on_field_mission_completed)
 	_apply_technology_effects()
 	_spawn_resources()
 	_update_hud()
@@ -781,6 +788,7 @@ func _add_resource(resource_id: String, amount: int) -> void:
 	var capacity := base_development.get_storage_capacity() if base_development else 250
 	var current_amount := int(resources.get(resource_id, 0))
 	resources[resource_id] = mini(capacity, current_amount + amount)
+	_sync_global_state_from_local()
 
 func _update_hud() -> void:
 	if not hud:
@@ -918,6 +926,7 @@ func _on_alliance_message(message: String) -> void:
 	_show_status(message)
 
 func _save_local_profile() -> void:
+	_sync_global_state_from_local()
 	var snapshot := {
 		"version": 1,
 		"resources": resources,
@@ -989,6 +998,28 @@ func _load_local_profile() -> void:
 	if alliance_manager and typeof(snapshot.get("alliance_state", {})) == TYPE_DICTIONARY and not snapshot.get("alliance_state", {}).is_empty():
 		alliance_manager.import_state(snapshot["alliance_state"])
 	_update_hud()
+
+func _sync_global_state_from_local() -> void:
+	if syncing_game_state:
+		return
+	syncing_game_state = true
+	GlobalState.resources = resources.duplicate(true)
+	GlobalState.base_level = maxi(1, base_level)
+	GlobalState.titan_level = maxi(1, titan_level)
+	GlobalState.resources_changed.emit()
+	syncing_game_state = false
+
+func _on_global_resources_changed() -> void:
+	if syncing_game_state:
+		return
+	resources = GlobalState.resources.duplicate(true)
+	_update_hud()
+
+func _on_field_mission_completed(_reward: Dictionary) -> void:
+	resources = GlobalState.resources.duplicate(true)
+	_show_status("OPERACIÓN COMPLETADA: suministros y progreso sincronizados con tu perfil local.")
+	_update_hud()
+	_save_local_profile()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE or what == NOTIFICATION_APPLICATION_PAUSED:
