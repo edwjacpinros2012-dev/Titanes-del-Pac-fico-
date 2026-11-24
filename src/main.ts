@@ -173,7 +173,7 @@ class TitanesScene extends Phaser.Scene {
     // Watch towers with cyan lamps
     for(const x of [-10,10]){this.box(base,[1.2,4,1.2],[x,2,-7.5],0x203c4e);this.box(base,[1.8,0.3,1.8],[x,4.2,-7.5],0x4b7c8f);this.box(base,[0.3,0.2,0.3],[x,4.5,-7.5],0x51eaff);}
     // Evacuation tents and simple civilian silhouettes
-    for(let i=0;i<6;i++){const x=-4.5+(i%3)*4.5,z=5.5+Math.floor(i/3)*1.4;this.box(base,[0.5,1.1,0.4],[x,1.1,z],i%2?0x497f8c:0x9a7651);const head=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),this.material(0xc7a27a,0.1));head.position.set(x,1.85,z);base.add(head);}
+    for(let i=0;i<(this.activeMission?.civilianCount ?? 6);i++){const x=-4.5+(i%3)*4.5,z=5.5+Math.floor(i/3)*1.4;this.box(base,[0.5,1.1,0.4],[x,1.1,z],i%2?0x497f8c:0x9a7651);const head=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),this.material(0xc7a27a,0.1));head.position.set(x,1.85,z);base.add(head);}
     // Modular facilities are grouped so upgrades visibly change the 3D outpost.
     const facilities: Array<[string,[number,number,number],number]> = [
       ['command',[-8.0,0,-1.2],0x36586a],['hangar',[0,0,-4.6],0x1b3444],['reactor',[7.4,0,-3.0],0x287080],
@@ -501,11 +501,12 @@ class TitanesScene extends Phaser.Scene {
       this.status.setText('ZONA DE EVACUACIÓN · PRESIONA E PARA RESCATAR 6 CIVILES');
       if (Phaser.Input.Keyboard.JustDown(this.keys.E)) {
         const missionId = this.systems.snapshot().unlockedMissions;
-        const result = this.systems.rescueCivilians(6, missionId);
+        const civilianCount = this.activeMission?.civilianCount ?? 6;
+        const result = this.systems.rescueCivilians(civilianCount, missionId);
         if (result.ok) {
           this.rescueUsed = true;
           this.civilianGroup.visible = false;
-          this.status.setText('EVACUACIÓN COMPLETADA · 6 CIVILES A SALVO · +48 ALEACIÓN · +24 ENERGÍA · +30 XP');
+          this.status.setText(`EVACUACIÓN COMPLETADA · ${civilianCount} CIVILES A SALVO · +${civilianCount*8} ALEACIÓN · +${civilianCount*4} ENERGÍA · +${civilianCount*5} XP`);
         } else this.status.setText(result.reason || 'NO SE PUDO REGISTRAR LA EVACUACIÓN');
       }
     }
