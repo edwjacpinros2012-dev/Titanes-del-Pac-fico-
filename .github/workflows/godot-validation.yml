@@ -1,9 +1,19 @@
-name: Godot project validation
+name: Legacy Godot project validation
 
 on:
   push:
     branches: [main]
+    paths:
+      - "project.godot"
+      - "**/*.gd"
+      - "tests/**/*.gd"
+      - ".github/workflows/godot-validation.yml"
   pull_request:
+    paths:
+      - "project.godot"
+      - "**/*.gd"
+      - "tests/**/*.gd"
+      - ".github/workflows/godot-validation.yml"
 
 jobs:
   import-and-run:
