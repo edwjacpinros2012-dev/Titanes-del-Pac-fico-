@@ -24,6 +24,9 @@ class TitanesScene extends Phaser.Scene {
   private energyBar!: Phaser.GameObjects.Rectangle;
   private kaijuBar!: Phaser.GameObjects.Rectangle;
   private attackCooldown = 0;
+  private kaijuAttackCooldown = 1.5;
+  private battleEnded = false;
+  private startingIntegrity = 100;
   private moveX = 0;
   private moveZ = 0;
   private attackPower = 20;
@@ -92,9 +95,12 @@ class TitanesScene extends Phaser.Scene {
 
   private applySelectedJaeger(id: JaegerId) {
     const stats = JAEGERS[id];
-    this.hp = stats.armor; this.energy = stats.power;
-    this.attackPower = Math.max(12, Math.round(stats.power / 4));
-    this.moveSpeed = 3.2 + stats.agility / 30;
+    const combat = this.systems.getJaegerCombatStats();
+    this.hp = this.systems.snapshot().jaegerIntegrity;
+    this.startingIntegrity = this.hp;
+    this.energy = 100;
+    this.attackPower = Math.max(12, Math.round(combat.power / 4));
+    this.moveSpeed = 3.2 + combat.agility / 30;
     if (this.titan) {
       const colors: Record<JaegerId,number> = { gipsy:0x167c9c, striker:0xc2b044, cherno:0x485c63 };
       this.titan.traverse(obj => {
@@ -239,27 +245,56 @@ class TitanesScene extends Phaser.Scene {
     btn(controlX+gap,controlY,'▶',()=>this.moveX=1).on('pointerup',()=>this.moveX=0).on('pointerout',()=>this.moveX=0);
     btn(controlX,controlY+gap,'▼',()=>this.moveZ=1).on('pointerup',()=>this.moveZ=0).on('pointerout',()=>this.moveZ=0);
     btn(this.scale.width-58,this.scale.height-110,'IMPACTO',()=>this.attack());
+    btn(this.scale.width-86,76,'RETIRADA',()=>this.finishMission('retreat'));
   }
+  private finishMission(outcome: 'victory' | 'defeat' | 'retreat') {
+    if (this.battleEnded) return;
+    this.battleEnded = true;
+    const missionId = this.systems.snapshot().unlockedMissions;
+    const damageTaken = Math.max(0, this.startingIntegrity - this.hp);
+    const cityDamage = outcome === 'defeat' ? 18 : outcome === 'retreat' ? 6 : 0;
+    const result = this.systems.resolveMission(missionId, outcome, damageTaken, cityDamage);
+    if (!result.ok) {
+      this.status.setText('RESULTADO NO GUARDADO · ' + (result.reason || 'Comprueba el almacenamiento'));
+      return;
+    }
+    if (outcome === 'victory') {
+      this.status.setText('VICTORIA · +' + result.reward.alloy + ' ALEACIÓN · +' + result.reward.energy + ' ENERGÍA · +' + result.reward.intel + ' DATOS · +' + result.reward.xp + ' XP · JAEGER ' + result.jaegerIntegrity + '%');
+    } else if (outcome === 'defeat') {
+      this.status.setText('DERROTA · JAEGER ' + result.jaegerIntegrity + '% · CIUDAD ' + result.cityIntegrity + '% · REPARACIÓN REQUERIDA');
+    } else {
+      this.status.setText('RETIRADA · JAEGER ' + result.jaegerIntegrity + '% · CIUDAD ' + result.cityIntegrity + '% · MISIÓN PENDIENTE');
+    }
+  }
+
   private attack() {
-    if(this.attackCooldown>0 || this.energy<12 || this.kaijuDefeated) return;
+    if(this.battleEnded || this.attackCooldown>0 || this.energy<12 || this.kaijuDefeated) return;
     this.attackCooldown=0.7; this.energy=Math.max(0,this.energy-12);
     const d=this.titan.position.distanceTo(this.kaiju.position);
     if(d<12){
       this.kaijuHp=Math.max(0,this.kaijuHp-this.attackPower); this.kaiju.position.x+=this.kaiju.position.x>this.titan.position.x?1.3:-1.3; this.score+=100;
       if(this.kaijuHp<=0){
         this.kaijuDefeated=true; this.kaiju.visible=false;
-        const activeMission=this.systems.snapshot().unlockedMissions;const result=this.systems.completeMission(activeMission);
-        this.status.setText(result.ok?'MISIÓN COMPLETADA · +'+result.reward.alloy+' ALEACIÓN · +'+result.reward.energy+' ENERGÍA · +'+result.reward.intel+' DATOS · +'+result.reward.xp+' XP'+(result.unlocks.length?' · DESBLOQUEO: '+result.unlocks.join(' / '):''):'OBJETIVO COMPLETADO');
+        this.finishMission('victory');
       } else this.status.setText('IMPACTO CONFIRMADO · KAIJU '+this.kaijuHp+'% · +100');
     } else this.status.setText('ACÉRCATE PARA ALCANZAR AL KAIJU');
   }
   update(_time:number,delta:number) {
     const dt=Math.min(delta/1000,0.04);
     this.attackCooldown=Math.max(0,this.attackCooldown-dt);
+    this.kaijuAttackCooldown=Math.max(0,this.kaijuAttackCooldown-dt);
     const x=(this.keys.A.isDown||this.keys.LEFT.isDown?-1:0)+(this.keys.D.isDown||this.keys.RIGHT.isDown?1:0)+this.moveX;
     const z=(this.keys.W.isDown||this.keys.UP.isDown?-1:0)+(this.keys.S.isDown||this.keys.DOWN.isDown?1:0)+this.moveZ;
     this.titan.position.x+=x*dt*this.moveSpeed; this.titan.position.z+=z*dt*this.moveSpeed;
-    if(this.keys.SPACE.isDown) this.attack();
+    if (!this.battleEnded && this.kaijuAttackCooldown <= 0 && this.titan.position.distanceTo(this.kaiju.position) < 16) {
+      const armor = this.systems.getJaegerCombatStats().armor;
+      const damage = Math.max(5, 15 - Math.floor(armor / 12));
+      this.hp = Math.max(0, this.hp - damage);
+      this.kaijuAttackCooldown = 2.2;
+      this.status.setText('IMPACTO KAIJU · -' + damage + ' INTEGRIDAD');
+      if (this.hp <= 0) this.finishMission('defeat');
+    }
+    if(!this.battleEnded && this.keys.SPACE.isDown) this.attack();
     this.energy=Math.min(100,this.energy+dt*5);
     this.hpBar.width=180*this.hp/100; this.energyBar.width=180*this.energy/100; this.kaijuBar.width=180*this.kaijuHp/100;
     this.camera3d.position.lerp(new THREE.Vector3(this.titan.position.x,7,this.titan.position.z+12),dt*2);
