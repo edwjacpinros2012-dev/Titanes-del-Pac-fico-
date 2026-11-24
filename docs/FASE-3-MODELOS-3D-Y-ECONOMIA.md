@@ -65,3 +65,49 @@ Kenney se considera solo para props ambientales genéricos si hacen falta; los J
 ## Estado honesto
 
 La fase de prototipo 3D y progresión ya tiene una primera implementación funcional en código. La conversión a assets GLB riggeados, la animación de producción, más arquetipos de Kaiju y la validación visual completa siguen pendientes. No marcar esta fase como terminada hasta comprobar el resultado en navegador.
+
+
+## Clasificación de unidades y amenazas — ampliación
+
+### Categorías de Jaeger
+La categoría define la función táctica y el estilo de juego, no solo la apariencia:
+- **Equilibrado — Gipsy:** versátil, adecuado para aprender y adaptarse a distintos escenarios.
+- **Interceptor — Striker:** movilidad y respuesta rápida; especializado en reposicionamiento.
+- **Guardián — Cherno:** blindaje y protección de zonas urbanas; sacrifica movilidad.
+
+Las estadísticas visibles (armadura, potencia y agilidad) siguen conectadas con la selección y la progresión de cada unidad.
+
+### Categorías de Kaiju
+Catálogo original de amenazas de cinco niveles, inspirado en la idea general de escalas de amenaza de la ficción Kaiju, pero con nombres y descripciones originales del juego:
+- **CAT-I Raker — Explorador:** amenaza ligera y veloz.
+- **CAT-II Brineback — Blindado:** avance resistente.
+- **CAT-III Razorfin — Acuático:** presión rápida en la costa.
+- **CAT-IV Dreadmaw — Asedio:** resistencia y presión urbana prolongada.
+- **CAT-V Abyssal Crown — Colosal:** amenaza estratégica de escala extrema.
+
+El códice describe arquetipos y protocolos de respuesta ficticios. No implica que los cinco estén ya conectados a misiones jugables; el catálogo diferencia contenido diseñado de contenido implementado.
+
+### Defensa y evolución de la base
+Las instalaciones ya existentes se conectan a una valoración defensiva común:
+- **Defensa perimetral:** aporta 8 puntos por nivel.
+- **Centro de evacuación:** aporta 4 puntos por nivel y mejora la protección civil.
+- **Centro médico:** aporta 2 puntos por nivel y mejora la protección civil.
+- La valoración se limita a 90; reduce el daño urbano de las misiones hasta un máximo del 65%.
+- La mejora de instalaciones consume recursos y respeta el máximo de 10 niveles.
+- El resultado de una misión aplica la mitigación antes de descontar integridad de ciudad. Victoria, derrota y retirada siguen dejando consecuencias.
+
+### Integración de interfaz
+- El Hangar muestra la categoría, especialidad y pasiva de cada Jaeger.
+- El panel Kaijus presenta las cinco categorías, rasgos y protocolos.
+- El panel Base muestra valoración defensiva, reducción estimada de daño y protección civil.
+- Los niveles de las instalaciones siguen reflejándose en los grupos 3D ya existentes.
+
+## Referencias de diseño y tecnología
+- El material promocional de Warner Bros. para Pacific Rim muestra el uso de categorías Kaiju como escala de amenaza; se usa únicamente como referencia conceptual, no se copian diseños ni textos: https://wwws.warnerbros.co.jp/pacificrim/media/kaiju_download.pdf
+- El reglamento de Pacific Rim de Evil Hat describe chasis de Jaeger diferenciados por tamaño, blindaje y movilidad; se toma como referencia general para distinguir roles, no para copiar estadísticas: https://d1vzi28wh99zvq.cloudfront.net/pdf_previews/431901-sample.pdf
+- El informe de AIRC sobre tower defense describe la relación entre construcción de base, producción de recursos y defensa ante oleadas: https://document.acqirc.org/publication_documents/reports/1671037095.1049.8.2A_Report.pdf
+- Three.js GLTFLoader: https://threejs.org/docs/pages/GLTFLoader.html
+- Three.js — Loading 3D Models: https://threejs.org/manual/pages/loading-3d-models.html
+
+## Validación pendiente
+Los cambios de interfaz y lógica requieren ejecutar `npm run build` y probar el juego en navegador. La mitigación defensiva ya se aplica al resultado persistente de misión, pero no debe anunciarse como multijugador ni como simulación completa de asedios en tiempo real.
