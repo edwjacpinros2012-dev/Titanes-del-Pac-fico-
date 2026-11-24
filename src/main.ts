@@ -145,7 +145,7 @@ class TitanesScene extends Phaser.Scene {
     // Modular facilities are grouped so upgrades visibly change the 3D outpost.
     const facilities: Array<[string,[number,number,number],number]> = [
       ['command',[-8.0,0,-1.2],0x36586a],['hangar',[0,0,-4.6],0x1b3444],['reactor',[7.4,0,-3.0],0x287080],
-      ['workshop',[7.4,0,1.2],0x345363],['medical',[-7.7,0,4.0],0x3a6577],
+      ['workshop',[7.4,0,1.2],0x345363],['medical',[-7.7,0,4.0],0x3a6577],['warehouse',[8.5,0,4.0],0x536878],
       ['defense',[0,0,7.0],0x45687a],['evacuation',[0,0,4.8],0x9a7651]
     ];
     for(const [id,pos,color] of facilities){
@@ -162,7 +162,7 @@ class TitanesScene extends Phaser.Scene {
         labelCtx.fillStyle='rgba(4,16,28,0.88)'; labelCtx.fillRect(0,0,512,128);
         labelCtx.strokeStyle='#45d8f0'; labelCtx.lineWidth=5; labelCtx.strokeRect(5,5,502,118);
         labelCtx.fillStyle='#d9f9ff'; labelCtx.font='bold 38px Arial'; labelCtx.textAlign='center';
-        const labelText:Record<string,string>={command:'PPDC COMMAND',hangar:'JAEGER HANGAR',reactor:'ENERGY REACTOR',workshop:'MAINTENANCE',medical:'MEDICAL / EVAC',defense:'PERIMETER DEFENSE',evacuation:'CIVILIAN ZONE'};
+        const labelText:Record<string,string>={command:'PPDC COMMAND',hangar:'JAEGER HANGAR',reactor:'ENERGY REACTOR',workshop:'MAINTENANCE',medical:'MEDICAL / EVAC',warehouse:'RESOURCE STORAGE',defense:'PERIMETER DEFENSE',evacuation:'CIVILIAN ZONE'};
         labelCtx.fillText(labelText[id]||id.toUpperCase(),256,78);
         const texture=new THREE.CanvasTexture(labelCanvas); texture.colorSpace=THREE.SRGBColorSpace;
         const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true}));
@@ -179,6 +179,7 @@ class TitanesScene extends Phaser.Scene {
     for(const key of keys){
       const group=this.buildingGroups[key]; if(!group) continue;
       const level=levels[key]||0;
+      group.visible = level > 0;
       const size=Math.max(0.62,0.72+level*0.16);
       group.scale.set(size,Math.max(0.65,0.72+level*0.22),size);
     }
