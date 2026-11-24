@@ -79,7 +79,9 @@ export class TitanesSystems {
       let nextMission = 1;
       while (safe.completedMissions.includes(nextMission) && nextMission < 12) nextMission += 1;
       safe.unlockedMissions = nextMission;
-      safe.selectedJaeger = parsed.selectedJaeger === 'striker' || parsed.selectedJaeger === 'cherno' ? parsed.selectedJaeger : 'gipsy';
+      const requestedJaeger = parsed.selectedJaeger === 'striker' || parsed.selectedJaeger === 'cherno' ? parsed.selectedJaeger : 'gipsy';
+      const unlockedCount = consecutiveMissionCount(safe.completedMissions);
+      safe.selectedJaeger = requestedJaeger === 'striker' && unlockedCount >= 2 || requestedJaeger === 'cherno' && unlockedCount >= 4 ? requestedJaeger : 'gipsy';
       safe.upgrades = numberMap(parsed.upgrades, START.upgrades);
       safe.inventory = numberMap(parsed.inventory, START.inventory);
       safe.buildings = numberMap(parsed.buildings, START.buildings);
@@ -195,6 +197,7 @@ export class TitanesSystems {
 
   buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>, reward: Partial<Record<ResourceKey, number>> = {}) {
     if (!isValidResourceMap(cost) || !isValidResourceMap(reward)) return false;
+    if ((this.data.inventory[item] || 0) >= 999999) return false;
     return this.transact(cost, reward, next => { next.inventory[item] = (next.inventory[item] || 0) + 1; });
   }
 
@@ -243,7 +246,9 @@ export class TitanesSystems {
   }
 
   rescueCivilians(count: number) {
-    if (!Number.isSafeInteger(count) || count < 0 || count > Math.floor(Number.MAX_SAFE_INTEGER / 8)) {
+    if (!Number.isSafeInteger(count) || count < 0 ||
+        count > Math.floor((Number.MAX_SAFE_INTEGER - this.data.civiliansRescued) / 8) ||
+        count > Math.floor((Number.MAX_SAFE_INTEGER - this.data.xp) / 5)) {
       return { ok: false, rescued: 0, total: this.data.civiliansRescued };
     }
     const reward = { alloy: count * 8, energy: count * 4 };
