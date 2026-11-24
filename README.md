@@ -30,6 +30,12 @@ No hay actualmente un chat global operativo, autenticación conectada, matchmaki
 ## Director táctico
 El director local adapta el perfil de amenaza, comportamiento Kaiju, presión urbana y evacuación según progreso, Jaeger y defensas. Es lógica procedural local, no un modelo generativo remoto. Consulta `docs/AI_MISSION_DIRECTOR.md` y `docs/AI_WORLD_RUNTIME.md`. El director de mundo añade eventos deterministas, distritos, clima y contramedidas a cada operación.
 
+## Dirección visual conectada al runtime
+
+El módulo `src/visual-direction.ts` convierte la etiqueta de clima del director de misiones en perfiles de iluminación y atmósfera para Three.js. `src/main.ts` aplica esos perfiles al fondo, niebla, luces, suelo, superficie oceánica y corredor costero. La etiqueta del HUD también muestra el distrito y el clima de la misión.
+
+Esta integración mejora la coherencia cinematográfica del escenario procedural actual. No significa que se hayan importado las ilustraciones del PDF como texturas ni que existan todavía modelos GLB finales.
+
 ## Estado visual
 Los Jaegers, Kaijus y entorno usan geometría procedural/provisional. No deben describirse como modelos GLB finales ni como animaciones profesionales. La dirección artística y el contrato de producción están en `docs/VISUAL_PRODUCTION_MASTER_PLAN.md` y `docs/HIGGSFIELD_VISUAL_WORKFLOW.md`.
 
