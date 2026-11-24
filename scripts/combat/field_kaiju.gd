@@ -82,7 +82,7 @@ func receive_damage(amount: float) -> void:
 	if health <= 0.0:
 		is_dead = true
 		velocity = Vector3.ZERO
-		defeated.emit({"metal": 6, "energy": 3})
+		defeated.emit({"metal": 6, "energia": 3})
 		queue_free()
 
 func _build_body() -> void:
