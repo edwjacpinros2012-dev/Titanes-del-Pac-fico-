@@ -83,20 +83,20 @@ func _on_kaiju_defeated(reward: Dictionary) -> void:
 	if mission_finished:
 		return
 	defeated_count += 1
-	for resource_id in reward:
-		GlobalState.add_resource(str(resource_id), int(reward[resource_id]))
 	if defeated_count >= REQUIRED_DEFEATS:
 		mission_finished = true
 		if MISSION_ID not in GlobalState.completed_missions:
 			GlobalState.completed_missions.append(MISSION_ID)
+		for _enemy_index in range(REQUIRED_DEFEATS):
+			for resource_id in reward:
+				GlobalState.add_resource(str(resource_id), int(reward[resource_id]))
 		for resource_id in COMPLETION_REWARD:
 			GlobalState.add_resource(str(resource_id), int(COMPLETION_REWARD[resource_id]))
 		SaveSystem.save_game(GlobalState)
 		status_text = "Objetivo cumplido. Recompensas guardadas en el perfil local."
 		mission_completed.emit(COMPLETION_REWARD.duplicate(true))
 	else:
-		status_text = "Amenaza neutralizada. Recupera suministros y continúa."
-		SaveSystem.save_game(GlobalState)
+		status_text = "Amenaza neutralizada. Progreso de objetivo actualizado."
 	_update_hud()
 
 func _on_health_changed(current: float, maximum: float) -> void:
