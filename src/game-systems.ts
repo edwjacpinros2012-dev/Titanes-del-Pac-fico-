@@ -15,6 +15,7 @@ export interface TitanesSave {
   cityIntegrity: number;
   failedMissions: number[];
   lastMissionOutcome: 'victory' | 'defeat' | 'retreat' | null;
+  productionClaimAt: number;
 }
 
 const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
@@ -33,7 +34,8 @@ const START: TitanesSave = {
   jaegerIntegrity: 100,
   cityIntegrity: 100,
   failedMissions: [],
-  lastMissionOutcome: null
+  lastMissionOutcome: null,
+  productionClaimAt: 0
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -87,6 +89,7 @@ export class TitanesSystems {
       safe.cityIntegrity = clamp(Math.floor(Number(parsed.cityIntegrity ?? 100) || 0), 0, 100);
       safe.failedMissions = Array.isArray(parsed.failedMissions) ? [...new Set(parsed.failedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12))] : [];
       safe.lastMissionOutcome = parsed.lastMissionOutcome === 'victory' || parsed.lastMissionOutcome === 'defeat' || parsed.lastMissionOutcome === 'retreat' ? parsed.lastMissionOutcome : null;
+      safe.productionClaimAt = clamp(Math.floor(Number(parsed.productionClaimAt) || 0), 0, Number.MAX_SAFE_INTEGER);
       return safe;
     };
     try {
@@ -220,9 +223,7 @@ export class TitanesSystems {
     if (!rates.alloy && !rates.energy && !rates.intel) {
       return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, reason: 'Mejora el taller o reactor para activar producción.' };
     }
-    const productionKey = STORAGE_KEY + '-production-last-claim';
-    let lastClaim = 0;
-    try { lastClaim = Math.max(0, Number(localStorage.getItem(productionKey)) || 0); } catch { /* storage unavailable */ }
+    const lastClaim = this.data.productionClaimAt;
     const now = Date.now();
     const elapsedHours = lastClaim > 0 ? clamp((now - lastClaim) / 3600000, 0, 8) : 1;
     if (elapsedHours < 0.05) {
@@ -237,8 +238,7 @@ export class TitanesSystems {
     if (!reward.alloy && !reward.energy && !reward.intel) {
       return { ok: false, reward, reason: 'Almacén lleno o producción todavía en curso. Mejora el almacén.' };
     }
-    if (!this.transact({}, reward)) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, reason: 'No se pudo aplicar la producción.' };
-    try { localStorage.setItem(productionKey, String(now)); } catch { /* production remains available in memory */ }
+    if (!this.transact({}, reward, next => { next.productionClaimAt = now; })) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, reason: 'No se pudo guardar la producción.' };
     return { ok: true, reward, elapsedHours, remainingMs: 8 * 3600000 };
   }
 
