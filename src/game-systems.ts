@@ -242,6 +242,19 @@ export class TitanesSystems {
     return { ok: true, reward, elapsedHours, remainingMs: 8 * 3600000 };
   }
 
+  rescueCivilians(count: number) {
+    if (!Number.isSafeInteger(count) || count < 0 || count > Math.floor(Number.MAX_SAFE_INTEGER / 8)) {
+      return { ok: false, rescued: 0, total: this.data.civiliansRescued };
+    }
+    const reward = { alloy: count * 8, energy: count * 4 };
+    if (!isValidResourceMap(reward)) return { ok: false, rescued: 0, total: this.data.civiliansRescued };
+    const ok = this.transact({}, reward, next => {
+      next.civiliansRescued += count;
+      next.xp += count * 5;
+    });
+    return { ok, rescued: ok ? count : 0, total: this.data.civiliansRescued };
+  }
+
   resolveMission(missionId: number, outcome: 'victory' | 'defeat' | 'retreat', jaegerDamage = 0, cityDamage = 0) {
     const emptyReward = { alloy: 0, energy: 0, intel: 0, xp: 0 };
     if (!Number.isInteger(missionId) || missionId !== this.data.unlockedMissions || this.data.completedMissions.includes(missionId)) return { ok: false, outcome, reward: emptyReward, unlocks: [] as string[], reason: 'Misión no disponible.' };
