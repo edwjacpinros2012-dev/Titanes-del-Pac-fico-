@@ -106,7 +106,7 @@ export class TitanesSystems {
     this.save();
     return true;
   }
-    spendResources(cost: Partial<Record<ResourceKey, number>>) {
+  spendResources(cost: Partial<Record<ResourceKey, number>>) {
     const keys = Object.keys(cost) as ResourceKey[];
     const normalized: Partial<Record<ResourceKey, number>> = {};
     for (const key of keys) {
@@ -119,7 +119,7 @@ export class TitanesSystems {
     this.save();
     return true;
   }
-    buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>) {
+  buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>) {
     const keys = Object.keys(cost) as ResourceKey[];
     const normalized: Partial<Record<ResourceKey, number>> = {};
     for (const key of keys) {
@@ -127,6 +127,7 @@ export class TitanesSystems {
       if (!['alloy', 'energy', 'intel'].includes(key) || !Number.isFinite(raw) || (raw ?? 0) < 0) return false;
       normalized[key] = Math.floor(raw ?? 0);
     }
+    if (!keys.length || !keys.some(key => (normalized[key] ?? 0) > 0)) return false;
     const currentItemCount = this.data.inventory[item] || 0;
     if (!Number.isFinite(currentItemCount) || currentItemCount >= 999999) return false;
     if (keys.some(key => this.data.resources[key] < (normalized[key] ?? 0))) return false;
@@ -135,7 +136,7 @@ export class TitanesSystems {
     this.save();
     return true;
   }
-    upgrade(key: keyof TitanesSave['upgrades']) {
+  upgrade(key: keyof TitanesSave['upgrades']) {
     if (!['defense', 'reactor', 'training'].includes(key)) return { ok: false, cost: { alloy: 0, energy: 0 }, level: 0, reason: 'Mejora desconocida.' };
     const level = this.data.upgrades[key] ?? 0;
     const cost = { alloy: 180 + level * 140, energy: 120 + level * 100 };
