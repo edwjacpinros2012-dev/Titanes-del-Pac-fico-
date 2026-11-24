@@ -284,7 +284,7 @@ export class TitanesSystems {
   }
 
   setAllianceName(name: string) {
-    const clean = name.trim().replace(/[^\\p{L}\\p{N} _-]/gu, '').slice(0, 24);
+    const clean = name.trim().replace(/[^\p{L}\p{N} _-]/gu, '').slice(0, 24);
     if (clean.length < 3) return { ok: false, reason: 'El nombre debe tener entre 3 y 24 caracteres.' };
     if (this.data.buildings.command < 1 || this.data.upgrades.defense < 2) return { ok: false, reason: 'Requiere centro de mando y base nivel 2.' };
     const next = structuredClone(this.data);
