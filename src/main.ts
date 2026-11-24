@@ -65,8 +65,11 @@ class TitanesScene extends Phaser.Scene {
     this.renderer3d = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer3d.setPixelRatio(Math.min(devicePixelRatio, 1.7));
     this.renderer3d.setSize(innerWidth, innerHeight);
+    this.renderer3d.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer3d.shadowMap.enabled = true;
+    this.renderer3d.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer3d.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer3d.toneMappingExposure = 1.08;
     this.activeMission = this.missionDirector.generate();
     this.buildWorld();
     this.applySelectedJaeger(this.systems.snapshot().selectedJaeger);
@@ -312,14 +315,23 @@ class TitanesScene extends Phaser.Scene {
 
   private buildKaiju() {
     const root = new THREE.Group();
-    const hide = new THREE.MeshStandardMaterial({ color: 0x315e5a, metalness: 0.28, roughness: 0.78 });
-    const armor = new THREE.MeshStandardMaterial({ color: 0x183b3e, metalness: 0.5, roughness: 0.56 });
-    const biolum = new THREE.MeshStandardMaterial({ color: 0x28d9e6, emissive: 0x087e91, emissiveIntensity: 1.8, roughness: 0.35 });
+    const category = this.activeMission?.category ?? 3;
+    const kaijuVisuals: Record<number, { hide: number; armor: number; glow: number; body: [number, number, number]; crest: number }> = {
+      1: { hide: 0x315e5a, armor: 0x183b3e, glow: 0x28d9e6, body: [0.9, 0.88, 1.0], crest: 5 },
+      2: { hide: 0x405b50, armor: 0x243b34, glow: 0x82d8a1, body: [1.3, 1.08, 1.4], crest: 6 },
+      3: { hide: 0x254e63, armor: 0x163347, glow: 0x4ddfff, body: [1.05, 0.92, 1.7], crest: 8 },
+      4: { hide: 0x4b3d39, armor: 0x302a2a, glow: 0xff985e, body: [1.25, 1.35, 1.35], crest: 9 },
+      5: { hide: 0x302d55, armor: 0x1a1c3b, glow: 0xb18cff, body: [1.55, 1.42, 1.65], crest: 11 }
+    };
+    const visual = kaijuVisuals[Math.max(1, Math.min(5, category))];
+    const hide = new THREE.MeshStandardMaterial({ color: visual.hide, metalness: 0.28, roughness: 0.78 });
+    const armor = new THREE.MeshStandardMaterial({ color: visual.armor, metalness: 0.5, roughness: 0.56 });
+    const biolum = new THREE.MeshStandardMaterial({ color: visual.glow, emissive: visual.glow, emissiveIntensity: 1.35, roughness: 0.35 });
     const add = (parent: THREE.Group, geometry: THREE.BufferGeometry, material: THREE.Material, pos: [number, number, number], scale: [number, number, number] = [1, 1, 1], rot: [number, number, number] = [0, 0, 0]) => {
       const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...pos); mesh.scale.set(...scale); mesh.rotation.set(...rot);
       mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
     };
-    const body = add(root, new THREE.IcosahedronGeometry(1.5, 2), hide, [0, 2.55, 0], [1.1, 1.18, 1.45]);
+    const body = add(root, new THREE.IcosahedronGeometry(1.5, 2), hide, [0, 2.55, 0], visual.body);
     body.rotation.x = -0.12;
     add(root, new THREE.IcosahedronGeometry(1, 1), armor, [0, 3.55, -0.05], [0.95, 0.78, 1.0]);
     // Rib plates and glowing bio-energy channels.
@@ -350,7 +362,7 @@ class TitanesScene extends Phaser.Scene {
       add(leg, new THREE.ConeGeometry(0.12, 0.45, 6), armor, [0, -1.35, 0.62], [1, 1, 1], [Math.PI / 2, 0, 0]);
     }
     // Dorsal ridge and articulated tail.
-    for (let i = 0; i < 7; i++) add(root, new THREE.ConeGeometry(0.28 - i * 0.018, 0.85 - i * 0.045, 6), armor, [0, 3.45 - i * 0.06, -0.85 - i * 0.38], [1, 1, 1], [Math.PI / 2, 0, 0]);
+    for (let i = 0; i < visual.crest; i++) add(root, new THREE.ConeGeometry(0.28 - i * 0.012, 0.85 - i * 0.025, 6), armor, [0, 3.45 - i * 0.06, -0.85 - i * 0.32], [1, 1, 1], [Math.PI / 2, 0, 0]);
     const tail = new THREE.Group(); tail.position.set(0, 2.1, -1.2); root.add(tail);
     for (let i = 0; i < 5; i++) {
       add(tail, new THREE.ConeGeometry(0.58 - i * 0.09, 1.15, 8), hide, [0, 0, -0.55 - i * 0.78], [1, 0.8, 1], [-Math.PI / 2, 0, 0]);
@@ -393,8 +405,8 @@ class TitanesScene extends Phaser.Scene {
     const floorMaterial = new THREE.MeshStandardMaterial({
       color: visual.groundColor, metalness: 0.18, roughness: visual.groundRoughness
     });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), floorMaterial);
-    floor.rotation.x = -Math.PI / 2; floor.position.y = -0.08; floor.receiveShadow = true; this.world.add(floor);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(160, 100), floorMaterial);
+    floor.rotation.x = -Math.PI / 2; floor.position.set(0, -0.08, 12); floor.receiveShadow = true; this.world.add(floor);
     // Coastal water plane: a real 3D surface, kept separate from the playable ground.
     const ocean = new THREE.Mesh(
       new THREE.PlaneGeometry(180, 72),
