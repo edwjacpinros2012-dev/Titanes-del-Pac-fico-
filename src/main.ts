@@ -7,6 +7,7 @@ import type { JaegerId } from './game-systems';
 import { mountGamePanels } from './game-panels';
 import './game-panels.css';
 import { MissionDirector, type MissionBlueprint } from './mission-director';
+import { getVisualProfile } from './visual-direction';
 
 class TitanesScene extends Phaser.Scene {
   private world!: THREE.Scene;
@@ -56,8 +57,9 @@ class TitanesScene extends Phaser.Scene {
     canvas.id = 'world3d';
     document.querySelector('#game-root')?.prepend(canvas);
     this.world = new THREE.Scene();
-    this.world.background = new THREE.Color(0x071522);
-    this.world.fog = new THREE.Fog(0x071522, 24, 75);
+    const visualProfile = getVisualProfile(this.activeMission?.weather ?? 'LLUVIA COSTERA');
+    this.world.background = new THREE.Color(visualProfile.skyColor);
+    this.world.fog = new THREE.Fog(visualProfile.fogColor, visualProfile.fogNear, visualProfile.fogFar);
     this.camera3d = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 150);
     this.camera3d.position.set(0, 7, 15);
     this.renderer3d = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -380,11 +382,42 @@ class TitanesScene extends Phaser.Scene {
   }
 
   private buildWorld() {
-    this.world.add(new THREE.HemisphereLight(0x9ccfff,0x15212b,2.1));
-    const sun = new THREE.DirectionalLight(0xffffff,2.5); sun.position.set(-8,15,8); sun.castShadow = true; this.world.add(sun);
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(160,160),this.material(0x172b38,0.15));
-    floor.rotation.x=-Math.PI/2; floor.position.y=-0.08; floor.receiveShadow=true; this.world.add(floor);
-    const grid = new THREE.GridHelper(100,50,0x1b8095,0x1b3d50); grid.position.y=0.01; this.world.add(grid);
+    const visual = getVisualProfile(this.activeMission?.weather ?? 'LLUVIA COSTERA');
+    this.world.add(new THREE.HemisphereLight(visual.skyLight, visual.groundLight, visual.ambientIntensity));
+    const sun = new THREE.DirectionalLight(visual.keyLight, visual.keyIntensity);
+    sun.position.set(-8, 15, 8); sun.castShadow = true;
+    sun.shadow.mapSize.set(1536, 1536);
+    sun.shadow.camera.left = -42; sun.shadow.camera.right = 42;
+    sun.shadow.camera.top = 42; sun.shadow.camera.bottom = -42;
+    this.world.add(sun);
+    const floorMaterial = new THREE.MeshStandardMaterial({
+      color: visual.groundColor, metalness: 0.18, roughness: visual.groundRoughness
+    });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), floorMaterial);
+    floor.rotation.x = -Math.PI / 2; floor.position.y = -0.08; floor.receiveShadow = true; this.world.add(floor);
+    // Coastal water plane: a real 3D surface, kept separate from the playable ground.
+    const ocean = new THREE.Mesh(
+      new THREE.PlaneGeometry(180, 72),
+      new THREE.MeshStandardMaterial({
+        color: visual.oceanColor, metalness: 0.48, roughness: 0.24,
+        emissive: visual.oceanGlow, emissiveIntensity: 0.16
+      })
+    );
+    ocean.rotation.x = -Math.PI / 2; ocean.position.set(0, -0.12, -72);
+    ocean.receiveShadow = true; this.world.add(ocean);
+    // Industrial coastal causeway and wet reflective lane markings.
+    const causeway = new THREE.Mesh(
+      new THREE.BoxGeometry(42, 0.12, 8),
+      new THREE.MeshStandardMaterial({ color: 0x263b46, metalness: 0.28, roughness: 0.42 })
+    );
+    causeway.position.set(0, -0.01, -28); causeway.receiveShadow = true; this.world.add(causeway);
+    for (let i = -5; i <= 5; i++) {
+      const marker = new THREE.Mesh(
+        new THREE.BoxGeometry(1.5, 0.025, 0.12),
+        new THREE.MeshStandardMaterial({ color: 0x8a9b91, emissive: 0x1d3538, emissiveIntensity: 0.18 })
+      );
+      marker.position.set(i * 3.5, 0.07, -28); this.world.add(marker);
+    }
     this.buildBase();
     this.buildCivilians();
     let levelSeed = this.activeMission?.seed ?? 1;
@@ -422,7 +455,7 @@ class TitanesScene extends Phaser.Scene {
   private buildHud() {
     const w=this.scale.width;
     this.add.text(24,18,'PACIFIC RIM  /  TITANES',{fontFamily:'Arial',fontSize:'18px',color:'#8defff',fontStyle:'bold'}).setScrollFactor(0);
-    this.add.text(24,45,`${this.activeMission?.sector ?? 'SECTOR: COSTA DEL PACÍFICO'} · ${this.activeMission?.kaijuName ?? 'ALERTA KAIJU'}`,{fontSize:'10px',color:'#8ba8b8'}).setScrollFactor(0);
+    this.add.text(24,45,`${this.activeMission?.district ?? this.activeMission?.sector ?? 'SECTOR: COSTA DEL PACÍFICO'} · ${this.activeMission?.weather ?? 'ALERTA KAIJU'}`,{fontSize:'10px',color:'#8ba8b8'}).setScrollFactor(0);
     this.add.rectangle(24,83,180,10,0x263b49).setOrigin(0,0.5);
     this.hpBar=this.add.rectangle(24,83,180,10,0x37e7a4).setOrigin(0,0.5);
     this.add.text(24,65,'INTEGRIDAD',{fontSize:'9px',color:'#b9d2dc'});
