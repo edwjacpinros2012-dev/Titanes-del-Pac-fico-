@@ -1,0 +1,45 @@
+/* TITANES DEL PACIFICO — landscape-first game shell */
+:root{color-scheme:dark}
+html,body,#game-root{width:100%;height:100%;min-height:100%;overflow:hidden}
+body{overscroll-behavior:none;touch-action:pan-x pan-y}
+#game-root,#world3d{position:fixed;inset:0;width:100vw;height:100dvh}
+#world3d{object-fit:cover}
+#titan-menu{width:100vw;height:100dvh;overflow:hidden}
+#titan-menu main{min-height:0}
+#titan-menu .menu-copy{max-height:100%;overflow-y:auto;scrollbar-width:thin}
+#titan-panels{width:100vw;height:100dvh}
+body #titan-panels .tp-nav{left:50%;right:auto;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);width:max-content;max-width:96vw;display:flex;flex-flow:row nowrap;justify-content:flex-start;gap:5px;overflow-x:auto;overflow-y:hidden;padding:6px;white-space:nowrap;scrollbar-width:thin}
+body #titan-panels .tp-nav button{flex:0 0 auto;min-width:max-content;padding:9px 12px;font-size:11px}
+body #titan-panels .tp-window{left:auto;right:2vw;top:3vh;bottom:76px;width:min(560px,48vw);max-height:90dvh;overflow:hidden}
+body #titan-panels .tp-content{height:100%;overflow:auto}
+@media (orientation:landscape) and (max-height:520px){
+ #titan-menu header{top:2%;padding-bottom:7px}
+ #titan-menu main{inset:10% 4% 7%}
+ .menu-copy h1{font-size:clamp(42px,7vw,70px);margin:8px 0}
+ .menu-copy>p{font-size:12px;margin:6px 0}
+ .mission-card{margin:8px 0;padding:8px 11px}
+ .mission-card> b{font-size:18px;margin:4px 0}
+ .menu-copy button{padding:8px 12px;margin:5px 5px 4px 0}
+ .menu-copy footer{padding-top:6px;margin-top:5px}
+ .tm-mech{transform:scale(.78)}
+ body #titan-panels .tp-nav{bottom:4px}
+ body #titan-panels .tp-nav button{padding:7px 9px;font-size:10px}
+ body #titan-panels .tp-window{top:2vh;bottom:52px;width:min(500px,52vw);max-height:94dvh}
+}
+@media (orientation:portrait) and (max-width:900px){
+ body:before{content:"GIRA TU DISPOSITIVO";position:fixed;inset:0;z-index:99999;display:grid;place-content:center;text-align:center;padding:28px;background:radial-gradient(ellipse at center,#12384a 0%,#06131e 65%,#02070c 100%);color:#e8fbff;font:900 clamp(26px,8vw,42px)/1.1 'Barlow Condensed',Arial,sans-serif;letter-spacing:.12em}
+ body:after{content:"TITANES DEL PACÍFICO  •  ESTE JUEGO SE JUEGA EN HORIZONTAL";position:fixed;inset:55% 8% auto;z-index:100000;display:block;text-align:center;background:none;color:#70eaff;font:700 12px Rajdhani,Arial,sans-serif;letter-spacing:.14em}
+ #titan-menu,#titan-panels{visibility:hidden!important;pointer-events:none!important}
+}
+@media (max-width:700px) and (orientation:landscape){
+ body #titan-panels .tp-nav{left:50%;right:auto;bottom:4px;transform:translateX(-50%);max-width:98vw;gap:3px}
+ body #titan-panels .tp-nav button{padding:7px 8px;font-size:9px}
+ body #titan-panels .tp-window{left:auto;right:1vw;top:2vh;bottom:48px;width:min(56vw,440px);max-height:95dvh}
+ #titan-menu header,#titan-menu .tm-bottom{left:3%;right:3%}
+ #titan-menu main{inset:12% 3% 8%}
+ .menu-copy{width:55%}
+ .menu-copy h1{font-size:clamp(42px,8vw,66px)}
+ .mission-card{max-width:100%}
+ .tm-mech{right:-8%;width:52%;opacity:.75}
+ .robot{transform:scale(.72)}
+}
