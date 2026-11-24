@@ -1,6 +1,19 @@
 import type { TitanesSystems } from './game-systems';
 import { MISSION_LIST, JAEGERS } from './game-systems';
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>\"']/g, character => {
+    switch (character) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '\"': return '&quot;';
+      case "'": return '&#39;';
+      default: return character;
+    }
+  });
+}
+
 export function mountGamePanels(systems: TitanesSystems, onJaegerSelected?: (id: 'gipsy'|'striker'|'cherno') => void, onBuildingUpgraded?: (id: string) => void) {
   if (document.getElementById('titan-panels')) return;
   const host = document.createElement('div');
@@ -46,7 +59,7 @@ export function mountGamePanels(systems: TitanesSystems, onJaegerSelected?: (id:
       content.innerHTML = res + `<small>ABASTECIMIENTO / PPDC</small><h2>TIENDA</h2><p>Catálogo de prueba conectado a recursos e inventario guardado. Las compras se registran localmente.</p><div class="tp-grid"><article><b>Kit de reparación · ${s.inventory.repairKit || 0}</b><span>Reabastecimiento de campo</span><strong>180 ALEACIÓN</strong><button data-buy="repair">ADQUIRIR</button></article><article><b>Componentes de armadura · ${s.inventory.armorParts || 0}</b><span>Material de mejora</span><strong>240 ALEACIÓN + 90 ENERGÍA</strong><button data-buy="armor">ADQUIRIR</button></article><article><b>Datos de investigación · ${s.inventory.researchData || 0}</b><span>Paquete de inteligencia</span><strong>120 ENERGÍA</strong><button data-buy="intel">ADQUIRIR</button></article></div><p id="tp-msg" class="tp-note"></p>`;
       content.querySelectorAll('[data-buy]').forEach(b=>b.addEventListener('click',()=>{const kind=b.getAttribute('data-buy');let ok=false;if(kind==='repair'){ok=systems.buyItem('repairKit',{alloy:180});}if(kind==='armor'){ok=systems.buyItem('armorParts',{alloy:240,energy:90});}if(kind==='intel'){ok=systems.buyItem('researchData',{energy:120});if(ok)systems.addResources({intel:2});}const msg=content.querySelector('#tp-msg');if(msg)msg.textContent=ok?'Compra completada.':'Recursos insuficientes.';render('shop');}));
     } else {
-      content.innerHTML = res + `<small>DEFENSA COLECTIVA / COOPERACIÓN</small><h2>ALIANZA</h2><div class="tp-lock"><b>REQUISITO: BASE NIVEL 2 · ${baseLevel>=2?'DESBLOQUEADO':'BLOQUEADO'}</b><p>${baseLevel>=2?'Prototipo local disponible. Las alianzas online requieren backend y sincronización multijugador.':'Mejora la defensa dos veces para alcanzar base nivel 2.'}</p></div><div class="tp-grid"><article><b>Crear alianza</b><span>Nombre de grupo de prueba</span><strong>${localAlliance||'SIN ALIANZA LOCAL'}</strong><input id="tp-alliance-name" maxlength="24" placeholder="Nombre de alianza" ${baseLevel<2?'disabled':''}><button id="tp-create-alliance" ${baseLevel<2?'disabled':''}>CREAR (PROTOTIPO LOCAL)</button></article><article><b>Buscar alianza</b><span>Explora la función de acceso</span><strong>ONLINE PENDIENTE</strong><button id="tp-search-alliance">BUSCAR</button></article><article><b>Operación conjunta</b><span>Defensa de ciudades y civiles</span><strong>OBJETIVO FUTURO · 40+ JAEGERS</strong><button id="tp-operation" ${baseLevel<2?'disabled':''}>VER OPERACIÓN (DEMO)</button></article></div><p class="tp-note" id="tp-alliance-msg"></p>`;
+      content.innerHTML = res + `<small>DEFENSA COLECTIVA / COOPERACIÓN</small><h2>ALIANZA</h2><div class="tp-lock"><b>REQUISITO: BASE NIVEL 2 · ${baseLevel>=2?'DESBLOQUEADO':'BLOQUEADO'}</b><p>${baseLevel>=2?'Prototipo local disponible. Las alianzas online requieren backend y sincronización multijugador.':'Mejora la defensa dos veces para alcanzar base nivel 2.'}</p></div><div class="tp-grid"><article><b>Crear alianza</b><span>Nombre de grupo de prueba</span><strong>${escapeHtml(localAlliance)||'SIN ALIANZA LOCAL'}</strong><input id="tp-alliance-name" maxlength="24" placeholder="Nombre de alianza" ${baseLevel<2?'disabled':''}><button id="tp-create-alliance" ${baseLevel<2?'disabled':''}>CREAR (PROTOTIPO LOCAL)</button></article><article><b>Buscar alianza</b><span>Explora la función de acceso</span><strong>ONLINE PENDIENTE</strong><button id="tp-search-alliance">BUSCAR</button></article><article><b>Operación conjunta</b><span>Defensa de ciudades y civiles</span><strong>OBJETIVO FUTURO · 40+ JAEGERS</strong><button id="tp-operation" ${baseLevel<2?'disabled':''}>VER OPERACIÓN (DEMO)</button></article></div><p class="tp-note" id="tp-alliance-msg"></p>`;
       content.querySelector('#tp-create-alliance')?.addEventListener('click',()=>{const input=content.querySelector('#tp-alliance-name') as HTMLInputElement;const msg=content.querySelector('#tp-alliance-msg');const name=input?.value.trim();if(name){localAlliance=name;if(msg)msg.textContent='Alianza '+name+' creada en esta sesión de prueba. No es una alianza online.';}else if(msg)msg.textContent='Escribe un nombre para crear la alianza de prueba.';});
       content.querySelector('#tp-search-alliance')?.addEventListener('click',()=>{const msg=content.querySelector('#tp-alliance-msg');if(msg)msg.textContent='La búsqueda de alianzas online se conectará cuando exista el backend multijugador.';});
       content.querySelector('#tp-operation')?.addEventListener('click',()=>{const msg=content.querySelector('#tp-alliance-msg');if(msg)msg.textContent='Demo de operación: objetivos de ciudad, evacuación, Kaijus y escuadrones. Combate multijugador real aún pendiente.';});
