@@ -162,7 +162,7 @@ func _spawn_attack_flash(special: bool, connected: bool) -> void:
 	material.emission_energy_multiplier = 1.8
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	flash.material_override = material
-	flash.position = Vector3(0, 1.6, -1.6)
+	flash.position = Vector3(0, 1.6, 1.6)
 	flash.scale = Vector3.ONE * (0.25 if connected else 0.16)
 	add_child(flash)
 	var tween := create_tween()
