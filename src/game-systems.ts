@@ -1,7 +1,8 @@
 export type ResourceKey = 'alloy' | 'energy' | 'intel';
 export type JaegerId = 'gipsy' | 'striker' | 'cherno';
+export type TechnologyId = 'composite_armor' | 'neural_link' | 'reactor_efficiency';
 export interface TitanesSave {
-  version: 3;
+  version: 4;
   resources: Record<ResourceKey, number>;
   unlockedMissions: number;
   completedMissions: number[];
@@ -17,12 +18,13 @@ export interface TitanesSave {
   lastMissionOutcome: 'victory' | 'defeat' | 'retreat' | null;
   productionClaimAt: number;
   rescuedMissions: number[];
+  researchedTech: TechnologyId[];
 }
 
 const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
 const RESOURCE_KEYS: ResourceKey[] = ['alloy', 'energy', 'intel'];
 const START: TitanesSave = {
-  version: 3,
+  version: 4,
   resources: { alloy: 650, energy: 500, intel: 0 },
   unlockedMissions: 1,
   completedMissions: [],
@@ -37,7 +39,8 @@ const START: TitanesSave = {
   failedMissions: [],
   lastMissionOutcome: null,
   productionClaimAt: 0,
-  rescuedMissions: []
+  rescuedMissions: [],
+  researchedTech: []
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -64,7 +67,7 @@ export class TitanesSystems {
     const normalize = (value: unknown): TitanesSave | null => {
       if (!value || typeof value !== 'object') return null;
       const parsed = value as Record<string, unknown>;
-      if ((parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3) || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
+      if ((parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3 && parsed.version !== 4) || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
       const numberMap = (source: unknown, defaults: Record<string, number>) => {
         const record = source && typeof source === 'object' ? source as Record<string, unknown> : {};
         return Object.fromEntries(Object.keys(defaults).map(key => {
@@ -75,7 +78,7 @@ export class TitanesSystems {
       const resources = numberMap(parsed.resources, START.resources);
       const completed = parsed.completedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12);
       const safe = cloneStart();
-      safe.version = 3;
+      safe.version = 4;
       safe.resources = resources as Record<ResourceKey, number>;
       safe.completedMissions = [...new Set(completed)];
       let nextMission = 1;
@@ -95,6 +98,8 @@ export class TitanesSystems {
       safe.lastMissionOutcome = parsed.lastMissionOutcome === 'victory' || parsed.lastMissionOutcome === 'defeat' || parsed.lastMissionOutcome === 'retreat' ? parsed.lastMissionOutcome : null;
       safe.productionClaimAt = clamp(Math.floor(Number(parsed.productionClaimAt) || 0), 0, Number.MAX_SAFE_INTEGER);
       safe.rescuedMissions = Array.isArray(parsed.rescuedMissions) ? [...new Set(parsed.rescuedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12))] : [];
+      const techIds: TechnologyId[] = ['composite_armor', 'neural_link', 'reactor_efficiency'];
+      safe.researchedTech = Array.isArray(parsed.researchedTech) ? [...new Set(parsed.researchedTech.filter((id): id is TechnologyId => techIds.includes(id as TechnologyId)))] : [];
       return safe;
     };
     try {
@@ -123,7 +128,7 @@ export class TitanesSystems {
       if (previous) {
         try {
           const parsed = JSON.parse(previous) as Record<string, unknown>;
-          if ((parsed.version === 1 || parsed.version === 2 || parsed.version === 3) && parsed.resources && Array.isArray(parsed.completedMissions)) {
+          if ((parsed.version === 1 || parsed.version === 2 || parsed.version === 3 || parsed.version === 4) && parsed.resources && Array.isArray(parsed.completedMissions)) {
             localStorage.setItem(STORAGE_KEY + '-backup', previous);
           }
         } catch {
@@ -156,10 +161,21 @@ export class TitanesSystems {
     const reactor = this.data.upgrades.reactor || 0;
     const training = this.data.upgrades.training || 0;
     return {
-      armor: Math.min(100, base.armor + defense * 4),
+      armor: Math.min(100, base.armor + defense * 4 + (this.data.researchedTech.includes('composite_armor') ? 8 : 0)),
       power: Math.min(120, base.power + reactor * 3 + training * 2),
-      agility: Math.min(100, base.agility + training * 2)
+      agility: Math.min(100, base.agility + training * 2 + (this.data.researchedTech.includes('neural_link') ? 8 : 0))
     };
+  }
+
+  researchTechnology(id: TechnologyId) {
+    const technology = TECHNOLOGIES[id];
+    if (!technology) return { ok: false, reason: 'Tecnología desconocida.' };
+    if (this.data.researchedTech.includes(id)) return { ok: false, reason: 'Tecnología ya investigada.' };
+    if (consecutiveMissionCount(this.data.completedMissions) < technology.requiredMissions) {
+      return { ok: false, reason: 'Requiere completar ' + technology.requiredMissions + ' misiones.' };
+    }
+    const ok = this.transact(technology.cost, {}, next => { next.researchedTech.push(id); });
+    return { ok, reason: ok ? 'Investigación completada: ' + technology.label : 'Faltan recursos o no se pudo guardar la investigación.', cost: technology.cost };
   }
 
   storageCapacity() {
@@ -170,7 +186,7 @@ export class TitanesSystems {
     const buildings = this.data.buildings;
     return {
       alloy: Math.max(0, (buildings.workshop || 0) * 35 + (buildings.defense || 0) * 10),
-      energy: Math.max(0, (buildings.reactor || 0) * 45),
+      energy: Math.max(0, (buildings.reactor || 0) * 45 + (this.data.researchedTech.includes('reactor_efficiency') ? 20 : 0)),
       intel: Math.max(0, (buildings.command || 0) * 2 + (buildings.medical || 0))
     };
   }
@@ -328,6 +344,12 @@ export const JAEGERS: Record<JaegerId, { label: string; role: string; armor: num
   gipsy: { label: 'GIPSY-CLASS · MARK-I', role: 'Jaeger inicial · Nivel 1', armor: 58, power: 52, agility: 46 },
   striker: { label: 'STRIKER-CLASS', role: 'Rápido', armor: 72, power: 91, agility: 88 },
   cherno: { label: 'CHERNO-CLASS', role: 'Pesado', armor: 95, power: 68, agility: 48 }
+};
+
+export const TECHNOLOGIES: Record<TechnologyId, { label: string; description: string; requiredMissions: number; cost: Partial<Record<ResourceKey, number>> }> = {
+  composite_armor: { label: 'Blindaje compuesto', description: '+8 armadura para el Jaeger', requiredMissions: 1, cost: { alloy: 260, energy: 160, intel: 2 } },
+  neural_link: { label: 'Interfaz neuronal', description: '+8 agilidad para el Jaeger', requiredMissions: 2, cost: { alloy: 180, energy: 240, intel: 3 } },
+  reactor_efficiency: { label: 'Reactor de alto rendimiento', description: '+20 energía por hora en la base', requiredMissions: 3, cost: { alloy: 220, energy: 180, intel: 2 } }
 };
 
 export const MISSION_LIST = [
