@@ -4,7 +4,7 @@ export type JaegerRole = 'equilibrado' | 'interceptor' | 'guardian';
 export type KaijuCategory = 1 | 2 | 3 | 4 | 5;
 export type TechnologyId = 'composite_armor' | 'neural_link' | 'reactor_efficiency';
 export interface TitanesSave {
-  version: 4;
+  version: 5;
   resources: Record<ResourceKey, number>;
   unlockedMissions: number;
   completedMissions: number[];
@@ -30,7 +30,7 @@ export interface TitanesSave {
 const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
 const RESOURCE_KEYS: ResourceKey[] = ['alloy', 'energy', 'intel'];
 const START: TitanesSave = {
-  version: 4,
+  version: 5,
   resources: { alloy: 650, energy: 500, intel: 0 },
   unlockedMissions: 1,
   completedMissions: [],
