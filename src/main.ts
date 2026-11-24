@@ -225,7 +225,13 @@ class TitanesScene extends Phaser.Scene {
     const armor = new THREE.MeshStandardMaterial({ color, metalness: 0.82, roughness: 0.29 });
     const dark = new THREE.MeshStandardMaterial({ color: 0x172632, metalness: 0.88, roughness: 0.34 });
     const steel = new THREE.MeshStandardMaterial({ color: 0x657987, metalness: 0.9, roughness: 0.26 });
-    const glow = new THREE.MeshStandardMaterial({ color: 0xff9b42, emissive: 0xff6a20, emissiveIntensity: 2.1, metalness: 0.35, roughness: 0.22 });
+    const jaegerDesign: Record<JaegerId, { glow: number; emissive: number; shoulder: [number,number,number]; chest: [number,number,number]; crest: number }> = {
+      gipsy: { glow: 0x39d8ed, emissive: 0x087eaa, shoulder: [1.08,0.82,1.02], chest: [1.9,1.65,1.05], crest: 1 },
+      striker: { glow: 0xffa64b, emissive: 0xb94b16, shoulder: [0.68,0.82,0.7], chest: [1.55,1.48,0.88], crest: 2 },
+      cherno: { glow: 0x75e2b2, emissive: 0x187b64, shoulder: [1.42,1.12,1.28], chest: [2.18,1.88,1.25], crest: 3 }
+    };
+    const design = jaegerDesign[id];
+    const glow = new THREE.MeshStandardMaterial({ color: design.glow, emissive: design.emissive, emissiveIntensity: 2.0, metalness: 0.35, roughness: 0.22 });
     this.jaegerArmorMaterial = armor;
     this.jaegerAccentMaterial = glow;
     const add = (parent: THREE.Group, geometry: THREE.BufferGeometry, material: THREE.Material, pos: [number, number, number], rot: [number, number, number] = [0, 0, 0]) => {
@@ -242,7 +248,7 @@ class TitanesScene extends Phaser.Scene {
 
     // Torso: layered chest, reactor housing, back pack and readable shoulder silhouette.
     const torso = new THREE.Group(); torso.position.y = 3.05; root.add(torso);
-    panel(torso, [1.9, 1.65, 1.05], [0, 0, 0], armor);
+    panel(torso, design.chest, [0, 0, 0], armor);
     panel(torso, [1.45, 0.42, 0.16], [0, 0.52, 0.57], steel);
     panel(torso, [0.5, 0.9, 0.18], [0, -0.15, 0.61], dark);
     add(torso, new THREE.CylinderGeometry(0.32, 0.38, 0.18, 16), dark, [0, 0.12, 0.76], [Math.PI / 2, 0, 0]);
@@ -261,7 +267,7 @@ class TitanesScene extends Phaser.Scene {
     const makeArm = (side: number) => {
       const arm = new THREE.Group(); arm.position.set(side * 1.22, 0.62, 0); torso.add(arm);
       joint(arm, [0, 0, 0], 0.42);
-      panel(arm, [0.92, 1.0, 0.96], [side * 0.12, -0.35, 0], armor, [0, 0, side * -0.08]);
+      panel(arm, design.shoulder, [side * 0.12, -0.35, 0], armor, [0, 0, side * -0.08]);
       panel(arm, [0.98, 0.28, 0.72], [side * 0.12, -0.03, 0.08], steel);
       cylinder(arm, 0.2, 0.24, 0.8, [0, -0.98, 0], dark);
       joint(arm, [0, -1.28, 0], 0.28);
@@ -276,9 +282,11 @@ class TitanesScene extends Phaser.Scene {
       // Slim profile, swept shoulder fins and twin back thrusters.
       for (const side of [-1, 1]) {
         panel(torso, [0.28, 1.15, 0.62], [side * 1.0, 0.35, -0.35], steel, [0, 0, side * -0.32]);
+        panel(torso, [0.12, 1.42, 0.42], [side * 1.08, 0.62, -0.42], armor, [0, 0, side * -0.48]);
         cylinder(torso, 0.24, 0.32, 0.8, [side * 0.48, 0.12, -0.92], glow);
         panel(torso, [0.18, 0.72, 0.25], [side * 0.9, -0.72, -0.7], dark);
       }
+      panel(torso, [0.22, 0.82, 0.22], [0, 0.15, -1.08], glow);
     } else if (id === 'cherno') {
       // Heavy siege silhouette with reinforced shoulder and forearm plates.
       for (const side of [-1, 1]) {
@@ -287,6 +295,16 @@ class TitanesScene extends Phaser.Scene {
         panel(torso, [0.3, 0.85, 0.32], [side * 0.72, 0.2, 0.7], glow);
       }
       panel(torso, [1.55, 0.35, 0.72], [0, -0.92, -0.72], steel);
+      for (const side of [-1, 1]) {
+        panel(torso, [0.22, 1.45, 0.9], [side * 1.82, 0.25, -0.08], dark, [0, 0, side * -0.12]);
+        cylinder(torso, 0.3, 0.34, 0.9, [side * 0.72, 0.05, -0.98], glow);
+      }
+    } else {
+      // Gipsy signature: compact shoulder armor and a framed circular reactor.
+      for (const side of [-1, 1]) {
+        panel(torso, [0.34, 0.82, 0.9], [side * 1.0, 0.55, 0.02], armor, [0, 0, side * -0.1]);
+        panel(torso, [0.16, 0.42, 0.12], [side * 0.72, -0.2, 0.72], glow);
+      }
     }
     // Hip block and two articulated legs with heavy feet.
     panel(root, [1.45, 0.62, 0.9], [0, 1.95, 0], dark);
@@ -324,6 +342,13 @@ class TitanesScene extends Phaser.Scene {
       5: { hide: 0x302d55, armor: 0x1a1c3b, glow: 0xb18cff, body: [1.55, 1.42, 1.65], crest: 11 }
     };
     const visual = kaijuVisuals[Math.max(1, Math.min(5, category))];
+    const silhouette = [
+      { body: [1.22,0.78,1.62] as [number,number,number], head: [1.0,0.68,1.18] as [number,number,number], limb: 0.82, tail: 1.28, dorsal: 5 },
+      { body: [1.35,1.15,1.42] as [number,number,number], head: [1.0,0.82,1.0] as [number,number,number], limb: 1.0, tail: 1.05, dorsal: 7 },
+      { body: [0.92,0.9,1.92] as [number,number,number], head: [0.86,0.68,1.52] as [number,number,number], limb: 0.9, tail: 1.65, dorsal: 9 },
+      { body: [1.25,1.42,1.32] as [number,number,number], head: [1.08,0.94,1.22] as [number,number,number], limb: 1.18, tail: 1.15, dorsal: 10 },
+      { body: [1.55,1.52,1.72] as [number,number,number], head: [1.28,1.02,1.42] as [number,number,number], limb: 1.32, tail: 1.45, dorsal: 12 }
+    ][Math.max(0,Math.min(4,category-1))];
     const hide = new THREE.MeshStandardMaterial({ color: visual.hide, metalness: 0.28, roughness: 0.78 });
     const armor = new THREE.MeshStandardMaterial({ color: visual.armor, metalness: 0.5, roughness: 0.56 });
     const biolum = new THREE.MeshStandardMaterial({ color: visual.glow, emissive: visual.glow, emissiveIntensity: 1.35, roughness: 0.35 });
@@ -331,9 +356,9 @@ class TitanesScene extends Phaser.Scene {
       const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...pos); mesh.scale.set(...scale); mesh.rotation.set(...rot);
       mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
     };
-    const body = add(root, new THREE.IcosahedronGeometry(1.5, 2), hide, [0, 2.55, 0], visual.body);
+    const body = add(root, new THREE.IcosahedronGeometry(1.5, 2), hide, [0, 2.55, 0], silhouette.body);
     body.rotation.x = -0.12;
-    add(root, new THREE.IcosahedronGeometry(1, 1), armor, [0, 3.55, -0.05], [0.95, 0.78, 1.0]);
+    add(root, new THREE.IcosahedronGeometry(1, 1), armor, [0, category === 1 ? 3.28 : 3.55, -0.05], silhouette.head);
     // Rib plates and glowing bio-energy channels.
     for (let i = 0; i < 5; i++) {
       const z = 0.72 - i * 0.34;
@@ -350,22 +375,22 @@ class TitanesScene extends Phaser.Scene {
     }
     // Four heavy limbs with claws.
     for (const side of [-1, 1]) {
-      const arm = new THREE.Group(); arm.position.set(side * 1.25, 2.9, 0.15); root.add(arm);
+      const arm = new THREE.Group(); arm.position.set(side * 1.25, category === 1 ? 2.45 : 2.9, 0.15); arm.scale.setScalar(silhouette.limb); root.add(arm);
       add(arm, new THREE.IcosahedronGeometry(0.62, 1), hide, [side * 0.22, -0.42, 0], [0.8, 1.45, 0.8], [0, 0, side * -0.2]);
       add(arm, new THREE.IcosahedronGeometry(0.42, 1), armor, [side * 0.3, -1.38, 0.2], [0.9, 0.8, 0.9]);
       for (let claw = 0; claw < 3; claw++) add(arm, new THREE.ConeGeometry(0.11, 0.55, 6), armor, [side * 0.3 + (claw - 1) * 0.22, -1.85, 0.48], [1, 1, 1], [Math.PI / 2, 0, 0]);
     }
     for (const side of [-1, 1]) {
-      const leg = new THREE.Group(); leg.position.set(side * 0.72, 1.65, -0.1); root.add(leg);
+      const leg = new THREE.Group(); leg.position.set(side * 0.72, category === 1 ? 1.38 : 1.65, -0.1); leg.scale.setScalar(silhouette.limb); root.add(leg);
       add(leg, new THREE.IcosahedronGeometry(0.55, 1), hide, [0, -0.35, 0], [0.95, 1.25, 1.0]);
       add(leg, new THREE.IcosahedronGeometry(0.48, 1), armor, [0, -1.12, 0.18], [1.1, 0.72, 1.3]);
       add(leg, new THREE.ConeGeometry(0.12, 0.45, 6), armor, [0, -1.35, 0.62], [1, 1, 1], [Math.PI / 2, 0, 0]);
     }
     // Dorsal ridge and articulated tail.
-    for (let i = 0; i < visual.crest; i++) add(root, new THREE.ConeGeometry(0.28 - i * 0.012, 0.85 - i * 0.025, 6), armor, [0, 3.45 - i * 0.06, -0.85 - i * 0.32], [1, 1, 1], [Math.PI / 2, 0, 0]);
+    for (let i = 0; i < silhouette.dorsal; i++) add(root, new THREE.ConeGeometry(0.28 - i * 0.009, 0.72 - i * 0.022, 6), armor, [0, 3.35 + Math.sin(i * 0.35) * 0.12, -0.62 - i * 0.29], [1, 1, 1], [Math.PI / 2, 0, 0]);
     const tail = new THREE.Group(); tail.position.set(0, 2.1, -1.2); root.add(tail);
     for (let i = 0; i < 5; i++) {
-      add(tail, new THREE.ConeGeometry(0.58 - i * 0.09, 1.15, 8), hide, [0, 0, -0.55 - i * 0.78], [1, 0.8, 1], [-Math.PI / 2, 0, 0]);
+      add(tail, new THREE.ConeGeometry((0.58 - i * 0.09) * silhouette.tail, 1.15 * silhouette.tail, 8), hide, [0, 0, -0.55 - i * 0.78], [1, 0.8, 1], [-Math.PI / 2, 0, 0]);
       add(tail, new THREE.ConeGeometry(0.16 - i * 0.02, 0.46, 6), armor, [0, 0.34, -0.55 - i * 0.78]);
     }
     this.kaijuRig = { head, tail };
