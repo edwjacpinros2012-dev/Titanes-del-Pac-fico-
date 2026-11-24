@@ -13,6 +13,7 @@ var status_text := ""
 var mission_finished := false
 var hud_label: Label
 var health_label: Label
+var retry_button: Button
 var save_timer := 0.0
 var mission_started := false
 
@@ -55,8 +56,17 @@ func _begin_field_mission() -> void:
 	column.add_child(hud_label)
 	health_label = Label.new()
 	column.add_child(health_label)
-	mission_started = true
-	_spawn_initial_wave()
+	retry_button = Button.new()
+	retry_button.text = "REINTENTAR OPERACIÓN"
+	retry_button.visible = false
+	retry_button.pressed.connect(_restart_mission)
+	column.add_child(retry_button)
+	if MISSION_ID in GlobalState.completed_missions:
+		mission_finished = true
+		status_text = "Operación completada anteriormente. Tu progreso está guardado."
+	else:
+		mission_started = true
+		_spawn_initial_wave()
 	_update_hud()
 
 func _spawn_initial_wave() -> void:
@@ -77,6 +87,8 @@ func _on_kaiju_defeated(reward: Dictionary) -> void:
 		GlobalState.add_resource(str(resource_id), int(reward[resource_id]))
 	if defeated_count >= REQUIRED_DEFEATS:
 		mission_finished = true
+		if MISSION_ID not in GlobalState.completed_missions:
+			GlobalState.completed_missions.append(MISSION_ID)
 		for resource_id in COMPLETION_REWARD:
 			GlobalState.add_resource(str(resource_id), int(COMPLETION_REWARD[resource_id]))
 		SaveSystem.save_game(GlobalState)
@@ -90,8 +102,26 @@ func _on_kaiju_defeated(reward: Dictionary) -> void:
 func _on_health_changed(current: float, maximum: float) -> void:
 	if health_label:
 		health_label.text = "INTEGRIDAD %d / %d    ENERGÍA %d%%" % [roundi(current), roundi(maximum), roundi(player.energy)]
-	if current <= 0.0:
-		status_text = "TITÁN INCAPACITADO — reinicia la misión para volver a desplegar."
+	if current <= 0.0 and not mission_finished:
+		status_text = "TITÁN INCAPACITADO — puedes reintentar la operación."
+		if retry_button:
+			retry_button.visible = true
+	_update_hud()
+
+func _restart_mission() -> void:
+	if mission_finished or not is_instance_valid(player):
+		return
+	for kaiju in get_tree().get_nodes_in_group("field_kaiju"):
+		if is_instance_valid(kaiju):
+			kaiju.queue_free()
+	defeated_count = 0
+	status_text = "Nueva tentativa iniciada. Completa los objetivos y vuelve a la base."
+	if player.has_method("restore_health"):
+		player.restore_health(float(player.get("max_health")))
+	if retry_button:
+		retry_button.visible = false
+	mission_started = true
+	_spawn_initial_wave()
 	_update_hud()
 
 func _update_hud() -> void:
@@ -107,5 +137,7 @@ func _update_hud() -> void:
 	if OS.has_feature("mobile") or DisplayServer.is_touchscreen_available():
 		controls = "Usa la cruceta y los botones táctiles de combate."
 	hud_label.text = objective + "\n" + (status_text if not status_text.is_empty() else "Amenazas restantes: %d. Acércate y usa los controles de combate." % remaining) + "\n" + controls
+	if retry_button:
+		retry_button.visible = player != null and player.is_defeated and not mission_finished
 	if health_label and player != null:
 		health_label.text = "INTEGRIDAD %d / %d    ENERGÍA %d%%" % [roundi(player.health), roundi(player.max_health), roundi(player.energy)]
