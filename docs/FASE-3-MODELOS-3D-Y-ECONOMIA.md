@@ -92,7 +92,7 @@ Las instalaciones ya existentes se conectan a una valoración defensiva común:
 - **Defensa perimetral:** aporta 8 puntos por nivel.
 - **Centro de evacuación:** aporta 4 puntos por nivel y mejora la protección civil.
 - **Centro médico:** aporta 2 puntos por nivel y mejora la protección civil.
-- La valoración se limita a 90; reduce el daño urbano de las misiones hasta un máximo del 65%.
+- La valoración se limita a 90; reduce el daño urbano de las misiones hasta un máximo del 60%.
 - La mejora de instalaciones consume recursos y respeta el máximo de 10 niveles.
 - El resultado de una misión aplica la mitigación antes de descontar integridad de ciudad. Victoria, derrota y retirada siguen dejando consecuencias.
 
