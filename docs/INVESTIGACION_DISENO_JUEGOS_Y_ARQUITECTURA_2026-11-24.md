@@ -76,3 +76,22 @@ Fuente: https://www.pcgamer.com/titanfall-2-interview-on-mechs-modes-and-the-new
 ## Criterio de terminado
 
 Una función solo se marca como completa si compila, tiene pruebas, funciona con teclado y táctil cuando corresponda, conserva el progreso tras recargar, muestra estados de error y ha sido probada en el despliegue web. Los SVG de hangar son ilustraciones 2D de interfaz, no modelos 3D ni animaciones.
+
+
+## Referencia adicional: Transformers: Earth Wars (solo patrones de interfaz y progresión)
+
+La documentación oficial de Transformers: Earth Wars explica una pantalla de base donde el jugador puede entrar a Build para añadir o modificar edificios y a Battle para iniciar operaciones. Su modo de edición muestra el área de ocupación de cada edificio y distingue posiciones válidas de las que se solapan. También indica que la sede central desbloquea edificios y mejoras, y que el progreso del rango depende de construir, mejorar y completar investigación. Estos patrones son útiles para que Titanes del Pacífico tenga una base comprensible, botones de construcción visibles y requisitos de progreso claros.
+
+Fuentes oficiales:
+- Game Basics y Edit Mode: https://tfew.zendesk.com/hc/en-us/articles/4733784011807-Game-Basics
+- Player Rank y desbloqueos: https://tfew.zendesk.com/hc/en-us/articles/4733772517023-Player-Rank-Rank-Rewards-Starting-Ability-Points
+- Headquarters: https://tfew.zendesk.com/hc/en-us/articles/4733780358175-Headquarters
+- Building Power Cores: https://tfew.zendesk.com/hc/en-us/articles/4733775175839-Building-Power-Cores
+
+### Adaptación original que se está implementando
+
+- Navegación dedicada **CONSTRUIR** y **MEJORAS**, separada de campaña y hangar.
+- Las instalaciones de nivel cero aparecen como pendientes de construcción; las ya construidas ofrecen mejora.
+- Los requisitos de nivel de base se muestran antes de permitir una obra.
+- Las construcciones se reflejan en la escena 3D y se guardan en la partida local.
+- No se copia el diseño visual, los nombres de edificios, los iconos ni el código de Transformers: Earth Wars; se adaptan únicamente ideas generales de organización de interfaz y progresión.
