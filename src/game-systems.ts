@@ -23,7 +23,9 @@ const START: TitanesSave = {
   selectedJaeger: 'gipsy',
   upgrades: { defense: 0, reactor: 0, training: 0 },
   inventory: { repairKit: 0, armorParts: 0, researchData: 0 },
-  buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, warehouse: 0, evacuation: 0 }
+  buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, warehouse: 0, evacuation: 0 },
+  civiliansRescued: 0,
+  xp: 0
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
