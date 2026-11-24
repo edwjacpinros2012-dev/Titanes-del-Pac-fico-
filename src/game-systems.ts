@@ -12,19 +12,40 @@ export interface TitanesSave {
   civiliansRescued: number;
   xp: number;
 }
+
 const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
+const RESOURCE_KEYS: ResourceKey[] = ['alloy', 'energy', 'intel'];
 const START: TitanesSave = {
-  version: 1, resources: { alloy: 650, energy: 500, intel: 0 },
-  unlockedMissions: 1, completedMissions: [], selectedJaeger: 'gipsy',
-  upgrades: { defense: 0, reactor: 0, training: 0 }, inventory: { repairKit: 0, armorParts: 0, researchData: 0 }, buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, evacuation: 0, warehouse: 1 }, civiliansRescued: 0, xp: 0
+  version: 1,
+  resources: { alloy: 650, energy: 500, intel: 0 },
+  unlockedMissions: 1,
+  completedMissions: [],
+  selectedJaeger: 'gipsy',
+  upgrades: { defense: 0, reactor: 0, training: 0 },
+  inventory: { repairKit: 0, armorParts: 0, researchData: 0 },
+  buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, warehouse: 0, evacuation: 0 }
 };
 const cloneStart = (): TitanesSave => JSON.parse(JSON.stringify(START)) as TitanesSave;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
-const consecutiveMissionCount = (completed: number[]) => { let count = 0; while (completed.includes(count + 1) && count < 12) count += 1; return count; };
+const consecutiveMissionCount = (completed: number[]) => {
+  let count = 0;
+  while (completed.includes(count + 1) && count < 12) count += 1;
+  return count;
+};
+
+function isValidResourceMap(values: Partial<Record<ResourceKey, number>>): boolean {
+  return Object.entries(values).every(([key, value]) =>
+    RESOURCE_KEYS.includes(key as ResourceKey) && Number.isSafeInteger(value) && (value as number) >= 0
+  );
+}
 
 export class TitanesSystems {
   private data: TitanesSave;
-  constructor() { this.data = this.load(); }
+
+  constructor() {
+    this.data = this.load();
+  }
+
   private load(): TitanesSave {
     const normalize = (value: unknown): TitanesSave | null => {
       if (!value || typeof value !== 'object') return null;
@@ -38,16 +59,14 @@ export class TitanesSystems {
         })) as Record<string, number>;
       };
       const resources = numberMap(parsed.resources, START.resources);
-      const selected = parsed.selectedJaeger;
       const completed = parsed.completedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12);
       const safe = cloneStart();
       safe.resources = resources as Record<ResourceKey, number>;
       safe.completedMissions = [...new Set(completed)];
-      // Mission access is derived from consecutive completions; a damaged or edited save cannot skip the campaign.
       let nextMission = 1;
       while (safe.completedMissions.includes(nextMission) && nextMission < 12) nextMission += 1;
       safe.unlockedMissions = nextMission;
-      safe.selectedJaeger = selected === 'striker' || selected === 'cherno' ? selected : 'gipsy';
+      safe.selectedJaeger = parsed.selectedJaeger === 'striker' || parsed.selectedJaeger === 'cherno' ? parsed.selectedJaeger : 'gipsy';
       safe.upgrades = numberMap(parsed.upgrades, START.upgrades);
       safe.inventory = numberMap(parsed.inventory, START.inventory);
       safe.buildings = numberMap(parsed.buildings, START.buildings);
@@ -67,130 +86,207 @@ export class TitanesSystems {
       if (backup) {
         const recovered = normalize(JSON.parse(backup));
         if (recovered) {
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(recovered)); } catch { /* recovery is still usable in memory */ }
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(recovered)); } catch { /* recovery remains usable in memory */ }
           return recovered;
         }
       }
     } catch { /* use safe starter state */ }
     return cloneStart();
   }
+
   private save() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         try {
           const parsed = JSON.parse(raw) as Partial<TitanesSave>;
-          if (parsed.version === 1 && parsed.resources && Array.isArray(parsed.completedMissions)) localStorage.setItem(STORAGE_KEY + '-backup', raw);
+          if (parsed.version === 1 && parsed.resources && Array.isArray(parsed.completedMissions)) {
+            localStorage.setItem(STORAGE_KEY + '-backup', raw);
+          }
         } catch { /* never replace backup with corrupted data */ }
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
     } catch { /* storage may be disabled or full; gameplay remains in memory */ }
   }
-  snapshot(): Readonly<TitanesSave> { return JSON.parse(JSON.stringify(this.data)) as TitanesSave; }
-  setJaeger(id: JaegerId) { const required: Record<JaegerId, number> = { gipsy: 0, striker: 2, cherno: 4 }; if (consecutiveMissionCount(this.data.completedMissions) < required[id]) return false; this.data.selectedJaeger = id; this.save(); return true; }
-  storageCapacity() { return 2500 + (this.data.buildings.warehouse || 1) * 1500; }
-  productionRates() {
-    const b = this.data.buildings;
-    return { alloy: Math.max(0, (b.workshop || 0) * 35 + (b.defense || 0) * 10), energy: Math.max(0, (b.reactor || 0) * 45), intel: Math.max(0, (b.command || 0) * 2 + (b.medical || 0)) };
+
+  snapshot(): Readonly<TitanesSave> {
+    return JSON.parse(JSON.stringify(this.data)) as TitanesSave;
   }
-  addResources(values: Partial<Record<ResourceKey, number>>) {
-    const cap = this.storageCapacity();
-    for (const key of Object.keys(values) as ResourceKey[]) this.data.resources[key] = clamp(this.data.resources[key] + Math.max(0, values[key] ?? 0), 0, cap);
-    this.save();
-  }
-  spendResources(cost: Partial<Record<ResourceKey, number>>) {
-    for (const key of Object.keys(cost) as ResourceKey[]) if (this.data.resources[key] < Math.max(0, cost[key] ?? 0)) return false;
-    for (const key of Object.keys(cost) as ResourceKey[]) this.data.resources[key] -= Math.max(0, cost[key] ?? 0);
+
+  setJaeger(id: JaegerId) {
+    const required: Record<JaegerId, number> = { gipsy: 0, striker: 2, cherno: 4 };
+    if (consecutiveMissionCount(this.data.completedMissions) < required[id]) return false;
+    this.data.selectedJaeger = id;
     this.save();
     return true;
   }
+
+  storageCapacity() {
+    return 2500 + (this.data.buildings.warehouse || 1) * 1500;
+  }
+
+  productionRates() {
+    const buildings = this.data.buildings;
+    return {
+      alloy: Math.max(0, (buildings.workshop || 0) * 35 + (buildings.defense || 0) * 10),
+      energy: Math.max(0, (buildings.reactor || 0) * 45),
+      intel: Math.max(0, (buildings.command || 0) * 2 + (buildings.medical || 0))
+    };
+  }
+
+  /** Apply a validated reward map, respecting the shared storage capacity. */
+  addResources(values: Partial<Record<ResourceKey, number>>) {
+    if (!isValidResourceMap(values)) return false;
+    const capacity = this.storageCapacity();
+    for (const key of RESOURCE_KEYS) {
+      const amount = values[key] ?? 0;
+      this.data.resources[key] = Math.min(capacity, this.data.resources[key] + amount);
+    }
+    this.save();
+    return true;
+  }
+
+  /** Validate all costs before deducting any resource; failed operations change nothing. */
+  spendResources(cost: Partial<Record<ResourceKey, number>>) {
+    if (!isValidResourceMap(cost)) return false;
+    for (const key of RESOURCE_KEYS) {
+      if (this.data.resources[key] < (cost[key] ?? 0)) return false;
+    }
+    for (const key of RESOURCE_KEYS) this.data.resources[key] -= cost[key] ?? 0;
+    this.save();
+    return true;
+  }
+
+  private transact(cost: Partial<Record<ResourceKey, number>>, reward: Partial<Record<ResourceKey, number>>) {
+    if (!isValidResourceMap(cost) || !isValidResourceMap(reward)) return false;
+    for (const key of RESOURCE_KEYS) {
+      if (this.data.resources[key] < (cost[key] ?? 0)) return false;
+    }
+    for (const key of RESOURCE_KEYS) {
+      const next = this.data.resources[key] - (cost[key] ?? 0) + (reward[key] ?? 0);
+      this.data.resources[key] = Math.min(this.storageCapacity(), next);
+    }
+    this.save();
+    return true;
+  }
+
   buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>) {
-    if (!this.spendResources(cost)) return false;
+    if (!isValidResourceMap(cost)) return false;
+    if (!this.transact(cost, {})) return false;
     this.data.inventory[item] = (this.data.inventory[item] || 0) + 1;
     this.save();
     return true;
   }
+
   upgrade(key: keyof TitanesSave['upgrades']) {
+    if (!Object.hasOwn(this.data.upgrades, key)) return { ok: false, cost: { alloy: 0, energy: 0 }, level: 0 };
     const level = this.data.upgrades[key] ?? 0;
     const cost = { alloy: 180 + level * 140, energy: 120 + level * 100 };
-    if (this.data.resources.alloy < cost.alloy || this.data.resources.energy < cost.energy) return { ok: false, cost, level };
-    this.data.resources.alloy -= cost.alloy; this.data.resources.energy -= cost.energy;
-    this.data.upgrades[key] = level + 1; this.save();
+    if (!this.transact(cost, {})) return { ok: false, cost, level };
+    this.data.upgrades[key] = level + 1;
+    this.save();
     return { ok: true, cost, level: level + 1 };
   }
+
   upgradeBuilding(id: keyof TitanesSave['buildings']) {
+    if (!Object.hasOwn(this.data.buildings, id)) return { ok: false, level: 0, reason: 'Instalación desconocida.' };
     const level = this.data.buildings[id] || 0;
     if (id === 'command') return { ok: false, level, reason: 'El centro de mando se mejora mediante progresión de base.' };
     const baseLevel = 1 + Math.floor((this.data.upgrades.defense || 0) / 2);
     const unlockAt: Record<string, number> = { hangar: 1, reactor: 1, workshop: 1, medical: 1, defense: 1, warehouse: 1, evacuation: 2 };
     if (baseLevel < (unlockAt[id] || 1)) return { ok: false, level, reason: 'Requiere base nivel ' + (unlockAt[id] || 1) };
     const cost = { alloy: 160 + level * 125, energy: 90 + level * 80 };
-    if (!this.spendResources(cost)) return { ok: false, level, reason: 'Recursos insuficientes' };
+    if (!this.transact(cost, {})) return { ok: false, level, reason: 'Recursos insuficientes' };
     this.data.buildings[id] = level + 1;
     this.save();
     return { ok: true, level: level + 1, cost };
   }
+
   collectProduction() {
     const rates = this.productionRates();
-    if (!rates.alloy && !rates.energy && !rates.intel) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, reason: 'Mejora el taller o reactor para activar producción.' };
+    if (!rates.alloy && !rates.energy && !rates.intel) {
+      return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, reason: 'Mejora el taller o reactor para activar producción.' };
+    }
     const productionKey = STORAGE_KEY + '-production-last-claim';
     let lastClaim = 0;
     try { lastClaim = Math.max(0, Number(localStorage.getItem(productionKey)) || 0); } catch { /* storage unavailable */ }
     const now = Date.now();
     const elapsedHours = lastClaim > 0 ? clamp((now - lastClaim) / 3600000, 0, 8) : 1;
-    if (elapsedHours < 0.05) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, remainingMs: (0.05 - elapsedHours) * 3600000, reason: 'La producción todavía se está acumulando.' };
-    const cap = this.storageCapacity();
+    if (elapsedHours < 0.05) {
+      return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, remainingMs: (0.05 - elapsedHours) * 3600000, reason: 'La producción todavía se está acumulando.' };
+    }
+    const capacity = this.storageCapacity();
     const reward = {
-      alloy: Math.min(Math.floor(rates.alloy * elapsedHours), Math.max(0, cap - this.data.resources.alloy)),
-      energy: Math.min(Math.floor(rates.energy * elapsedHours), Math.max(0, cap - this.data.resources.energy)),
-      intel: Math.min(Math.floor(rates.intel * elapsedHours), Math.max(0, cap - this.data.resources.intel))
+      alloy: Math.min(Math.floor(rates.alloy * elapsedHours), Math.max(0, capacity - this.data.resources.alloy)),
+      energy: Math.min(Math.floor(rates.energy * elapsedHours), Math.max(0, capacity - this.data.resources.energy)),
+      intel: Math.min(Math.floor(rates.intel * elapsedHours), Math.max(0, capacity - this.data.resources.intel))
     };
-    if (!reward.alloy && !reward.energy && !reward.intel) return { ok: false, reward, reason: 'Almacén lleno o producción todavía en curso. Mejora el almacén.' };
-    this.data.resources.alloy += reward.alloy;
-    this.data.resources.energy += reward.energy;
-    this.data.resources.intel += reward.intel;
-    this.save();
+    if (!reward.alloy && !reward.energy && !reward.intel) {
+      return { ok: false, reward, reason: 'Almacén lleno o producción todavía en curso. Mejora el almacén.' };
+    }
+    if (!this.transact({}, reward)) return { ok: false, reward: { alloy: 0, energy: 0, intel: 0 }, reason: 'No se pudo aplicar la producción.' };
     try { localStorage.setItem(productionKey, String(now)); } catch { /* production remains available in memory */ }
     return { ok: true, reward, elapsedHours, remainingMs: 8 * 3600000 };
   }
+
   rescueCivilians(count: number) {
-    const safeCount = Math.max(0, Math.floor(count));
-    this.data.civiliansRescued += safeCount;
-    this.data.xp += safeCount * 5;
-    this.addResources({ alloy: safeCount * 8, energy: safeCount * 4 });
+    if (!Number.isSafeInteger(count) || count < 0) return { ok: false, rescued: 0, total: this.data.civiliansRescued };
+    const reward = { alloy: count * 8, energy: count * 4 };
+    if (!isValidResourceMap(reward)) return { ok: false, rescued: 0, total: this.data.civiliansRescued };
+    this.data.civiliansRescued += count;
+    this.data.xp += count * 5;
+    this.transact({}, reward);
     this.save();
-    return { rescued: safeCount, total: this.data.civiliansRescued };
+    return { ok: true, rescued: count, total: this.data.civiliansRescued };
   }
+
   completeMission(missionId: number) {
     if (missionId !== this.data.unlockedMissions || this.data.completedMissions.includes(missionId)) {
       return { ok: false, reward: { alloy: 0, energy: 0, intel: 0, xp: 0 }, unlocks: [] as string[] };
     }
     const reward = getMissionReward(missionId);
     const previouslyUnlocked = getCampaignUnlocks(this.data.completedMissions);
+    if (!this.transact({}, { alloy: reward.alloy, energy: reward.energy, intel: reward.intel })) {
+      return { ok: false, reward: { alloy: 0, energy: 0, intel: 0, xp: 0 }, unlocks: [] as string[] };
+    }
     this.data.completedMissions.push(missionId);
     this.data.unlockedMissions = Math.min(12, missionId + 1);
     this.data.xp += reward.xp;
-    this.addResources({ alloy: reward.alloy, energy: reward.energy, intel: reward.intel });
     const unlocks = getCampaignUnlocks(this.data.completedMissions).filter(item => !previouslyUnlocked.includes(item));
     this.save();
     return { ok: true, reward, unlocks };
   }
+
   missionStatus(id: number) {
     const completed = this.data.completedMissions.includes(id);
     return { unlocked: id <= this.data.unlockedMissions, completed, current: id === this.data.unlockedMissions && !completed, reward: getMissionReward(id), unlocks: getMissionMilestones(id) };
   }
+
   campaignProgress() {
     const completed = consecutiveMissionCount(this.data.completedMissions);
     const rank = getCampaignRank(this.data.xp);
-    return { completed, total: 12, xp: this.data.xp, rank, campaignComplete: Array.from({ length: 12 }, (_, i) => i + 1).every(id => this.data.completedMissions.includes(id)), unlockedJaegers: getUnlockedJaegers(this.data.completedMissions) };
+    return {
+      completed,
+      total: 12,
+      xp: this.data.xp,
+      rank,
+      campaignComplete: completed === 12,
+      unlockedJaegers: getUnlockedJaegers(this.data.completedMissions)
+    };
   }
-  reset() { this.data = cloneStart(); this.save(); }
+
+  reset() {
+    this.data = cloneStart();
+    this.save();
+  }
 }
+
 export const JAEGERS: Record<JaegerId, { label: string; role: string; armor: number; power: number; agility: number }> = {
   gipsy: { label: 'GIPSY-CLASS · MARK-I', role: 'Jaeger inicial · Nivel 1', armor: 58, power: 52, agility: 46 },
   striker: { label: 'STRIKER-CLASS', role: 'Rápido', armor: 72, power: 91, agility: 88 },
   cherno: { label: 'CHERNO-CLASS', role: 'Pesado', armor: 95, power: 68, agility: 48 }
 };
+
 export const MISSION_LIST = [
   { id: 1, name: 'DEFENSA DE LA COSTA', sector: 'SECTOR 07', description: 'Entrenamiento de despliegue y reconocimiento.' },
   { id: 2, name: 'ALERTA EN EL PUERTO', sector: 'SECTOR 08', description: 'Recupera el perímetro portuario.' },
@@ -212,16 +308,27 @@ const CAMPAIGN_MILESTONES: Record<number, string[]> = {
   4: ['Jaeger Cherno disponible en hangar'],
   12: ['Campaña inicial completada · rango final disponible']
 };
+
 export function getMissionReward(id: number): MissionReward {
   if (!Number.isInteger(id) || id < 1 || id > 12) return { alloy: 0, energy: 0, intel: 0, xp: 0 };
   return { alloy: 240 + id * 60, energy: 180 + id * 40, intel: 1 + Math.floor((id - 1) / 4), xp: 100 + id * 25 };
 }
-export function getMissionMilestones(id: number): string[] { return CAMPAIGN_MILESTONES[id] ? [...CAMPAIGN_MILESTONES[id]] : []; }
-export function getCampaignUnlocks(completed: number[]): string[] { return Object.entries(CAMPAIGN_MILESTONES).filter(([mission]) => completed.includes(Number(mission))).flatMap(([, items]) => items); }
+
+export function getMissionMilestones(id: number): string[] {
+  return CAMPAIGN_MILESTONES[id] ? [...CAMPAIGN_MILESTONES[id]] : [];
+}
+
+export function getCampaignUnlocks(completed: number[]): string[] {
+  return Object.entries(CAMPAIGN_MILESTONES)
+    .filter(([mission]) => completed.includes(Number(mission)))
+    .flatMap(([, items]) => items);
+}
+
 export function getUnlockedJaegers(completed: number[]): JaegerId[] {
   const count = consecutiveMissionCount(completed);
-  return (['gipsy','striker','cherno'] as JaegerId[]).filter(id => count >= ({gipsy:0,striker:2,cherno:4}[id]));
+  return (['gipsy', 'striker', 'cherno'] as JaegerId[]).filter(id => count >= ({ gipsy: 0, striker: 2, cherno: 4 }[id]));
 }
+
 export function getCampaignRank(xp: number): string {
   if (xp >= 3000) return 'MARSHAL';
   if (xp >= 1600) return 'VETERANO';
