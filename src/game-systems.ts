@@ -1,7 +1,7 @@
 export type ResourceKey = 'alloy' | 'energy' | 'intel';
 export type JaegerId = 'gipsy' | 'striker' | 'cherno';
 export interface TitanesSave {
-  version: 1;
+  version: 2;
   resources: Record<ResourceKey, number>;
   unlockedMissions: number;
   completedMissions: number[];
@@ -11,12 +11,16 @@ export interface TitanesSave {
   buildings: Record<string, number>;
   civiliansRescued: number;
   xp: number;
+  jaegerIntegrity: number;
+  cityIntegrity: number;
+  failedMissions: number[];
+  lastMissionOutcome: 'victory' | 'defeat' | 'retreat' | null;
 }
 
 const STORAGE_KEY = 'pacific-rim-titanes-save-v1';
 const RESOURCE_KEYS: ResourceKey[] = ['alloy', 'energy', 'intel'];
 const START: TitanesSave = {
-  version: 1,
+  version: 2,
   resources: { alloy: 650, energy: 500, intel: 0 },
   unlockedMissions: 1,
   completedMissions: [],
@@ -50,7 +54,7 @@ export class TitanesSystems {
     const normalize = (value: unknown): TitanesSave | null => {
       if (!value || typeof value !== 'object') return null;
       const parsed = value as Partial<TitanesSave>;
-      if (parsed.version !== 1 || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
+      if ((parsed.version !== 1 && parsed.version !== 2) || !parsed.resources || !Array.isArray(parsed.completedMissions)) return null;
       const numberMap = (source: unknown, defaults: Record<string, number>) => {
         const record = source && typeof source === 'object' ? source as Record<string, unknown> : {};
         return Object.fromEntries(Object.keys(defaults).map(key => {
@@ -61,6 +65,7 @@ export class TitanesSystems {
       const resources = numberMap(parsed.resources, START.resources);
       const completed = parsed.completedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12);
       const safe = cloneStart();
+      safe.version = 2;
       safe.resources = resources as Record<ResourceKey, number>;
       safe.completedMissions = [...new Set(completed)];
       let nextMission = 1;
@@ -72,6 +77,10 @@ export class TitanesSystems {
       safe.buildings = numberMap(parsed.buildings, START.buildings);
       safe.civiliansRescued = clamp(Math.floor(Number(parsed.civiliansRescued) || 0), 0, 999999);
       safe.xp = clamp(Math.floor(Number(parsed.xp) || 0), 0, 99999999);
+      safe.jaegerIntegrity = clamp(Math.floor(Number(parsed.jaegerIntegrity ?? 100) || 0), 0, 100);
+      safe.cityIntegrity = clamp(Math.floor(Number(parsed.cityIntegrity ?? 100) || 0), 0, 100);
+      safe.failedMissions = Array.isArray(parsed.failedMissions) ? [...new Set(parsed.failedMissions.map(Number).filter(id => Number.isInteger(id) && id > 0 && id <= 12))] : [];
+      safe.lastMissionOutcome = parsed.lastMissionOutcome === 'victory' || parsed.lastMissionOutcome === 'defeat' || parsed.lastMissionOutcome === 'retreat' ? parsed.lastMissionOutcome : null;
       return safe;
     };
     try {
@@ -94,19 +103,16 @@ export class TitanesSystems {
     return cloneStart();
   }
 
-  private save() {
+  private commit(next: TitanesSave): boolean {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw) as Partial<TitanesSave>;
-          if (parsed.version === 1 && parsed.resources && Array.isArray(parsed.completedMissions)) {
-            localStorage.setItem(STORAGE_KEY + '-backup', raw);
-          }
-        } catch { /* never replace backup with corrupted data */ }
-      }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
-    } catch { /* storage may be disabled or full; gameplay remains in memory */ }
+      const previous = localStorage.getItem(STORAGE_KEY);
+      if (previous) localStorage.setItem(STORAGE_KEY + '-backup', previous);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      this.data = next;
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   snapshot(): Readonly<TitanesSave> {
@@ -116,9 +122,21 @@ export class TitanesSystems {
   setJaeger(id: JaegerId) {
     const required: Record<JaegerId, number> = { gipsy: 0, striker: 2, cherno: 4 };
     if (consecutiveMissionCount(this.data.completedMissions) < required[id]) return false;
-    this.data.selectedJaeger = id;
-    this.save();
-    return true;
+    const next = structuredClone(this.data);
+    next.selectedJaeger = id;
+    return this.commit(next);
+  }
+
+  getJaegerCombatStats() {
+    const base = JAEGERS[this.data.selectedJaeger];
+    const defense = this.data.upgrades.defense || 0;
+    const reactor = this.data.upgrades.reactor || 0;
+    const training = this.data.upgrades.training || 0;
+    return {
+      armor: Math.min(100, base.armor + defense * 4),
+      power: Math.min(120, base.power + reactor * 3 + training * 2),
+      agility: Math.min(100, base.agility + training * 2)
+    };
   }
 
   storageCapacity() {
@@ -134,58 +152,40 @@ export class TitanesSystems {
     };
   }
 
-  /** Apply a validated reward map, respecting the shared storage capacity. */
-  addResources(values: Partial<Record<ResourceKey, number>>) {
-    if (!isValidResourceMap(values)) return false;
+  /** Apply validated resource changes and state updates as one persisted transaction. */
+  private transact(cost: Partial<Record<ResourceKey, number>>, reward: Partial<Record<ResourceKey, number>>, update?: (next: TitanesSave) => void): boolean {
+    if (!isValidResourceMap(cost) || !isValidResourceMap(reward)) return false;
+    for (const key of RESOURCE_KEYS) if (this.data.resources[key] < (cost[key] ?? 0)) return false;
+    const next = structuredClone(this.data);
     const capacity = this.storageCapacity();
     for (const key of RESOURCE_KEYS) {
-      const amount = values[key] ?? 0;
-      this.data.resources[key] = Math.min(capacity, this.data.resources[key] + amount);
+      const amount = next.resources[key] - (cost[key] ?? 0) + (reward[key] ?? 0);
+      if (!Number.isSafeInteger(amount) || amount < 0) return false;
+      next.resources[key] = Math.min(capacity, amount);
     }
-    this.save();
-    return true;
+    update?.(next);
+    return this.commit(next);
   }
 
-  /** Validate all costs before deducting any resource; failed operations change nothing. */
+  addResources(values: Partial<Record<ResourceKey, number>>) {
+    return this.transact({}, values);
+  }
+
   spendResources(cost: Partial<Record<ResourceKey, number>>) {
-    if (!isValidResourceMap(cost)) return false;
-    for (const key of RESOURCE_KEYS) {
-      if (this.data.resources[key] < (cost[key] ?? 0)) return false;
-    }
-    for (const key of RESOURCE_KEYS) this.data.resources[key] -= cost[key] ?? 0;
-    this.save();
-    return true;
-  }
-
-  private transact(cost: Partial<Record<ResourceKey, number>>, reward: Partial<Record<ResourceKey, number>>) {
-    if (!isValidResourceMap(cost) || !isValidResourceMap(reward)) return false;
-    for (const key of RESOURCE_KEYS) {
-      if (this.data.resources[key] < (cost[key] ?? 0)) return false;
-    }
-    for (const key of RESOURCE_KEYS) {
-      const next = this.data.resources[key] - (cost[key] ?? 0) + (reward[key] ?? 0);
-      this.data.resources[key] = Math.min(this.storageCapacity(), next);
-    }
-    this.save();
-    return true;
+    return this.transact(cost, {});
   }
 
   buyItem(item: 'repairKit' | 'armorParts' | 'researchData', cost: Partial<Record<ResourceKey, number>>) {
     if (!isValidResourceMap(cost)) return false;
-    if (!this.transact(cost, {})) return false;
-    this.data.inventory[item] = (this.data.inventory[item] || 0) + 1;
-    this.save();
-    return true;
+    return this.transact(cost, {}, next => { next.inventory[item] = (next.inventory[item] || 0) + 1; });
   }
 
   upgrade(key: keyof TitanesSave['upgrades']) {
     if (!Object.hasOwn(this.data.upgrades, key)) return { ok: false, cost: { alloy: 0, energy: 0 }, level: 0 };
     const level = this.data.upgrades[key] ?? 0;
     const cost = { alloy: 180 + level * 140, energy: 120 + level * 100 };
-    if (!this.transact(cost, {})) return { ok: false, cost, level };
-    this.data.upgrades[key] = level + 1;
-    this.save();
-    return { ok: true, cost, level: level + 1 };
+    const ok = this.transact(cost, {}, next => { next.upgrades[key] = level + 1; });
+    return { ok, cost, level: ok ? level + 1 : level };
   }
 
   upgradeBuilding(id: keyof TitanesSave['buildings']) {
@@ -196,10 +196,8 @@ export class TitanesSystems {
     const unlockAt: Record<string, number> = { hangar: 1, reactor: 1, workshop: 1, medical: 1, defense: 1, warehouse: 1, evacuation: 2 };
     if (baseLevel < (unlockAt[id] || 1)) return { ok: false, level, reason: 'Requiere base nivel ' + (unlockAt[id] || 1) };
     const cost = { alloy: 160 + level * 125, energy: 90 + level * 80 };
-    if (!this.transact(cost, {})) return { ok: false, level, reason: 'Recursos insuficientes' };
-    this.data.buildings[id] = level + 1;
-    this.save();
-    return { ok: true, level: level + 1, cost };
+    const ok = this.transact(cost, {}, next => { next.buildings[id] = level + 1; });
+    return ok ? { ok: true, level: level + 1, cost } : { ok: false, level, reason: 'Recursos insuficientes o no se pudo guardar la partida.' };
   }
 
   collectProduction() {
@@ -229,32 +227,36 @@ export class TitanesSystems {
     return { ok: true, reward, elapsedHours, remainingMs: 8 * 3600000 };
   }
 
-  rescueCivilians(count: number) {
-    if (!Number.isSafeInteger(count) || count < 0) return { ok: false, rescued: 0, total: this.data.civiliansRescued };
-    const reward = { alloy: count * 8, energy: count * 4 };
-    if (!isValidResourceMap(reward)) return { ok: false, rescued: 0, total: this.data.civiliansRescued };
-    this.data.civiliansRescued += count;
-    this.data.xp += count * 5;
-    this.transact({}, reward);
-    this.save();
-    return { ok: true, rescued: count, total: this.data.civiliansRescued };
+  resolveMission(missionId: number, outcome: 'victory' | 'defeat' | 'retreat', jaegerDamage = 0, cityDamage = 0) {
+    const emptyReward = { alloy: 0, energy: 0, intel: 0, xp: 0 };
+    if (!Number.isInteger(missionId) || missionId !== this.data.unlockedMissions || this.data.completedMissions.includes(missionId)) return { ok: false, outcome, reward: emptyReward, unlocks: [] as string[], reason: 'Misión no disponible.' };
+    if (!['victory', 'defeat', 'retreat'].includes(outcome) || !Number.isSafeInteger(jaegerDamage) || jaegerDamage < 0 || jaegerDamage > 100 || !Number.isSafeInteger(cityDamage) || cityDamage < 0 || cityDamage > 100) return { ok: false, outcome, reward: emptyReward, unlocks: [] as string[], reason: 'Resultado de misión inválido.' };
+    const reward = outcome === 'victory' ? getMissionReward(missionId) : emptyReward;
+    const previousUnlocks = getCampaignUnlocks(this.data.completedMissions);
+    const ok = this.transact({}, { alloy: reward.alloy, energy: reward.energy, intel: reward.intel }, next => {
+      next.jaegerIntegrity = Math.max(0, next.jaegerIntegrity - jaegerDamage);
+      next.cityIntegrity = Math.max(0, next.cityIntegrity - cityDamage);
+      next.lastMissionOutcome = outcome;
+      if (outcome === 'victory') {
+        next.completedMissions.push(missionId);
+        next.unlockedMissions = Math.min(12, missionId + 1);
+        next.xp += reward.xp;
+      } else if (!next.failedMissions.includes(missionId)) next.failedMissions.push(missionId);
+    });
+    if (!ok) return { ok: false, outcome, reward: emptyReward, unlocks: [] as string[], reason: 'No se pudo guardar el resultado.' };
+    const unlocks = outcome === 'victory' ? getCampaignUnlocks(this.data.completedMissions).filter(item => !previousUnlocks.includes(item)) : [];
+    return { ok: true, outcome, reward, unlocks, jaegerIntegrity: this.data.jaegerIntegrity, cityIntegrity: this.data.cityIntegrity };
   }
 
-  completeMission(missionId: number) {
-    if (missionId !== this.data.unlockedMissions || this.data.completedMissions.includes(missionId)) {
-      return { ok: false, reward: { alloy: 0, energy: 0, intel: 0, xp: 0 }, unlocks: [] as string[] };
+  repairJaeger() {
+    const integrity = this.data.jaegerIntegrity;
+    if (integrity >= 100) return { ok: false, integrity, reason: 'El Jaeger no necesita reparación.' };
+    if ((this.data.inventory.repairKit || 0) > 0) {
+      const ok = this.transact({}, {}, next => { next.inventory.repairKit -= 1; next.jaegerIntegrity = Math.min(100, next.jaegerIntegrity + 40); });
+      return { ok, integrity: this.data.jaegerIntegrity, reason: ok ? 'Kit de reparación utilizado.' : 'No se pudo guardar la reparación.' };
     }
-    const reward = getMissionReward(missionId);
-    const previouslyUnlocked = getCampaignUnlocks(this.data.completedMissions);
-    if (!this.transact({}, { alloy: reward.alloy, energy: reward.energy, intel: reward.intel })) {
-      return { ok: false, reward: { alloy: 0, energy: 0, intel: 0, xp: 0 }, unlocks: [] as string[] };
-    }
-    this.data.completedMissions.push(missionId);
-    this.data.unlockedMissions = Math.min(12, missionId + 1);
-    this.data.xp += reward.xp;
-    const unlocks = getCampaignUnlocks(this.data.completedMissions).filter(item => !previouslyUnlocked.includes(item));
-    this.save();
-    return { ok: true, reward, unlocks };
+    const ok = this.transact({ alloy: 120, energy: 80 }, {}, next => { next.jaegerIntegrity = Math.min(100, next.jaegerIntegrity + 35); });
+    return { ok, integrity: this.data.jaegerIntegrity, reason: ok ? 'Reparación de taller completada.' : 'Se requieren 120 aleación y 80 energía.' };
   }
 
   missionStatus(id: number) {
@@ -276,8 +278,7 @@ export class TitanesSystems {
   }
 
   reset() {
-    this.data = cloneStart();
-    this.save();
+    this.commit(cloneStart());
   }
 }
 
