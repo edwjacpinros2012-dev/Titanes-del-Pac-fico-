@@ -302,6 +302,7 @@ func _create_world() -> void:
 
 	_create_base_visual(Vector3(0, 0, -8))
 	_create_rocks_and_trees()
+	_create_coastal_city()
 
 	camera = Camera3D.new()
 	camera.position = Vector3(0, 13, 17)
@@ -495,6 +496,49 @@ func _handle_market_input(event: InputEvent) -> void:
 		if event.is_action_pressed("market_buy_metal") or event.is_action_pressed("market_buy_energy") or event.is_action_pressed("market_buy_crystal") or event.is_action_pressed("market_sell_metal") or event.is_action_pressed("market_sell_energy") or event.is_action_pressed("market_sell_crystal"):
 			_show_status(trade_manager.last_message)
 	_update_hud()
+
+func _create_coastal_city() -> void:
+	var ocean := MeshInstance3D.new()
+	var ocean_mesh := BoxMesh.new()
+	ocean_mesh.size = Vector3(100, 0.18, 38)
+	ocean.mesh = ocean_mesh
+	ocean.position = Vector3(0, -0.04, -60)
+	ocean.material_override = _material(Color(0.025, 0.13, 0.2))
+	add_child(ocean)
+
+	var shoreline := MeshInstance3D.new()
+	var shore_mesh := BoxMesh.new()
+	shore_mesh.size = Vector3(100, 0.12, 9)
+	shoreline.mesh = shore_mesh
+	shoreline.position = Vector3(0, 0.015, -34)
+	shoreline.material_override = _material(Color(0.42, 0.37, 0.27))
+	add_child(shoreline)
+
+	var city_palette := [
+		Color(0.12, 0.19, 0.25),
+		Color(0.18, 0.25, 0.3),
+		Color(0.23, 0.29, 0.32),
+		Color(0.1, 0.16, 0.22)
+	]
+	for index in range(14):
+		var building := MeshInstance3D.new()
+		var building_mesh := BoxMesh.new()
+		var width := randf_range(3.2, 5.8)
+		var depth := randf_range(3.0, 5.5)
+		var height := randf_range(7.0, 19.0)
+		building_mesh.size = Vector3(width, height, depth)
+		building.mesh = building_mesh
+		building.position = Vector3(-43.0 + float(index) * 6.6, height * 0.5, -39.0 + randf_range(-2.0, 2.0))
+		building.material_override = _material(city_palette[index % city_palette.size()])
+		add_child(building)
+
+		var window_band := MeshInstance3D.new()
+		var window_mesh := BoxMesh.new()
+		window_mesh.size = Vector3(width * 0.72, 0.16, 0.08)
+		window_band.mesh = window_mesh
+		window_band.position = building.position + Vector3(0, randf_range(-height * 0.25, height * 0.25), depth * 0.5 + 0.045)
+		window_band.material_override = _material(Color(0.15, 0.68, 0.82), true)
+		add_child(window_band)
 
 func _create_base_visual(pos: Vector3) -> void:
 	var base := MeshInstance3D.new()
