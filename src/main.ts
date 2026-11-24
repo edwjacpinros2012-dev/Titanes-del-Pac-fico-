@@ -13,6 +13,10 @@ class TitanesScene extends Phaser.Scene {
   private renderer3d!: THREE.WebGLRenderer;
   private titan!: THREE.Group;
   private kaiju!: THREE.Group;
+  private jaegerArmorMaterial!: THREE.MeshStandardMaterial;
+  private jaegerAccentMaterial!: THREE.MeshStandardMaterial;
+  private mechRig!: { leftArm: THREE.Group; rightArm: THREE.Group; leftLeg: THREE.Group; rightLeg: THREE.Group; torso: THREE.Group };
+  private kaijuRig!: { head: THREE.Group; tail: THREE.Group };
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
   private hp = 100;
   private energy = 100;
@@ -102,22 +106,22 @@ class TitanesScene extends Phaser.Scene {
   }
 
   private applySelectedJaeger(id: JaegerId) {
-    const stats = JAEGERS[id];
     const combat = this.systems.getJaegerCombatStats();
     this.hp = this.systems.snapshot().jaegerIntegrity;
     this.startingIntegrity = this.hp;
     this.energy = 100;
     this.attackPower = Math.max(12, Math.round(combat.power / 4));
     this.moveSpeed = 3.2 + combat.agility / 30;
+    const colors: Record<JaegerId, number> = { gipsy: 0x315d70, striker: 0xb38b36, cherno: 0x465b60 };
+    const accents: Record<JaegerId, number> = { gipsy: 0xff9b42, striker: 0x68e8f2, cherno: 0xff654b };
+    if (this.jaegerArmorMaterial) this.jaegerArmorMaterial.color.setHex(colors[id]);
+    if (this.jaegerAccentMaterial) {
+      this.jaegerAccentMaterial.color.setHex(accents[id]);
+      this.jaegerAccentMaterial.emissive.setHex(accents[id]);
+    }
     if (this.titan) {
-      const colors: Record<JaegerId,number> = { gipsy:0x167c9c, striker:0xc2b044, cherno:0x485c63 };
-      this.titan.traverse(obj => {
-        if ((obj as THREE.Mesh).isMesh) {
-          const mesh=obj as THREE.Mesh;
-          const material=mesh.material as THREE.MeshStandardMaterial;
-          if (material.color) material.color.setHex(colors[id]);
-        }
-      });
+      const scale: Record<JaegerId, number> = { gipsy: 1, striker: 0.94, cherno: 1.12 };
+      this.titan.scale.set(scale[id], scale[id], scale[id]);
     }
   }
   private material(color: number, metalness = 0.5) {
@@ -191,30 +195,130 @@ class TitanesScene extends Phaser.Scene {
     }
   }
   private buildMech(color: number) {
-    const g = new THREE.Group();
-    this.box(g,[1.8,2.1,1],[0,2.8,0],color);
-    this.box(g,[1.1,0.8,0.9],[0,4.25,0],0xc3d8df);
-    this.box(g,[0.55,0.18,0.12],[0,4.3,0.48],0x37e7ff);
-    for (const x of [-1.25,1.25]) {
-      this.box(g,[0.75,1.9,0.8],[x,2.9,0],color);
-      this.box(g,[0.7,1.6,0.75],[x*0.72,0.9,0],0x263f55);
-      this.box(g,[0.65,0.45,0.7],[x*0.72,0.22,0.05],0x111e2c);
+    const root = new THREE.Group();
+    const armor = new THREE.MeshStandardMaterial({ color, metalness: 0.82, roughness: 0.29 });
+    const dark = new THREE.MeshStandardMaterial({ color: 0x172632, metalness: 0.88, roughness: 0.34 });
+    const steel = new THREE.MeshStandardMaterial({ color: 0x657987, metalness: 0.9, roughness: 0.26 });
+    const glow = new THREE.MeshStandardMaterial({ color: 0xff9b42, emissive: 0xff6a20, emissiveIntensity: 2.1, metalness: 0.35, roughness: 0.22 });
+    this.jaegerArmorMaterial = armor;
+    this.jaegerAccentMaterial = glow;
+    const add = (parent: THREE.Group, geometry: THREE.BufferGeometry, material: THREE.Material, pos: [number, number, number], rot: [number, number, number] = [0, 0, 0]) => {
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(...pos); mesh.rotation.set(...rot);
+      mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
+    };
+    const panel = (parent: THREE.Group, size: [number, number, number], pos: [number, number, number], material: THREE.Material = armor, rot: [number, number, number] = [0, 0, 0]) =>
+      add(parent, new THREE.BoxGeometry(...size), material, pos, rot);
+    const joint = (parent: THREE.Group, pos: [number, number, number], radius = 0.32) =>
+      add(parent, new THREE.SphereGeometry(radius, 14, 12), steel, pos);
+    const cylinder = (parent: THREE.Group, radiusTop: number, radiusBottom: number, height: number, pos: [number, number, number], material: THREE.Material = dark, rot: [number, number, number] = [0, 0, 0]) =>
+      add(parent, new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 10), material, pos, rot);
+
+    // Torso: layered chest, reactor housing, back pack and readable shoulder silhouette.
+    const torso = new THREE.Group(); torso.position.y = 3.05; root.add(torso);
+    panel(torso, [1.9, 1.65, 1.05], [0, 0, 0], armor);
+    panel(torso, [1.45, 0.42, 0.16], [0, 0.52, 0.57], steel);
+    panel(torso, [0.5, 0.9, 0.18], [0, -0.15, 0.61], dark);
+    add(torso, new THREE.CylinderGeometry(0.32, 0.38, 0.18, 16), dark, [0, 0.12, 0.76], [Math.PI / 2, 0, 0]);
+    add(torso, new THREE.CircleGeometry(0.25, 24), glow, [0, 0.12, 0.86], [0, 0, 0]);
+    panel(torso, [0.55, 0.32, 0.2], [0, -0.73, 0.58], steel);
+    panel(torso, [1.2, 1.0, 0.52], [0, 0.15, -0.66], dark);
+    for (let i = 0; i < 4; i++) panel(torso, [0.12, 0.68, 0.12], [-0.43 + i * 0.29, 0.1, -0.94], steel);
+    // Neck and compact armored head with a luminous horizontal visor.
+    cylinder(torso, 0.28, 0.34, 0.38, [0, 0.98, 0], dark);
+    const head = new THREE.Group(); head.position.set(0, 1.28, 0.06); torso.add(head);
+    panel(head, [0.82, 0.65, 0.78], [0, 0, 0], steel);
+    panel(head, [0.68, 0.22, 0.14], [0, -0.08, 0.42], glow);
+    panel(head, [0.2, 0.32, 0.2], [-0.48, -0.02, 0.04], armor);
+    panel(head, [0.2, 0.32, 0.2], [0.48, -0.02, 0.04], armor);
+    // Shoulder pivots and articulated arms.
+    const makeArm = (side: number) => {
+      const arm = new THREE.Group(); arm.position.set(side * 1.22, 0.62, 0); torso.add(arm);
+      joint(arm, [0, 0, 0], 0.42);
+      panel(arm, [0.92, 1.0, 0.96], [side * 0.12, -0.35, 0], armor, [0, 0, side * -0.08]);
+      panel(arm, [0.98, 0.28, 0.72], [side * 0.12, -0.03, 0.08], steel);
+      cylinder(arm, 0.2, 0.24, 0.8, [0, -0.98, 0], dark);
+      joint(arm, [0, -1.28, 0], 0.28);
+      panel(arm, [0.72, 0.82, 0.72], [0, -1.7, 0.02], armor);
+      panel(arm, [0.58, 0.2, 0.18], [0, -1.65, 0.39], glow);
+      panel(arm, [0.54, 0.46, 0.52], [0, -2.28, 0.04], dark);
+      for (let finger = 0; finger < 4; finger++) panel(arm, [0.1, 0.34, 0.12], [-0.2 + finger * 0.13, -2.62, 0.12], steel);
+      return arm;
+    };
+    const leftArm = makeArm(-1), rightArm = makeArm(1);
+    // Hip block and two articulated legs with heavy feet.
+    panel(root, [1.45, 0.62, 0.9], [0, 1.95, 0], dark);
+    const makeLeg = (side: number) => {
+      const leg = new THREE.Group(); leg.position.set(side * 0.62, 1.82, 0); root.add(leg);
+      joint(leg, [0, 0, 0], 0.34);
+      panel(leg, [0.78, 1.0, 0.86], [0, -0.55, 0], armor);
+      panel(leg, [0.82, 0.25, 0.94], [0, -0.22, 0.12], steel);
+      cylinder(leg, 0.23, 0.26, 0.72, [0, -1.2, 0], dark);
+      joint(leg, [0, -1.52, 0.04], 0.28);
+      panel(leg, [0.72, 0.88, 0.78], [0, -1.98, 0], armor);
+      panel(leg, [0.84, 0.36, 1.18], [0, -2.48, 0.2], dark);
+      panel(leg, [0.62, 0.12, 0.16], [0, -2.25, 0.61], glow);
+      return leg;
+    };
+    const leftLeg = makeLeg(-1), rightLeg = makeLeg(1);
+    // Hydraulic-looking side pistons, vents and small armor fins.
+    for (const side of [-1, 1]) {
+      cylinder(root, 0.09, 0.09, 1.15, [side * 1.48, 2.15, -0.18], steel, [0, 0, side * 0.18]);
+      panel(root, [0.16, 0.9, 0.46], [side * 1.48, 3.95, -0.1], armor, [0, 0, side * -0.12]);
+      panel(root, [0.12, 0.48, 0.12], [side * 0.92, 2.5, 0.55], glow);
     }
-    this.box(g,[0.55,1.5,0.65],[-0.25,1.5,0.1],0x263f55);
-    this.box(g,[0.55,1.5,0.65],[0.35,1.5,0.1],0x263f55);
-    return g;
+    this.mechRig = { leftArm, rightArm, leftLeg, rightLeg, torso };
+    return root;
   }
+
   private buildKaiju() {
-    const g = new THREE.Group();
-    this.box(g,[2.8,2.5,1.7],[0,2.7,0],0x6b9b78);
-    this.box(g,[1.7,1.3,1.4],[0,4.35,0.1],0x47745f);
-    this.box(g,[0.18,0.18,0.12],[-0.45,4.45,0.78],0xff553e);
-    this.box(g,[0.18,0.18,0.12],[0.45,4.45,0.78],0xff553e);
-    for (const x of [-1.7,1.7]) {
-      this.box(g,[0.75,2.4,0.8],[x,2.8,0],0x47745f);
-      this.box(g,[0.65,1.8,0.7],[x*0.7,0.9,0],0x355748);
+    const root = new THREE.Group();
+    const hide = new THREE.MeshStandardMaterial({ color: 0x315e5a, metalness: 0.28, roughness: 0.78 });
+    const armor = new THREE.MeshStandardMaterial({ color: 0x183b3e, metalness: 0.5, roughness: 0.56 });
+    const biolum = new THREE.MeshStandardMaterial({ color: 0x28d9e6, emissive: 0x087e91, emissiveIntensity: 1.8, roughness: 0.35 });
+    const add = (parent: THREE.Group, geometry: THREE.BufferGeometry, material: THREE.Material, pos: [number, number, number], scale: [number, number, number] = [1, 1, 1], rot: [number, number, number] = [0, 0, 0]) => {
+      const mesh = new THREE.Mesh(geometry, material); mesh.position.set(...pos); mesh.scale.set(...scale); mesh.rotation.set(...rot);
+      mesh.castShadow = true; mesh.receiveShadow = true; parent.add(mesh); return mesh;
+    };
+    const body = add(root, new THREE.IcosahedronGeometry(1.5, 2), hide, [0, 2.55, 0], [1.1, 1.18, 1.45]);
+    body.rotation.x = -0.12;
+    add(root, new THREE.IcosahedronGeometry(1, 1), armor, [0, 3.55, -0.05], [0.95, 0.78, 1.0]);
+    // Rib plates and glowing bio-energy channels.
+    for (let i = 0; i < 5; i++) {
+      const z = 0.72 - i * 0.34;
+      add(root, new THREE.BoxGeometry(0.13, 0.92 - i * 0.08, 0.12), biolum, [-0.84 + i * 0.02, 2.55, z], [1, 1, 1], [0, 0, -0.28]);
+      add(root, new THREE.BoxGeometry(0.13, 0.92 - i * 0.08, 0.12), biolum, [0.84 - i * 0.02, 2.55, z], [1, 1, 1], [0, 0, 0.28]);
     }
-    return g;
+    // Head, jaw, eyes and crown plates.
+    const head = new THREE.Group(); head.position.set(0, 4.0, 0.72); root.add(head);
+    add(head, new THREE.IcosahedronGeometry(0.78, 1), hide, [0, 0, 0], [1.0, 0.78, 1.22]);
+    add(head, new THREE.BoxGeometry(1.05, 0.22, 0.92), armor, [0, -0.48, 0.28], [1, 1, 1], [0.18, 0, 0]);
+    for (const side of [-1, 1]) {
+      add(head, new THREE.SphereGeometry(0.11, 12, 10), biolum, [side * 0.38, 0.08, 0.88]);
+      add(head, new THREE.ConeGeometry(0.22, 0.7, 6), armor, [side * 0.58, 0.55, -0.18], [1, 1, 1], [0, 0, side * -0.38]);
+    }
+    // Four heavy limbs with claws.
+    for (const side of [-1, 1]) {
+      const arm = new THREE.Group(); arm.position.set(side * 1.25, 2.9, 0.15); root.add(arm);
+      add(arm, new THREE.IcosahedronGeometry(0.62, 1), hide, [side * 0.22, -0.42, 0], [0.8, 1.45, 0.8], [0, 0, side * -0.2]);
+      add(arm, new THREE.IcosahedronGeometry(0.42, 1), armor, [side * 0.3, -1.38, 0.2], [0.9, 0.8, 0.9]);
+      for (let claw = 0; claw < 3; claw++) add(arm, new THREE.ConeGeometry(0.11, 0.55, 6), armor, [side * 0.3 + (claw - 1) * 0.22, -1.85, 0.48], [1, 1, 1], [Math.PI / 2, 0, 0]);
+    }
+    for (const side of [-1, 1]) {
+      const leg = new THREE.Group(); leg.position.set(side * 0.72, 1.65, -0.1); root.add(leg);
+      add(leg, new THREE.IcosahedronGeometry(0.55, 1), hide, [0, -0.35, 0], [0.95, 1.25, 1.0]);
+      add(leg, new THREE.IcosahedronGeometry(0.48, 1), armor, [0, -1.12, 0.18], [1.1, 0.72, 1.3]);
+      add(leg, new THREE.ConeGeometry(0.12, 0.45, 6), armor, [0, -1.35, 0.62], [1, 1, 1], [Math.PI / 2, 0, 0]);
+    }
+    // Dorsal ridge and articulated tail.
+    for (let i = 0; i < 7; i++) add(root, new THREE.ConeGeometry(0.28 - i * 0.018, 0.85 - i * 0.045, 6), armor, [0, 3.45 - i * 0.06, -0.85 - i * 0.38], [1, 1, 1], [Math.PI / 2, 0, 0]);
+    const tail = new THREE.Group(); tail.position.set(0, 2.1, -1.2); root.add(tail);
+    for (let i = 0; i < 5; i++) {
+      add(tail, new THREE.ConeGeometry(0.58 - i * 0.09, 1.15, 8), hide, [0, 0, -0.55 - i * 0.78], [1, 0.8, 1], [-Math.PI / 2, 0, 0]);
+      add(tail, new THREE.ConeGeometry(0.16 - i * 0.02, 0.46, 6), armor, [0, 0.34, -0.55 - i * 0.78]);
+    }
+    this.kaijuRig = { head, tail };
+    return root;
   }
   private buildCivilians() {
     this.civilianGroup = new THREE.Group();
@@ -353,6 +457,19 @@ class TitanesScene extends Phaser.Scene {
     this.camera3d.position.lerp(new THREE.Vector3(this.titan.position.x,7,this.titan.position.z+12),dt*2);
     this.camera3d.lookAt(this.titan.position.x,2,this.titan.position.z-3);
     this.kaiju.rotation.y=Math.sin(_time*0.0005)*0.12;
+    if (this.mechRig) {
+      const stride = Math.sin(_time * 0.004) * (Math.abs(x) + Math.abs(z) > 0 ? 0.18 : 0.025);
+      this.mechRig.leftLeg.rotation.x = stride;
+      this.mechRig.rightLeg.rotation.x = -stride;
+      this.mechRig.leftArm.rotation.x = -stride * 0.65;
+      this.mechRig.rightArm.rotation.x = stride * 0.65;
+      this.mechRig.torso.rotation.z = Math.sin(_time * 0.0018) * 0.012;
+    }
+    if (this.kaijuRig) {
+      this.kaijuRig.head.rotation.x = Math.sin(_time * 0.0011) * 0.035;
+      this.kaijuRig.tail.rotation.y = Math.sin(_time * 0.0014) * 0.18;
+      this.kaijuRig.tail.rotation.x = Math.cos(_time * 0.001) * 0.035;
+    }
   }
   private animate3d() { this.renderer3d.setAnimationLoop(() => { if (this.world && this.camera3d) this.renderer3d.render(this.world, this.camera3d); }); }
 }
