@@ -13,6 +13,7 @@ class TitanesScene extends Phaser.Scene {
   private renderer3d!: THREE.WebGLRenderer;
   private titan!: THREE.Group;
   private kaiju!: THREE.Group;
+  private activeJaegerId: JaegerId = 'gipsy';
   private jaegerArmorMaterial!: THREE.MeshStandardMaterial;
   private jaegerAccentMaterial!: THREE.MeshStandardMaterial;
   private mechRig!: { leftArm: THREE.Group; rightArm: THREE.Group; leftLeg: THREE.Group; rightLeg: THREE.Group; torso: THREE.Group };
@@ -122,6 +123,14 @@ class TitanesScene extends Phaser.Scene {
     this.moveSpeed = 3.2 + combat.agility / 30;
     const colors: Record<JaegerId, number> = { gipsy: 0x315d70, striker: 0xb38b36, cherno: 0x465b60 };
     const accents: Record<JaegerId, number> = { gipsy: 0xff9b42, striker: 0x68e8f2, cherno: 0xff654b };
+    if (this.titan && this.world && this.activeJaegerId !== id) {
+      const position = this.titan.position.clone();
+      this.world.remove(this.titan);
+      this.titan = this.buildMech(colors[id], id);
+      this.titan.position.copy(position);
+      this.world.add(this.titan);
+      this.activeJaegerId = id;
+    }
     if (this.jaegerArmorMaterial) this.jaegerArmorMaterial.color.setHex(colors[id]);
     if (this.jaegerAccentMaterial) {
       this.jaegerAccentMaterial.color.setHex(accents[id]);
@@ -202,7 +211,7 @@ class TitanesScene extends Phaser.Scene {
       group.scale.set(size,Math.max(0.65,0.72+level*0.22),size);
     }
   }
-  private buildMech(color: number) {
+  private buildMech(color: number, id: JaegerId) {
     const root = new THREE.Group();
     const armor = new THREE.MeshStandardMaterial({ color, metalness: 0.82, roughness: 0.29 });
     const dark = new THREE.MeshStandardMaterial({ color: 0x172632, metalness: 0.88, roughness: 0.34 });
@@ -254,6 +263,22 @@ class TitanesScene extends Phaser.Scene {
       return arm;
     };
     const leftArm = makeArm(-1), rightArm = makeArm(1);
+    if (id === 'striker') {
+      // Slim profile, swept shoulder fins and twin back thrusters.
+      for (const side of [-1, 1]) {
+        panel(torso, [0.28, 1.15, 0.62], [side * 1.0, 0.35, -0.35], steel, [0, 0, side * -0.32]);
+        cylinder(torso, 0.24, 0.32, 0.8, [side * 0.48, 0.12, -0.92], glow);
+        panel(torso, [0.18, 0.72, 0.25], [side * 0.9, -0.72, -0.7], dark);
+      }
+    } else if (id === 'cherno') {
+      // Heavy siege silhouette with reinforced shoulder and forearm plates.
+      for (const side of [-1, 1]) {
+        panel(torso, [1.15, 0.92, 1.15], [side * 1.18, 0.62, -0.02], armor);
+        panel(torso, [0.9, 0.7, 0.96], [side * 1.36, -1.72, 0.08], steel);
+        panel(torso, [0.3, 0.85, 0.32], [side * 0.72, 0.2, 0.7], glow);
+      }
+      panel(torso, [1.55, 0.35, 0.72], [0, -0.92, -0.72], steel);
+    }
     // Hip block and two articulated legs with heavy feet.
     panel(root, [1.45, 0.62, 0.9], [0, 1.95, 0], dark);
     const makeLeg = (side: number) => {
@@ -363,7 +388,9 @@ class TitanesScene extends Phaser.Scene {
       const b=new THREE.Mesh(new THREE.BoxGeometry(2+Math.random()*3,h,2),this.material(0x1b3343,0.25));
       b.position.set(x,h/2,z); this.world.add(b);
     }
-    this.titan=this.buildMech(0x167c9c); this.titan.position.set(-3,0,3); this.world.add(this.titan);
+    this.activeJaegerId = this.systems.snapshot().selectedJaeger;
+    const jaegerColors: Record<JaegerId, number> = { gipsy: 0x315d70, striker: 0xb38b36, cherno: 0x465b60 };
+    this.titan=this.buildMech(jaegerColors[this.activeJaegerId], this.activeJaegerId); this.titan.position.set(-3,0,3); this.world.add(this.titan);
     this.kaiju=this.buildKaiju(); this.kaiju.position.set(4,0,-8); this.world.add(this.kaiju);
   }
   private buildHud() {
