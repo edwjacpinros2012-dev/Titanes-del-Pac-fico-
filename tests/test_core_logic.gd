@@ -58,6 +58,15 @@ func _run_tests() -> void:
 	_check(signal_counter[0] == 1, "resource changes emit one signal")
 	var SaveManagerScript = preload("res://scripts/core/save_manager.gd")
 	var save_manager = SaveManagerScript.new()
+	state.set_world_state_section("campaign", {
+		"active_mission": {"id": "aurora_defense", "progress": 2},
+		"active_expedition": {"region": "broken_isles", "progress": 1},
+		"active_event": {"id": "energy_swell", "remaining": 25}
+	})
+	state.set_world_state_section("base", {"facilities": {"command_hub": 2, "reactor": 1}})
+	state.set_world_state_section("city", {"evacuated_civilians": 42, "safe_sectors": ["north_harbor"]})
+	state.set_world_state_section("threats", {"active_kaiju": [{"id": "raker_01", "category": 3, "health": 65}]})
+	_check(state.get_world_state_section("city").get("evacuated_civilians", 0) == 42, "world-state section returns a defensive snapshot")
 	state.base_level = 3
 	state.titan_level = 4
 	state.completed_missions.append("aurora_coast_first_deployment")
@@ -69,6 +78,12 @@ func _run_tests() -> void:
 	_check(loaded_state.base_level == 3 and loaded_state.titan_level == 4, "save/load preserves progression levels")
 	_check(loaded_state.unlocked_regions.has("test_region_2"), "save/load preserves unlocked regions")
 	_check(loaded_state.completed_missions.has("aurora_coast_first_deployment"), "save/load preserves completed mission identifiers")
+	_check(loaded_state.get_world_state_section("campaign").get("active_mission", {}).get("progress", 0) == 2, "primary save/load preserves active mission progress")
+	_check(loaded_state.get_world_state_section("campaign").get("active_expedition", {}).get("region", "") == "broken_isles", "primary save/load preserves active expedition")
+	_check(loaded_state.get_world_state_section("campaign").get("active_event", {}).get("id", "") == "energy_swell", "primary save/load preserves active world event")
+	_check(loaded_state.get_world_state_section("base").get("facilities", {}).get("reactor", 0) == 1, "primary save/load preserves base facility upgrades")
+	_check(loaded_state.get_world_state_section("city").get("evacuated_civilians", 0) == 42, "primary save/load preserves civilian evacuation progress")
+	_check(loaded_state.get_world_state_section("threats").get("active_kaiju", [])[0].get("category", 0) == 3, "primary save/load preserves active Kaiju threat snapshots")
 	_check(save_manager.save_game(jaeger_state), "save_game stores Jaeger progression")
 	var loaded_jaeger_state = GameStateScript.new()
 	_check(save_manager.load_game(loaded_jaeger_state), "load_game restores Jaeger progression")
