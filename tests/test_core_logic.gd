@@ -5,6 +5,7 @@ const InventoryScript = preload("res://scripts/resources/inventory.gd")
 const TradeManagerScript = preload("res://scripts/economy/trade_manager.gd")
 const GameLoopScript = preload("res://scripts/gameplay/game_loop_manager.gd")
 const NpcPopulationManagerScript = preload("res://scripts/npc/npc_population_manager.gd")
+const AllianceManagerScript = preload("res://scripts/alliances/alliance_manager.gd")
 
 var passed := 0
 var failed := 0
@@ -172,6 +173,25 @@ func _run_tests() -> void:
 	npc_manager.free()
 	restored_npc_manager.free()
 	npc_player.free()
+
+	var alliance_manager = AllianceManagerScript.new()
+	alliance_manager.import_state({
+		"alliance_name": "Guardianes del Abismo",
+		"alliance_tag": "GDA",
+		"rank": "Recluta",
+		"members": [{ "name": "Piloto", "rank": "Recluta", "contribution": 12 }, "entrada_invalida"],
+		"objectives": [{ "id": "scout_sector", "title": "Explorar", "target": 3, "progress": 2, "reward": 120 }],
+		"local_chat": ["mensaje guardado", 42]
+	})
+	_check(alliance_manager.members.size() == 1 and alliance_manager.members[0].get("name", "") == "Piloto", "alliance import safely rebuilds typed member array")
+	_check(alliance_manager.objectives.size() == 1 and alliance_manager.objectives[0].get("progress", 0) == 2, "alliance import safely rebuilds typed objectives array")
+	_check(alliance_manager.local_chat.size() == 2 and alliance_manager.local_chat[1] == "42", "alliance import safely rebuilds typed chat array")
+	var alliance_snapshot: Dictionary = alliance_manager.export_state()
+	var restored_alliance = AllianceManagerScript.new()
+	restored_alliance.import_state(alliance_snapshot)
+	_check(restored_alliance.members.size() == 1 and restored_alliance.objectives.size() == 1, "alliance state survives export/import round trip")
+	alliance_manager.free()
+	restored_alliance.free()
 
 	var inventory = InventoryScript.new()
 	inventory.add_item("metal", 5)
