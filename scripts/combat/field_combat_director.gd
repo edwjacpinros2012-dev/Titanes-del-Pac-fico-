@@ -64,7 +64,15 @@ func _begin_field_mission() -> void:
 	retry_button.visible = false
 	retry_button.pressed.connect(_restart_mission)
 	column.add_child(retry_button)
-	if MISSION_ID in GlobalState.completed_missions:
+	var saved_combat: Dictionary = GlobalState.get_world_state_section("field_combat")
+	var saved_defeats: Variant = saved_combat.get("defeated_enemy_ids", [])
+	if str(saved_combat.get("mission_id", "")) == MISSION_ID and saved_defeats is Array:
+		for saved_id in saved_defeats:
+			var enemy_id := str(saved_id)
+			if enemy_id in ["Kaiju_01", "Kaiju_02", "Kaiju_03"] and enemy_id not in defeated_enemy_ids:
+				defeated_enemy_ids.append(enemy_id)
+	defeated_count = mini(defeated_enemy_ids.size(), REQUIRED_DEFEATS)
+	if MISSION_ID in GlobalState.completed_missions or bool(saved_combat.get("mission_finished", false)):
 		mission_finished = true
 		status_text = "Operación completada anteriormente. Tu progreso está guardado."
 	else:
@@ -96,6 +104,7 @@ func _on_kaiju_defeated(reward: Dictionary, enemy_id: String) -> void:
 			continue
 		GlobalState.add_resource(str(resource_id), amount)
 		enemy_rewards_total[str(resource_id)] = int(enemy_rewards_total.get(str(resource_id), 0)) + amount
+	GlobalState.set_world_state_section("field_combat", {"mission_id": MISSION_ID, "defeated_enemy_ids": defeated_enemy_ids.duplicate(), "mission_finished": defeated_count >= REQUIRED_DEFEATS})
 	if defeated_count >= REQUIRED_DEFEATS:
 		mission_finished = true
 		if MISSION_ID not in GlobalState.completed_missions:
