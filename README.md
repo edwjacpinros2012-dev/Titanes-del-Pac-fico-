@@ -122,8 +122,10 @@ Lee `docs/ANDROID_BUILD.md`, `docs/PLATFORM_TARGETS.md` y `docs/QA_TEST_MATRIX.m
 
 El script descarga el proyecto en Documentos sin sobrescribir una carpeta existente. Godot debe descargarse desde el sitio oficial; el script no instala software ni requiere permisos de administrador.
 
-## Fase 2 y dirección visual
+## Dirección artística maestra — referencia vigente
 
+- [Dirección artística maestra — PDF de 19 páginas](docs/DIRECCION_ARTISTICA_MAESTRA.md)
 - [Vertical slice jugable — Fase 2](docs/PHASE_2_VERTICAL_SLICE.md)
-- [Dirección artística y referencia visual](docs/ART_DIRECTION_VISUAL_REFERENCE.md)
-- [Pruebas de aceptación — Fase 2](docs/QA_PHASE_2.md)
+- [QA — Fase 2](docs/QA_PHASE_2.md)
+
+La guía maestra sustituye la referencia visual anterior en todas las fases. Los modelos 3D finales y la validación en Godot siguen pendientes; consulta la guía para distinguir requisitos de producción de placeholders actuales.
