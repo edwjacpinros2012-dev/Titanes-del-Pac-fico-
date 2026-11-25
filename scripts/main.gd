@@ -981,6 +981,9 @@ func _save_local_profile() -> void:
 		"titan_level": titan_level,
 		"campaign_level": campaign.player_level if campaign else 1,
 		"jaeger_generation": campaign.jaeger_generation if campaign else 1,
+		"selected_jaeger": GlobalState.selected_jaeger,
+		"unlocked_jaegers": GlobalState.unlocked_jaegers.duplicate(),
+		"jaeger_marks": GlobalState.jaeger_marks.duplicate(true),
 		"alliance_name": alliance_manager.alliance_name if alliance_manager else "",
 		"alliance_tag": alliance_manager.alliance_tag if alliance_manager else "",
 		"alliance_rank": alliance_manager.rank if alliance_manager else "Sin alianza",
@@ -1007,6 +1010,22 @@ func _load_local_profile() -> void:
 			var mission_id := str(mission_value).strip_edges()
 			if not mission_id.is_empty() and mission_id not in GlobalState.completed_missions:
 				GlobalState.completed_missions.append(mission_id)
+	var saved_jaegers: Variant = snapshot.get("unlocked_jaegers", ["gipsy"])
+	if saved_jaegers is Array:
+		GlobalState.unlocked_jaegers.clear()
+		GlobalState.unlocked_jaegers.append("gipsy")
+		for jaeger_value in saved_jaegers:
+			var jaeger_id := str(jaeger_value).strip_edges()
+			if jaeger_id in GameState.JAEGER_IDS and jaeger_id not in GlobalState.unlocked_jaegers:
+				GlobalState.unlocked_jaegers.append(jaeger_id)
+	var saved_marks: Variant = snapshot.get("jaeger_marks", {})
+	if saved_marks is Dictionary:
+		for jaeger_id in GameState.JAEGER_IDS:
+			var mark_value: Variant = saved_marks.get(jaeger_id, 1)
+			if typeof(mark_value) == TYPE_INT or typeof(mark_value) == TYPE_FLOAT:
+				GlobalState.jaeger_marks[jaeger_id] = clampi(int(mark_value), 1, 10)
+	var saved_selected_jaeger := str(snapshot.get("selected_jaeger", "gipsy"))
+	GlobalState.selected_jaeger = saved_selected_jaeger if saved_selected_jaeger in GlobalState.unlocked_jaegers else "gipsy"
 	base_level = int(snapshot.get("base_level", base_level))
 	if base_development:
 		var saved_base: Variant = snapshot.get("base_development", {})
