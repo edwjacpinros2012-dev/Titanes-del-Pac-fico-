@@ -24,7 +24,7 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - Esquema inicial Supabase para perfiles, alianzas, chat moderado, bloqueos y denuncias.
 - Base de datos adicional para guardado en nube, vinculación de identidad Google Play Games y progreso regional, con escrituras reservadas al servidor.
 
-## Combate de campo jugable
+## Combate de campo jugable (combat vertical slice)
 - Al desplegarse, aparece una operación local con tres Kaijus hostiles que detectan al Titán, lo persiguen y atacan con una breve señal de preparación.
 - **Espacio:** golpe frontal. **Clic derecho o F:** pulso de área con coste de energía y enfriamiento. **Mayús:** bloquear y reducir el daño recibido.
 - El HUD de combate muestra integridad, energía, objetivo y controles; al neutralizar los tres enemigos se entregan materiales y se guarda el progreso con el `SaveSystem` existente.
