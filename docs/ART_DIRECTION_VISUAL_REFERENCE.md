@@ -1,100 +1,77 @@
-# Dirección artística — Referencia visual original
+# DIRECCIÓN ARTÍSTICA MAESTRA — TITANES DEL PACÍFICO
+## Sustituye las referencias visuales anteriores en todas las fases
 
-Fecha: 24 de noviembre de 2026  
-Formato objetivo: 16:9 horizontal, cámara 3D cinematográfica  
-Motor: Godot 4.3, renderer Compatibility como base de rendimiento
+**Fuente principal:** PDF entregado por el usuario, *referencia visual del juego titanes del abismo.pdf*, 19 páginas. Esta guía convierte sus láminas en requisitos implementables. No es una afirmación de que existan ya modelos 3D finales.
 
-## Identidad
+## 1. Identidad visual global
+- Realismo cinematográfico industrial, escala colosal y atmósfera costera del Pacífico.
+- Paleta base: azul acero profundo, negro industrial, cian reactor, blanco frío, ámbar de alerta y naranja de emergencia.
+- Iluminación de alto contraste: focos volumétricos en hangares, reflejos húmedos, niebla costera, lluvia y humo ambiental controlados.
+- Materiales PBR: acero azul pintado y desgastado, acero negro industrial, metal oxidado, hormigón húmedo, panel cerámico, vidrio reforzado, metal cepillado y cableado.
+- Evitar superficies limpias de juguete, siluetas cúbicas sin detalle y colores saturados uniformes.
 
-**Tono:** ciencia ficción militar-industrial, escala colosal, costa del Pacífico, tecnología de rescate y defensa, clima oceánico y desgaste funcional.
+## 2. Jaegers: selección, evolución y desbloqueo
+La página 2 muestra una progresión de diez generaciones Mark I–X. Las páginas 3–5 muestran vistas ortográficas y familias de Jaegers. Se traducirá a un catálogo de unidades originales del juego:
+- Al iniciar: elegir un único Jaeger inicial disponible, con ficha, rol y estadísticas visibles.
+- La unidad inicial evoluciona por niveles/Mark; mejoras visibles en placas, reactor, iluminación, desgaste y accesorios.
+- Los demás Jaegers permanecen bloqueados hasta cumplir misiones, hitos de campaña y requisitos de hangar.
+- Cada unidad debe tener silueta, proporciones, paleta y rol reconocibles; no basta con cambiar el color del mismo modelo.
+- Vistas de producción: frontal, trasera, lateral y tres cuartos; escala y proporciones coherentes.
+- El catálogo del juego debe separar estado seleccionado, disponible y bloqueado, con requisitos explícitos.
 
-El mundo debe sentirse construido para operar máquinas gigantes: estructuras reforzadas, plataformas de mantenimiento, puertas monumentales, señalización de seguridad, grúas, depósitos, luces de navegación y zonas de evacuación.
+## 3. Kaijus / Abisales
+Páginas 6–10: catálogo por familias y categorías crecientes (I–X), con cambios de tamaño, postura, placas, crestas, cola y bioluminiscencia. Convertirlo en criaturas originales:
+- Clasificación legible, nombre propio, categoría, tamaño de ficción y bioma.
+- Cada familia debe tener anatomía y silueta diferenciadas: cuadrúpeda acorazada, nadadora hidrodinámica, bípedo pesado y forma abisal bioluminiscente.
+- La categoría superior cambia masa, silueta y presencia, no solo estadísticas.
+- Nunca reutilizar una única malla con otro color como criatura final.
 
-## Paleta
+## 4. Mundo, ciudades y defensa civil
+Páginas 11–15: megaciudad costera nocturna, infraestructura portuaria, Shatterdome y zona urbana en emergencia.
+- Construir ciudad por sectores: centro urbano, puerto, zona industrial, costa, vías elevadas, refugios y rutas de evacuación.
+- Hacer que la escala se lea con edificios, vehículos, luces, señalización, agua y siluetas humanas pequeñas.
+- El Shatterdome debe ser una instalación funcional: hangar principal, plataformas de despliegue, grúas, talleres, reactor, centro de mando, almacén y clínica.
+- El escenario debe responder a eventos: lluvia, niebla, humo, alarmas, daños ambientales y cambios de iluminación, sin bloquear legibilidad ni rendimiento.
 
-| Uso | Color orientativo | Aplicación |
-|---|---|---|
-| Azul abisal | #082B3B | océano, sombras profundas |
-| Acero frío | #526A78 | armadura y estructuras |
-| Grafito | #1C2830 | juntas, maquinaria |
-| Cian reactor | #27C9E8 | energía y estados activos |
-| Ámbar industrial | #F2A23A | avisos y señalización |
-| Rojo alerta | #E94C4C | peligro y estados críticos |
-| Niebla costera | #A8BBC1 | atmósfera y distancia |
+## 5. HUD y mapa táctico
+Páginas 16–17:
+- HUD limpio y oscuro: integridad del Jaeger, núcleo de energía, localización Kaiju, categoría de amenaza, objetivo, evacuación y estado del sector.
+- Mapa de ciudad por sectores con rutas de evacuación, zona segura, zona de peligro, base, suministros y ubicación de amenaza.
+- Alertas con jerarquía y color consistente: cian para información, ámbar para precaución y rojo/naranja para emergencia.
+- Adaptar a pantalla horizontal, mando, teclado y controles táctiles.
 
-## Jaegers / Centinelas
+## 6. Materiales y efectos
+Páginas 18–19:
+- Biblioteca de materiales PBR con variación de roughness, metalness, normal, desgaste y suciedad.
+- Efectos ambientales: reactor azul/naranja, vapor industrial, humo, lluvia intensa, salpicaduras, niebla costera, chispas estilizadas, ondas de energía y luces de alarma.
+- Efectos deben tener LOD, límites de partículas y opción de calidad reducida en equipos modestos.
 
-- Silueta vertical reconocible a gran distancia.
-- Proporciones industriales, placas superpuestas y articulaciones legibles.
-- Centro de masa y pies anchos para comunicar peso.
-- Materiales PBR con variación de roughness, pintura gastada, bordes pulidos y marcas de mantenimiento.
-- Reactor con emisión cian moderada, sin quemar la exposición de la escena.
-- Cada unidad debe tener proporciones, cabeza, hombros y silueta diferentes; no resolver la variedad cambiando únicamente el color.
-- Animaciones requeridas: idle, walk, run, turn, hit_react, interact y evolution.
-- El modelo de colisión debe ser simple y separado de la malla artística.
+## 7. Reglas de producción 3D
+- Godot: preferir escenas modulares, nodos reutilizables y señales para desacoplar sistemas.
+- Modelos finales en GLB/glTF; texturas PBR empaquetadas y nombres consistentes.
+- Separar malla, rig, animaciones, materiales y colisiones.
+- Jaegers: animaciones de reposo, marcha, giro, despliegue, daño, recuperación y victoria.
+- Kaijus: reposo, desplazamiento, alerta, ataque abstracto, daño y retirada.
+- Crear LODs, colisiones simplificadas, instancing para edificios repetidos y presupuestos de memoria por plataforma.
 
-## Kaijus / Abisales
+## 8. Aplicación a todas las fases
+- Fase 1 — fundación: paleta, tipografía, iluminación, cámara, escala y lenguaje visual base.
+- Fase 2 — vertical slice: una costa, un Jaeger inicial seleccionable, un Kaiju de referencia, HUD, objetivo y hangar con el estilo maestro.
+- Fase 3 — hangar y progresión: evolución Mark, catálogo de unidades, desbloqueos, fichas, vistas de inspección y personalización.
+- Fase 4 — mundo: ciudad por sectores, puerto, Shatterdome, refugios y rutas tácticas.
+- Fase 5 — contenido: familias Kaiju, misiones, biomas, clima, materiales y efectos.
+- Fase 6 — pulido: optimización, accesibilidad, controles, rendimiento, QA y consistencia visual.
+Toda nueva escena, panel, recurso, misión, documento y asset debe enlazar esta guía y no volver a la referencia visual anterior.
 
-- Silueta orgánica y asimétrica, inspirada en fauna marina abisal sin copiar criaturas existentes.
-- Lectura clara de cabeza, torso, extremidades y cola.
-- Placas, crestas y bioluminiscencia como rasgos de especie.
-- Variar altura, anchura, postura y locomoción entre clases.
-- Estados visuales legibles: patrulla, alerta, aproximación, preparación, recuperación y retirada.
-- El prototipo actual usa primitivas geométricas; no debe confundirse con el arte final.
+## 9. Criterios de aceptación
+- [ ] No quedan referencias de la guía anterior presentadas como dirección vigente.
+- [ ] El menú inicial permite elegir la unidad inicial disponible.
+- [ ] La evolución del Jaeger inicial es persistente y visible.
+- [ ] Las demás unidades muestran requisitos reales de desbloqueo.
+- [ ] Hangar, ciudad, Kaiju y HUD comparten la misma paleta/materiales.
+- [ ] Hay vistas de inspección y fichas para las unidades.
+- [ ] Los materiales y efectos tienen alternativas de rendimiento.
+- [ ] Las escenas Godot se ejecutan y se prueban en el equipo objetivo.
 
-## Shatterdome y base
-
-- Hangar monumental con escala humana secundaria para comparar tamaño.
-- Puertas, raíles, plataformas de mantenimiento, grúas y puentes técnicos.
-- Reactor, taller, almacén, centro médico, centro de mando y zonas de evacuación.
-- Los edificios deben tener siluetas distintas y una función reconocible.
-- La construcción debe mostrar estado: plano, obra, operativo, mejorado y dañado.
-
-## Ciudades y regiones
-
-- Costa urbana con horizonte profundo, mar visible y capas de niebla.
-- Edificios modulares con variación de altura y densidad.
-- Carreteras, muelles, rompeolas, puentes, faros y zonas de evacuación.
-- Las regiones posteriores deben variar clima, relieve, vegetación, arquitectura y color ambiental.
-- La destrucción se implementará por etapas visuales controladas; priorizar rendimiento y legibilidad.
-
-## Cámara e iluminación
-
-- Formato horizontal 16:9 como referencia principal.
-- Cámara con seguimiento amortiguado, encuadre que preserve escala y lectura del objetivo.
-- Luz direccional de mañana/tarde, ambiente frío y niebla costera.
-- Luces emisivas reservadas para reactores, balizas y señales.
-- Evitar demasiadas sombras dinámicas en dispositivos modestos.
-- El HUD debe dejar libre el centro de pantalla y adaptarse a distintas relaciones de aspecto.
-
-## HUD y menús
-
-- Jerarquía clara: objetivo, integridad, energía y estado de misión.
-- Paneles oscuros translúcidos con bordes técnicos discretos.
-- Tipografía sans-serif legible y números tabulares.
-- Colores de estado consistentes: cian = información activa, ámbar = advertencia, rojo = crítico, verde = confirmado.
-- Botones táctiles grandes, separados y ubicados en los bordes.
-- Mantener pausa, accesibilidad, volumen, sensibilidad y calidad gráfica en opciones.
-
-## Pipeline 3D
-
-1. Boceto de silueta y proporciones.
-2. Bloqueo de volúmenes.
-3. Modelado de alta y baja complejidad.
-4. UV y materiales PBR.
-5. Rig y animaciones.
-6. Exportar GLB/GLTF.
-7. Importar en Godot y revisar escala, origen, materiales y animaciones.
-8. Preparar LOD y colisiones simplificadas.
-9. Integrar en una escena de prueba y medir rendimiento.
-
-## Reglas de originalidad
-
-Las referencias de otros videojuegos sirven para estudiar composición, legibilidad y ritmo de progresión. No reutilizar personajes, modelos, mapas, logotipos, capturas, texturas ni música protegida. Los diseños finales deben ser propios de Titanes del Pacífico.
-
-## Fuentes técnicas
-
-- Godot — organización de escenas y señales: https://docs.godotengine.org/en/stable/tutorials/best_practices/scene_organization.html
-- Godot — CharacterBody3D: https://docs.godotengine.org/en/stable/classes/class_characterbody3d.html
-- Godot — formatos 3D, GLB/GLTF recomendado: https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_3d_scenes/available_formats.html
-- Godot — conceptos de nodos, escenas y señales: https://docs.godotengine.org/en/latest/getting_started/introduction/key_concepts_overview.html
+## 10. Estado honesto
+Esta guía es la especificación artística derivada del PDF de 19 páginas. Los modelos 3D cinematográficos, rigs, texturas finales, animaciones, ciudad completa y efectos de producción todavía requieren creación e integración. Los placeholders geométricos actuales no deben describirse como arte final.
