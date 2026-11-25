@@ -4,6 +4,7 @@ class_name FieldCombatDirector
 signal mission_completed(reward: Dictionary)
 
 const KaijuScript = preload("res://scripts/combat/field_kaiju.gd")
+const MISSION_ID := "aurora_coast_first_deployment"
 const REQUIRED_DEFEATS := 3
 const COMPLETION_REWARD := {"metal": 20, "energia": 12}
 
