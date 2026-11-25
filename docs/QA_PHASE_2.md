@@ -39,3 +39,16 @@
 ## No declarar aprobado
 
 No marcar esta fase como aprobada por el mero hecho de que los archivos estén en GitHub. Hace falta ejecutar la lista anterior y conservar el resultado de CI o de la prueba local.
+
+
+## Verificación de esta revisión (2026-11-25)
+- [x] Gipsy es la única unidad disponible al crear una partida nueva; Striker y Cherno dependen de hitos de campaña.
+- [x] La evolución Mark se almacena por identificador de Jaeger en el guardado local del navegador; al seleccionar otra unidad se recupera su Mark individual.
+- [x] El valor heredado `jaegerMark` se migra como Mark del Jaeger seleccionado para conservar partidas anteriores.
+- [x] TypeScript check y build de producción: GitHub Actions run 45519487175, éxito.
+- [x] Build y type-check del workflow principal: run 45519486872, éxito.
+- [ ] Godot import/parser, repo sanity, core tests y smoke run: run 45519486918 sigue en inicialización de contenedor; no se declara aprobado.
+- [ ] Prueba manual de recarga/cambio de escena en navegador real.
+- [ ] El PDF binario original todavía no está versionado; consultar `REFERENCIA_PDF_ORIGINAL.md`.
+- [ ] Modelos GLB finales, texturas PBR, rigs, animaciones, ciudad/hangar de calidad final y efectos completos.
+- [ ] Deployment Vercel con el SHA más reciente y merge a main.
