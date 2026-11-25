@@ -57,7 +57,7 @@ func _run_tests() -> void:
 	_check(loaded_state.resources["metal"] == 15 and loaded_state.resources["cristal"] == 3, "save/load preserves resource values")
 	_check(loaded_state.base_level == 3 and loaded_state.titan_level == 4, "save/load preserves progression levels")
 	_check(loaded_state.unlocked_regions.has("test_region_2"), "save/load preserves unlocked regions")
-	_check(loaded_state.completed_missions.has("aurora_coast_first_deployment"), "save/load preserves completed mission identifiers"))
+	_check(loaded_state.completed_missions.has("aurora_coast_first_deployment"), "save/load preserves completed mission identifiers")
 	_check(save_manager.save_profile({"profile_name": "test", "credits": 123, "flags": ["qa"]}), "save_profile accepts valid snapshot")
 	var loaded_profile: Dictionary = save_manager.load_profile()
 	_check(loaded_profile.get("version", 0) == 2, "profile save/load preserves version metadata")
