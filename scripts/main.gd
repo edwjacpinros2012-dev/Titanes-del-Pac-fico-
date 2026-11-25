@@ -996,12 +996,18 @@ func _save_local_profile() -> void:
 		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {},
 		"completed_field_missions": GlobalState.completed_missions.duplicate()
 	}
+	GlobalState.world_state = snapshot.duplicate(true)
+	SaveSystem.save_game(GlobalState)
 	SaveSystem.save_profile(snapshot)
 
 func _load_local_profile() -> void:
+	SaveSystem.load_game(GlobalState)
 	var snapshot: Dictionary = SaveSystem.load_profile()
 	if snapshot.is_empty():
+		snapshot = GlobalState.world_state.duplicate(true)
+	if snapshot.is_empty():
 		return
+	GlobalState.world_state = snapshot.duplicate(true)
 	resources = snapshot.get("resources", resources)
 	var saved_field_missions: Variant = snapshot.get("completed_field_missions", [])
 	if saved_field_missions is Array:
