@@ -6,6 +6,7 @@ export interface TitanesSave {
   unlockedMissions: number;
   completedMissions: number[];
   selectedJaeger: JaegerId;
+  jaegerMark: number;
   upgrades: Record<string, number>;
   inventory: Record<string, number>;
   buildings: Record<string, number>;
@@ -21,6 +22,7 @@ const START: TitanesSave = {
   unlockedMissions: 1,
   completedMissions: [],
   selectedJaeger: 'gipsy',
+  jaegerMark: 1,
   upgrades: { defense: 0, reactor: 0, training: 0 },
   inventory: { repairKit: 0, armorParts: 0, researchData: 0 },
   buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, warehouse: 0, evacuation: 0 },
@@ -69,6 +71,7 @@ export class TitanesSystems {
       while (safe.completedMissions.includes(nextMission) && nextMission < 12) nextMission += 1;
       safe.unlockedMissions = nextMission;
       safe.selectedJaeger = parsed.selectedJaeger === 'striker' || parsed.selectedJaeger === 'cherno' ? parsed.selectedJaeger : 'gipsy';
+      safe.jaegerMark = clamp(Math.floor(Number((parsed as Partial<TitanesSave>).jaegerMark) || 1), 1, 10);
       safe.upgrades = numberMap(parsed.upgrades, START.upgrades);
       safe.inventory = numberMap(parsed.inventory, START.inventory);
       safe.buildings = numberMap(parsed.buildings, START.buildings);
@@ -121,6 +124,17 @@ export class TitanesSystems {
     this.data.selectedJaeger = id;
     this.save();
     return true;
+  }
+
+  evolveSelectedJaeger() {
+    const mark = this.data.jaegerMark;
+    if (mark >= 10) return { ok: false, mark, reason: 'La unidad ya alcanzó MARK X.' };
+    const cost = { alloy: 220 + mark * 140, energy: 160 + mark * 100 };
+    if (!this.transact(cost, {})) return { ok: false, mark, cost, reason: 'Recursos insuficientes para la siguiente generación.' };
+    this.data.jaegerMark = mark + 1;
+    this.data.xp += 60;
+    this.save();
+    return { ok: true, mark: this.data.jaegerMark, cost };
   }
 
   storageCapacity() {
