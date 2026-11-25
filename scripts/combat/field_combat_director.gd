@@ -4,15 +4,21 @@ class_name FieldCombatDirector
 signal mission_completed(reward: Dictionary)
 
 const KaijuScript = preload("res://scripts/combat/field_kaiju.gd")
+const MISSION_ID := "aurora_coast_first_deployment"
 const REQUIRED_DEFEATS := 3
+const COMPLETION_REWARD := {"metal": 20, "energia": 12}
 
-var player: Node3D
+var player: TitanController
 var defeated_count := 0
+var defeated_enemy_ids: Array[String] = []
+var enemy_rewards_total: Dictionary = {}
 var status_text := ""
 var mission_finished := false
 var hud_label: Label
 var health_label: Label
+var retry_button: Button
 var save_timer := 0.0
+var mission_started := false
 
 func _ready() -> void:
 	call_deferred("_begin_field_mission")
@@ -30,7 +36,7 @@ func _begin_field_mission() -> void:
 	if players.is_empty():
 		push_warning("FieldCombatDirector: no se encontró un Titán en el grupo player_titan.")
 		return
-	player = players[0] as Node3D
+	player = players[0] as TitanController
 	if player.has_signal("health_changed"):
 		player.health_changed.connect(_on_health_changed)
 	var layer := CanvasLayer.new()
@@ -53,49 +59,96 @@ func _begin_field_mission() -> void:
 	column.add_child(hud_label)
 	health_label = Label.new()
 	column.add_child(health_label)
-	_spawn_initial_wave()
+	retry_button = Button.new()
+	retry_button.text = "REINTENTAR OPERACIÓN"
+	retry_button.visible = false
+	retry_button.pressed.connect(_restart_mission)
+	column.add_child(retry_button)
+	var saved_combat: Dictionary = GlobalState.get_world_state_section("field_combat")
+	var saved_defeats: Variant = saved_combat.get("defeated_enemy_ids", [])
+	if str(saved_combat.get("mission_id", "")) == MISSION_ID and saved_defeats is Array:
+		for saved_id in saved_defeats:
+			var enemy_id := str(saved_id)
+			if enemy_id in ["Kaiju_01", "Kaiju_02", "Kaiju_03"] and enemy_id not in defeated_enemy_ids:
+				defeated_enemy_ids.append(enemy_id)
+	defeated_count = mini(defeated_enemy_ids.size(), REQUIRED_DEFEATS)
+	if MISSION_ID in GlobalState.completed_missions or bool(saved_combat.get("mission_finished", false)):
+		mission_finished = true
+		status_text = "Operación completada anteriormente. Tu progreso está guardado."
+	else:
+		mission_started = true
+		_spawn_initial_wave()
 	_update_hud()
 
 func _spawn_initial_wave() -> void:
 	var offsets := [Vector3(-10, 0, -13), Vector3(10, 0, -17), Vector3(0, 0, -25)]
 	for index in range(REQUIRED_DEFEATS):
+		var enemy_id := "Kaiju_%02d" % (index + 1)
+		if enemy_id in defeated_enemy_ids:
+			continue
 		var kaiju := CharacterBody3D.new()
 		kaiju.set_script(KaijuScript)
-		kaiju.name = "Kaiju_%02d" % (index + 1)
+		kaiju.name = enemy_id
 		kaiju.position = player.position + offsets[index]
-		kaiju.defeated.connect(_on_kaiju_defeated)
+		kaiju.defeated.connect(_on_kaiju_defeated.bind(enemy_id))
 		add_child(kaiju)
 
-func _on_kaiju_defeated(reward: Dictionary) -> void:
-	if mission_finished:
+func _on_kaiju_defeated(reward: Dictionary, enemy_id: String) -> void:
+	if mission_finished or enemy_id in defeated_enemy_ids:
 		return
-	defeated_count += 1
+	defeated_enemy_ids.append(enemy_id)
+	defeated_count = mini(defeated_enemy_ids.size(), REQUIRED_DEFEATS)
 	for resource_id in reward:
-		GlobalState.add_resource(str(resource_id), int(reward[resource_id]))
+		var amount := maxi(0, int(reward[resource_id]))
+		if amount <= 0:
+			continue
+		GlobalState.add_resource(str(resource_id), amount)
+		enemy_rewards_total[str(resource_id)] = int(enemy_rewards_total.get(str(resource_id), 0)) + amount
+	GlobalState.set_world_state_section("field_combat", {"mission_id": MISSION_ID, "defeated_enemy_ids": defeated_enemy_ids.duplicate(), "mission_finished": defeated_count >= REQUIRED_DEFEATS})
 	if defeated_count >= REQUIRED_DEFEATS:
 		mission_finished = true
-		var completion_reward := {"metal": 20, "energy": 12}
-		for resource_id in completion_reward:
-			GlobalState.add_resource(str(resource_id), int(completion_reward[resource_id]))
+		if MISSION_ID not in GlobalState.completed_missions:
+			GlobalState.completed_missions.append(MISSION_ID)
+		for resource_id in COMPLETION_REWARD:
+			var completion_amount := maxi(0, int(COMPLETION_REWARD[resource_id]))
+			GlobalState.add_resource(str(resource_id), completion_amount)
+			enemy_rewards_total[str(resource_id)] = int(enemy_rewards_total.get(str(resource_id), 0)) + completion_amount
 		SaveSystem.save_game(GlobalState)
-		status_text = "Objetivo cumplido. Recompensas guardadas en el perfil local."
-		mission_completed.emit(completion_reward)
+		status_text = "Objetivo cumplido. Recompensas individuales y de misión guardadas."
+		mission_completed.emit(enemy_rewards_total.duplicate(true))
 	else:
-		status_text = "Amenaza neutralizada. Recupera suministros y continúa."
 		SaveSystem.save_game(GlobalState)
+		status_text = "Amenaza neutralizada. Recompensa individual entregada y progreso guardado."
 	_update_hud()
-
 func _on_health_changed(current: float, maximum: float) -> void:
 	if health_label:
 		health_label.text = "INTEGRIDAD %d / %d    ENERGÍA %d%%" % [roundi(current), roundi(maximum), roundi(player.energy)]
-	if current <= 0.0:
-		status_text = "TITÁN INCAPACITADO — reinicia la misión para volver a desplegar."
+	if current <= 0.0 and not mission_finished:
+		status_text = "TITÁN INCAPACITADO — puedes reintentar la operación."
+		if retry_button:
+			retry_button.visible = true
+	_update_hud()
+
+func _restart_mission() -> void:
+	if mission_finished or not is_instance_valid(player):
+		return
+	for kaiju in get_tree().get_nodes_in_group("field_kaiju"):
+		if is_instance_valid(kaiju):
+			kaiju.queue_free()
+	status_text = "Nueva tentativa iniciada. El progreso y las recompensas de amenazas neutralizadas se conservan."
+	if player.has_method("restore_health"):
+		player.restore_health(float(player.get("max_health")))
+	if retry_button:
+		retry_button.visible = false
+	mission_started = true
+	_spawn_initial_wave()
 	_update_hud()
 
 func _update_hud() -> void:
 	if hud_label == null:
 		return
-	var objective := "OBJETIVO: neutraliza Kaijus (%d/%d)" % [defeated_count, REQUIRED_DEFEATS]
+	var remaining := maxi(0, REQUIRED_DEFEATS - defeated_count)
+	var objective := "OBJETIVO: neutraliza amenazas (%d/%d)" % [defeated_count, REQUIRED_DEFEATS]
 	if mission_finished:
 		objective = "MISIÓN COMPLETADA"
 	elif player != null and player.is_defeated:
@@ -103,6 +156,8 @@ func _update_hud() -> void:
 	var controls := "SPACE: golpe | RMB/F: pulso (35 energía) | SHIFT: bloquear"
 	if OS.has_feature("mobile") or DisplayServer.is_touchscreen_available():
 		controls = "Usa la cruceta y los botones táctiles de combate."
-	hud_label.text = objective + "\n" + (status_text if not status_text.is_empty() else "Detectados: 3 hostiles. Acércate, apunta y ataca.") + "\n" + controls
+	hud_label.text = objective + "\n" + (status_text if not status_text.is_empty() else "Amenazas restantes: %d. Acércate y usa los controles de combate." % remaining) + "\n" + controls
+	if retry_button:
+		retry_button.visible = player != null and player.is_defeated and not mission_finished
 	if health_label and player != null:
 		health_label.text = "INTEGRIDAD %d / %d    ENERGÍA %d%%" % [roundi(player.health), roundi(player.max_health), roundi(player.energy)]

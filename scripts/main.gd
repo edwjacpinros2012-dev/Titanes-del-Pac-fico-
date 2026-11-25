@@ -55,15 +55,22 @@ var titan_level := 1
 var collected_nodes: Array[Node3D] = []
 var world_time := 0.0
 var autosave_elapsed := 0.0
+var syncing_game_state := false
 const AUTOSAVE_INTERVAL := 60.0
 
 func _ready() -> void:
+	if not GlobalState.resources_changed.is_connected(_on_global_resources_changed):
+		GlobalState.resources_changed.connect(_on_global_resources_changed)
 	_setup_input()
 	_create_world()
 	_create_player()
 	_create_gameplay_systems()
 	_create_hud()
 	_load_local_profile()
+	_sync_global_state_from_local()
+	var field_director := get_node_or_null("FieldCombatDirector")
+	if field_director != null and field_director.has_signal("mission_completed"):
+		field_director.connect("mission_completed", _on_field_mission_completed)
 	_apply_technology_effects()
 	_spawn_resources()
 	_update_hud()
@@ -295,6 +302,7 @@ func _create_world() -> void:
 
 	_create_base_visual(Vector3(0, 0, -8))
 	_create_rocks_and_trees()
+	_create_coastal_city()
 
 	camera = Camera3D.new()
 	camera.position = Vector3(0, 13, 17)
@@ -488,6 +496,49 @@ func _handle_market_input(event: InputEvent) -> void:
 		if event.is_action_pressed("market_buy_metal") or event.is_action_pressed("market_buy_energy") or event.is_action_pressed("market_buy_crystal") or event.is_action_pressed("market_sell_metal") or event.is_action_pressed("market_sell_energy") or event.is_action_pressed("market_sell_crystal"):
 			_show_status(trade_manager.last_message)
 	_update_hud()
+
+func _create_coastal_city() -> void:
+	var ocean := MeshInstance3D.new()
+	var ocean_mesh := BoxMesh.new()
+	ocean_mesh.size = Vector3(100, 0.18, 38)
+	ocean.mesh = ocean_mesh
+	ocean.position = Vector3(0, -0.04, -60)
+	ocean.material_override = _material(Color(0.025, 0.13, 0.2))
+	add_child(ocean)
+
+	var shoreline := MeshInstance3D.new()
+	var shore_mesh := BoxMesh.new()
+	shore_mesh.size = Vector3(100, 0.12, 9)
+	shoreline.mesh = shore_mesh
+	shoreline.position = Vector3(0, 0.015, -34)
+	shoreline.material_override = _material(Color(0.42, 0.37, 0.27))
+	add_child(shoreline)
+
+	var city_palette := [
+		Color(0.12, 0.19, 0.25),
+		Color(0.18, 0.25, 0.3),
+		Color(0.23, 0.29, 0.32),
+		Color(0.1, 0.16, 0.22)
+	]
+	for index in range(14):
+		var building := MeshInstance3D.new()
+		var building_mesh := BoxMesh.new()
+		var width := randf_range(3.2, 5.8)
+		var depth := randf_range(3.0, 5.5)
+		var height := randf_range(7.0, 19.0)
+		building_mesh.size = Vector3(width, height, depth)
+		building.mesh = building_mesh
+		building.position = Vector3(-43.0 + float(index) * 6.6, height * 0.5, -39.0 + randf_range(-2.0, 2.0))
+		building.material_override = _material(city_palette[index % city_palette.size()])
+		add_child(building)
+
+		var window_band := MeshInstance3D.new()
+		var window_mesh := BoxMesh.new()
+		window_mesh.size = Vector3(width * 0.72, 0.16, 0.08)
+		window_band.mesh = window_mesh
+		window_band.position = building.position + Vector3(0, randf_range(-height * 0.25, height * 0.25), depth * 0.5 + 0.045)
+		window_band.material_override = _material(Color(0.15, 0.68, 0.82), true)
+		add_child(window_band)
 
 func _create_base_visual(pos: Vector3) -> void:
 	var base := MeshInstance3D.new()
@@ -781,6 +832,7 @@ func _add_resource(resource_id: String, amount: int) -> void:
 	var capacity := base_development.get_storage_capacity() if base_development else 250
 	var current_amount := int(resources.get(resource_id, 0))
 	resources[resource_id] = mini(capacity, current_amount + amount)
+	_sync_global_state_from_local()
 
 func _update_hud() -> void:
 	if not hud:
@@ -918,6 +970,7 @@ func _on_alliance_message(message: String) -> void:
 	_show_status(message)
 
 func _save_local_profile() -> void:
+	_sync_global_state_from_local()
 	var snapshot := {
 		"version": 1,
 		"resources": resources,
@@ -928,6 +981,9 @@ func _save_local_profile() -> void:
 		"titan_level": titan_level,
 		"campaign_level": campaign.player_level if campaign else 1,
 		"jaeger_generation": campaign.jaeger_generation if campaign else 1,
+		"selected_jaeger": GlobalState.selected_jaeger,
+		"unlocked_jaegers": GlobalState.unlocked_jaegers.duplicate(),
+		"jaeger_marks": GlobalState.jaeger_marks.duplicate(true),
 		"alliance_name": alliance_manager.alliance_name if alliance_manager else "",
 		"alliance_tag": alliance_manager.alliance_tag if alliance_manager else "",
 		"alliance_rank": alliance_manager.rank if alliance_manager else "Sin alianza",
@@ -937,15 +993,46 @@ func _save_local_profile() -> void:
 		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {},
 		"damage_model_state": damage_model.export_state() if damage_model else {},
 		"npc_state": npc_manager.export_state() if npc_manager else {},
-		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {}
+		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {},
+		"completed_field_missions": GlobalState.completed_missions.duplicate(),
+		"field_combat": GlobalState.get_world_state_section("field_combat")
 	}
+	GlobalState.world_state = snapshot.duplicate(true)
+	SaveSystem.save_game(GlobalState)
 	SaveSystem.save_profile(snapshot)
 
 func _load_local_profile() -> void:
+	SaveSystem.load_game(GlobalState)
 	var snapshot: Dictionary = SaveSystem.load_profile()
 	if snapshot.is_empty():
+		snapshot = GlobalState.world_state.duplicate(true)
+	if snapshot.is_empty():
 		return
+	GlobalState.world_state = snapshot.duplicate(true)
 	resources = snapshot.get("resources", resources)
+	var saved_field_missions: Variant = snapshot.get("completed_field_missions", [])
+	if saved_field_missions is Array:
+		GlobalState.completed_missions.clear()
+		for mission_value in saved_field_missions:
+			var mission_id := str(mission_value).strip_edges()
+			if not mission_id.is_empty() and mission_id not in GlobalState.completed_missions:
+				GlobalState.completed_missions.append(mission_id)
+	var saved_jaegers: Variant = snapshot.get("unlocked_jaegers", ["gipsy"])
+	if saved_jaegers is Array:
+		GlobalState.unlocked_jaegers.clear()
+		GlobalState.unlocked_jaegers.append("gipsy")
+		for jaeger_value in saved_jaegers:
+			var jaeger_id := str(jaeger_value).strip_edges()
+			if jaeger_id in GameState.JAEGER_IDS and jaeger_id not in GlobalState.unlocked_jaegers:
+				GlobalState.unlocked_jaegers.append(jaeger_id)
+	var saved_marks: Variant = snapshot.get("jaeger_marks", {})
+	if saved_marks is Dictionary:
+		for jaeger_id in GameState.JAEGER_IDS:
+			var mark_value: Variant = saved_marks.get(jaeger_id, 1)
+			if typeof(mark_value) == TYPE_INT or typeof(mark_value) == TYPE_FLOAT:
+				GlobalState.jaeger_marks[jaeger_id] = clampi(int(mark_value), 1, 10)
+	var saved_selected_jaeger := str(snapshot.get("selected_jaeger", "gipsy"))
+	GlobalState.selected_jaeger = saved_selected_jaeger if saved_selected_jaeger in GlobalState.unlocked_jaegers else "gipsy"
 	base_level = int(snapshot.get("base_level", base_level))
 	if base_development:
 		var saved_base: Variant = snapshot.get("base_development", {})
@@ -989,6 +1076,28 @@ func _load_local_profile() -> void:
 	if alliance_manager and typeof(snapshot.get("alliance_state", {})) == TYPE_DICTIONARY and not snapshot.get("alliance_state", {}).is_empty():
 		alliance_manager.import_state(snapshot["alliance_state"])
 	_update_hud()
+
+func _sync_global_state_from_local() -> void:
+	if syncing_game_state:
+		return
+	syncing_game_state = true
+	GlobalState.resources = resources.duplicate(true)
+	GlobalState.base_level = maxi(1, base_level)
+	GlobalState.titan_level = maxi(1, titan_level)
+	GlobalState.resources_changed.emit()
+	syncing_game_state = false
+
+func _on_global_resources_changed() -> void:
+	if syncing_game_state:
+		return
+	resources = GlobalState.resources.duplicate(true)
+	_update_hud()
+
+func _on_field_mission_completed(_reward: Dictionary) -> void:
+	resources = GlobalState.resources.duplicate(true)
+	_show_status("OPERACIÓN COMPLETADA: suministros y progreso sincronizados con tu perfil local.")
+	_update_hud()
+	_save_local_profile()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_PREDELETE or what == NOTIFICATION_APPLICATION_PAUSED:

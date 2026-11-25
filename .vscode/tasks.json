@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Godot: importar y validar proyecto",
+      "type": "process",
+      "command": "godot",
+      "args": ["--headless", "--path", "${workspaceFolder}", "--editor", "--quit"],
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Godot: ejecutar pruebas de lógica",
+      "type": "process",
+      "command": "godot",
+      "args": ["--headless", "--path", "${workspaceFolder}", "--script", "res://tests/test_core_logic.gd"],
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "Godot: ejecutar escena principal",
+      "type": "process",
+      "command": "godot",
+      "args": ["--path", "${workspaceFolder}"],
+      "problemMatcher": [],
+      "group": "build"
+    }
+  ]
+}

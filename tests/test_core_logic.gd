@@ -5,6 +5,7 @@ const InventoryScript = preload("res://scripts/resources/inventory.gd")
 const TradeManagerScript = preload("res://scripts/economy/trade_manager.gd")
 const GameLoopScript = preload("res://scripts/gameplay/game_loop_manager.gd")
 const NpcPopulationManagerScript = preload("res://scripts/npc/npc_population_manager.gd")
+const AllianceManagerScript = preload("res://scripts/alliances/alliance_manager.gd")
 
 var passed := 0
 var failed := 0
@@ -40,22 +41,56 @@ func _run_tests() -> void:
 	state.unlock_region("test_region")
 	_check(state.unlocked_regions.count("test_region") == 1, "region unlock is idempotent")
 	_check(state.base_level == 1 and state.titan_level == 1, "default progression levels are valid")
-	_check(state.resources.has("energy") and state.resources.has("crystal"), "resource dictionary includes all core resources")
+	_check(state.resources.has("energia") and state.resources.has("cristal"), "resource dictionary includes all core resources")
+	_check(state.unlocked_jaegers.size() == 1 and state.unlocked_jaegers[0] == "gipsy", "new campaign starts with only the Gipsy Jaeger unlocked")
+	_check(not state.select_jaeger("striker"), "locked Jaeger cannot be selected")
+	var jaeger_state = GameStateScript.new()
+	_check(not jaeger_state.unlock_jaeger("striker"), "Striker remains locked before two campaign milestones")
+	jaeger_state.completed_missions = ["campaign_01", "campaign_02"]
+	_check(jaeger_state.unlock_jaeger("striker"), "Striker unlocks after two campaign milestones")
+	_check(jaeger_state.select_jaeger("striker"), "unlocked Jaeger can be selected")
+	jaeger_state.add_resource("metal", 1000)
+	jaeger_state.add_resource("energia", 1000)
+	_check(jaeger_state.evolve_selected_jaeger(), "selected Jaeger can evolve when resources cover the cost")
+	_check(jaeger_state.jaeger_marks["striker"] == 2 and jaeger_state.jaeger_marks["gipsy"] == 1, "MARK progression is stored independently per Jaeger")
 	var signal_counter := [0]
 	state.resources_changed.connect(func(): signal_counter[0] += 1)
-	state.add_resource("crystal", 3)
+	state.add_resource("cristal", 3)
 	_check(signal_counter[0] == 1, "resource changes emit one signal")
 	var SaveManagerScript = preload("res://scripts/core/save_manager.gd")
 	var save_manager = SaveManagerScript.new()
+	state.set_world_state_section("campaign", {
+		"active_mission": {"id": "aurora_defense", "progress": 2},
+		"active_expedition": {"region": "broken_isles", "progress": 1},
+		"active_event": {"id": "energy_swell", "remaining": 25}
+	})
+	state.set_world_state_section("base", {"facilities": {"command_hub": 2, "reactor": 1}})
+	state.set_world_state_section("city", {"evacuated_civilians": 42, "safe_sectors": ["north_harbor"]})
+	state.set_world_state_section("threats", {"active_kaiju": [{"id": "raker_01", "category": 3, "health": 65}]})
+	_check(state.get_world_state_section("city").get("evacuated_civilians", 0) == 42, "world-state section returns a defensive snapshot")
 	state.base_level = 3
 	state.titan_level = 4
+	state.completed_missions.append("aurora_coast_first_deployment")
 	state.unlock_region("test_region_2")
 	_check(save_manager.save_game(state), "save_game returns success")
 	var loaded_state = GameStateScript.new()
 	_check(save_manager.load_game(loaded_state), "load_game returns success for valid save")
-	_check(loaded_state.resources["metal"] == 15 and loaded_state.resources["crystal"] == 3, "save/load preserves resource values")
+	_check(loaded_state.resources["metal"] == 15 and loaded_state.resources["cristal"] == 3, "save/load preserves resource values")
 	_check(loaded_state.base_level == 3 and loaded_state.titan_level == 4, "save/load preserves progression levels")
 	_check(loaded_state.unlocked_regions.has("test_region_2"), "save/load preserves unlocked regions")
+	_check(loaded_state.completed_missions.has("aurora_coast_first_deployment"), "save/load preserves completed mission identifiers")
+	_check(loaded_state.get_world_state_section("campaign").get("active_mission", {}).get("progress", 0) == 2, "primary save/load preserves active mission progress")
+	_check(loaded_state.get_world_state_section("campaign").get("active_expedition", {}).get("region", "") == "broken_isles", "primary save/load preserves active expedition")
+	_check(loaded_state.get_world_state_section("campaign").get("active_event", {}).get("id", "") == "energy_swell", "primary save/load preserves active world event")
+	_check(loaded_state.get_world_state_section("base").get("facilities", {}).get("reactor", 0) == 1, "primary save/load preserves base facility upgrades")
+	_check(loaded_state.get_world_state_section("city").get("evacuated_civilians", 0) == 42, "primary save/load preserves civilian evacuation progress")
+	_check(loaded_state.get_world_state_section("threats").get("active_kaiju", [])[0].get("category", 0) == 3, "primary save/load preserves active Kaiju threat snapshots")
+	_check(save_manager.save_game(jaeger_state), "save_game stores Jaeger progression")
+	var loaded_jaeger_state = GameStateScript.new()
+	_check(save_manager.load_game(loaded_jaeger_state), "load_game restores Jaeger progression")
+	_check(loaded_jaeger_state.selected_jaeger == "striker", "save/load preserves selected Jaeger")
+	_check(loaded_jaeger_state.unlocked_jaegers.has("striker"), "save/load preserves campaign Jaeger unlocks")
+	_check(loaded_jaeger_state.jaeger_marks["striker"] == 2 and loaded_jaeger_state.jaeger_marks["gipsy"] == 1, "save/load preserves per-unit MARK levels")
 	_check(save_manager.save_profile({"profile_name": "test", "credits": 123, "flags": ["qa"]}), "save_profile accepts valid snapshot")
 	var loaded_profile: Dictionary = save_manager.load_profile()
 	_check(loaded_profile.get("version", 0) == 2, "profile save/load preserves version metadata")
@@ -139,6 +174,25 @@ func _run_tests() -> void:
 	restored_npc_manager.free()
 	npc_player.free()
 
+	var alliance_manager = AllianceManagerScript.new()
+	alliance_manager.import_state({
+		"alliance_name": "Guardianes del Abismo",
+		"alliance_tag": "GDA",
+		"rank": "Recluta",
+		"members": [{ "name": "Piloto", "rank": "Recluta", "contribution": 12 }, "entrada_invalida"],
+		"objectives": [{ "id": "scout_sector", "title": "Explorar", "target": 3, "progress": 2, "reward": 120 }],
+		"local_chat": ["mensaje guardado", 42]
+	})
+	_check(alliance_manager.members.size() == 1 and alliance_manager.members[0].get("name", "") == "Piloto", "alliance import safely rebuilds typed member array")
+	_check(alliance_manager.objectives.size() == 1 and alliance_manager.objectives[0].get("progress", 0) == 2, "alliance import safely rebuilds typed objectives array")
+	_check(alliance_manager.local_chat.size() == 2 and alliance_manager.local_chat[1] == "42", "alliance import safely rebuilds typed chat array")
+	var alliance_snapshot: Dictionary = alliance_manager.export_state()
+	var restored_alliance = AllianceManagerScript.new()
+	restored_alliance.import_state(alliance_snapshot)
+	_check(restored_alliance.members.size() == 1 and restored_alliance.objectives.size() == 1, "alliance state survives export/import round trip")
+	alliance_manager.free()
+	restored_alliance.free()
+
 	var inventory = InventoryScript.new()
 	inventory.add_item("metal", 5)
 	_check(inventory.has_items({"metal": 5}), "inventory confirms sufficient item quantity")
@@ -163,8 +217,10 @@ func _run_tests() -> void:
 	_check(save_manager.save_game(partial_state), "save_game supports partial legacy resource snapshots")
 	var restored_partial = GameStateScript.new()
 	_check(save_manager.load_game(restored_partial), "load accepts partial resource snapshots")
-	_check(restored_partial.resources.has("energy") and restored_partial.resources["energy"] == 0, "load restores default keys missing from snapshot")
+	_check(restored_partial.resources.has("energia") and restored_partial.resources["energia"] == 0, "load restores default keys missing from snapshot")
 	state.free()
+	jaeger_state.free()
+	loaded_jaeger_state.free()
 	loaded_state.free()
 	state_after_profile_save.free()
 	partial_state.free()

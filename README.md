@@ -24,7 +24,7 @@ Juego 3D de exploración, supervivencia, recolección, fabricación, construcci�
 - Esquema inicial Supabase para perfiles, alianzas, chat moderado, bloqueos y denuncias.
 - Base de datos adicional para guardado en nube, vinculación de identidad Google Play Games y progreso regional, con escrituras reservadas al servidor.
 
-## Combate de campo jugable
+## Combate de campo jugable (combat vertical slice)
 - Al desplegarse, aparece una operación local con tres Kaijus hostiles que detectan al Titán, lo persiguen y atacan con una breve señal de preparación.
 - **Espacio:** golpe frontal. **Clic derecho o F:** pulso de área con coste de energía y enfriamiento. **Mayús:** bloquear y reducir el daño recibido.
 - El HUD de combate muestra integridad, energía, objetivo y controles; al neutralizar los tres enemigos se entregan materiales y se guarda el progreso con el `SaveSystem` existente.
@@ -121,3 +121,13 @@ Lee `docs/ANDROID_BUILD.md`, `docs/PLATFORM_TARGETS.md` y `docs/QA_TEST_MATRIX.m
 - [Script de preparación automática para Windows](tools/preparar_proyecto_windows.ps1)
 
 El script descarga el proyecto en Documentos sin sobrescribir una carpeta existente. Godot debe descargarse desde el sitio oficial; el script no instala software ni requiere permisos de administrador.
+
+## Dirección artística maestra — referencia vigente
+
+- [Ficha y checksum del PDF original de 19 páginas](docs/REFERENCIA_PDF_ORIGINAL.md)
+
+- [Dirección artística maestra — PDF de 19 páginas](docs/DIRECCION_ARTISTICA_MAESTRA.md)
+- [Vertical slice jugable — Fase 2](docs/PHASE_2_VERTICAL_SLICE.md)
+- [QA — Fase 2](docs/QA_PHASE_2.md)
+
+La guía maestra sustituye la referencia visual anterior en todas las fases. Los modelos 3D finales y la validación en Godot siguen pendientes; consulta la guía para distinguir requisitos de producción de placeholders actuales.

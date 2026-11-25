@@ -6,6 +6,8 @@ export interface TitanesSave {
   unlockedMissions: number;
   completedMissions: number[];
   selectedJaeger: JaegerId;
+  jaegerMark: number;
+  jaegerMarks: Record<JaegerId, number>;
   upgrades: Record<string, number>;
   inventory: Record<string, number>;
   buildings: Record<string, number>;
@@ -21,6 +23,8 @@ const START: TitanesSave = {
   unlockedMissions: 1,
   completedMissions: [],
   selectedJaeger: 'gipsy',
+  jaegerMark: 1,
+  jaegerMarks: { gipsy: 1, striker: 1, cherno: 1 },
   upgrades: { defense: 0, reactor: 0, training: 0 },
   inventory: { repairKit: 0, armorParts: 0, researchData: 0 },
   buildings: { command: 1, hangar: 1, reactor: 1, workshop: 0, medical: 0, defense: 0, warehouse: 0, evacuation: 0 },
@@ -69,6 +73,16 @@ export class TitanesSystems {
       while (safe.completedMissions.includes(nextMission) && nextMission < 12) nextMission += 1;
       safe.unlockedMissions = nextMission;
       safe.selectedJaeger = parsed.selectedJaeger === 'striker' || parsed.selectedJaeger === 'cherno' ? parsed.selectedJaeger : 'gipsy';
+      const legacyMark = clamp(Math.floor(Number(parsed.jaegerMark) || 1), 1, 10);
+      const storedMarks = parsed.jaegerMarks && typeof parsed.jaegerMarks === 'object'
+        ? parsed.jaegerMarks as Partial<Record<JaegerId, unknown>>
+        : {};
+      safe.jaegerMarks = {
+        gipsy: clamp(Math.floor(Number(storedMarks.gipsy) || legacyMark), 1, 10),
+        striker: clamp(Math.floor(Number(storedMarks.striker) || 1), 1, 10),
+        cherno: clamp(Math.floor(Number(storedMarks.cherno) || 1), 1, 10)
+      };
+      safe.jaegerMark = safe.jaegerMarks[safe.selectedJaeger];
       safe.upgrades = numberMap(parsed.upgrades, START.upgrades);
       safe.inventory = numberMap(parsed.inventory, START.inventory);
       safe.buildings = numberMap(parsed.buildings, START.buildings);
@@ -119,8 +133,21 @@ export class TitanesSystems {
     const required: Record<JaegerId, number> = { gipsy: 0, striker: 2, cherno: 4 };
     if (consecutiveMissionCount(this.data.completedMissions) < required[id]) return false;
     this.data.selectedJaeger = id;
+    this.data.jaegerMark = this.data.jaegerMarks[id];
     this.save();
     return true;
+  }
+
+  evolveSelectedJaeger() {
+    const mark = this.data.jaegerMarks[this.data.selectedJaeger];
+    if (mark >= 10) return { ok: false, mark, reason: 'La unidad ya alcanzó MARK X.' };
+    const cost = { alloy: 220 + mark * 140, energy: 160 + mark * 100 };
+    if (!this.transact(cost, {})) return { ok: false, mark, cost, reason: 'Recursos insuficientes para la siguiente generación.' };
+    this.data.jaegerMarks[this.data.selectedJaeger] = mark + 1;
+    this.data.jaegerMark = mark + 1;
+    this.data.xp += 60;
+    this.save();
+    return { ok: true, mark: this.data.jaegerMark, cost };
   }
 
   storageCapacity() {

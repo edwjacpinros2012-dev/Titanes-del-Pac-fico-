@@ -77,10 +77,32 @@ func export_state() -> Dictionary:
  }
 
 func import_state(data: Dictionary) -> void:
- alliance_name = str(data.get("alliance_name",""))
- alliance_tag = str(data.get("alliance_tag",""))
- rank = str(data.get("rank","Sin alianza"))
- members = data.get("members",[])
- objectives = data.get("objectives",objectives)
- local_chat = data.get("local_chat",[])
- alliance_changed.emit(get_summary())
+	alliance_name = str(data.get("alliance_name", ""))
+	alliance_tag = str(data.get("alliance_tag", ""))
+	rank = str(data.get("rank", "Sin alianza"))
+
+	# JSON/profile data arrives as untyped Variants. Rebuild typed arrays
+	# element-by-element instead of assigning Array directly.
+	members.clear()
+	var saved_members: Variant = data.get("members", [])
+	if saved_members is Array:
+		for entry in saved_members:
+			if entry is Dictionary:
+				members.append(entry.duplicate(true))
+
+	var saved_objectives: Variant = data.get("objectives", null)
+	if saved_objectives is Array:
+		objectives.clear()
+		for entry in saved_objectives:
+			if entry is Dictionary:
+				objectives.append(entry.duplicate(true))
+
+	local_chat.clear()
+	var saved_chat: Variant = data.get("local_chat", [])
+	if saved_chat is Array:
+		for entry in saved_chat:
+			local_chat.append(str(entry))
+	while local_chat.size() > 30:
+		local_chat.pop_front()
+
+	alliance_changed.emit(get_summary())

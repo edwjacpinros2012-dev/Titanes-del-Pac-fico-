@@ -10,11 +10,16 @@ func save_game(state: GameState) -> bool:
 	if state == null:
 		return false
 	var payload := {
-		"version": 1,
+		"version": 2,
 		"resources": state.resources.duplicate(true),
 		"base_level": maxi(1, state.base_level),
 		"titan_level": maxi(1, state.titan_level),
-		"unlocked_regions": state.unlocked_regions.duplicate()
+		"unlocked_regions": state.unlocked_regions.duplicate(),
+		"completed_missions": state.completed_missions.duplicate(),
+		"selected_jaeger": state.selected_jaeger,
+		"unlocked_jaegers": state.unlocked_jaegers.duplicate(),
+		"jaeger_marks": state.jaeger_marks.duplicate(true),
+		"world_state": state.world_state.duplicate(true)
 	}
 	if not _write_json_atomic(SAVE_PATH, payload):
 		push_error("No se pudo guardar el progreso.")
@@ -27,7 +32,7 @@ func load_game(state: GameState) -> bool:
 		load_completed.emit(false)
 		return false
 	var parsed := _load_json_with_backup(SAVE_PATH)
-	if parsed.is_empty() or int(parsed.get("version", 0)) != 1:
+	if parsed.is_empty() or int(parsed.get("version", 0)) < 1 or int(parsed.get("version", 0)) > 2:
 		load_completed.emit(false)
 		return false
 	var loaded_resources: Variant = parsed.get("resources", {})
@@ -39,16 +44,38 @@ func load_game(state: GameState) -> bool:
 		if amount < 0:
 			load_completed.emit(false)
 			return false
+	var loaded_missions: Variant = parsed.get("completed_missions", [])
+	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
+	var loaded_jaegers: Variant = parsed.get("unlocked_jaegers", ["gipsy"])
+	var loaded_marks: Variant = parsed.get("jaeger_marks", {"gipsy": 1, "striker": 1, "cherno": 1})
+	var loaded_world_state: Variant = parsed.get("world_state", {})
+	if typeof(loaded_missions) != TYPE_ARRAY or typeof(loaded_regions) != TYPE_ARRAY or typeof(loaded_jaegers) != TYPE_ARRAY or typeof(loaded_marks) != TYPE_DICTIONARY or typeof(loaded_world_state) != TYPE_DICTIONARY:
+		load_completed.emit(false)
+		return false
 	var merged_resources: Dictionary = state.resources.duplicate(true)
 	for resource_id in loaded_resources:
 		merged_resources[str(resource_id)] = int(loaded_resources[resource_id])
 	state.resources = merged_resources
+	state.completed_missions.clear()
+	for mission_value in loaded_missions:
+		var mission_id := str(mission_value).strip_edges()
+		if not mission_id.is_empty() and mission_id not in state.completed_missions:
+			state.completed_missions.append(mission_id)
 	state.base_level = maxi(1, int(parsed.get("base_level", 1)))
 	state.titan_level = maxi(1, int(parsed.get("titan_level", 1)))
-	var loaded_regions: Variant = parsed.get("unlocked_regions", ["aurora_coast"])
-	if typeof(loaded_regions) != TYPE_ARRAY:
-		load_completed.emit(false)
-		return false
+	state.unlocked_jaegers.clear()
+	state.unlocked_jaegers.append("gipsy")
+	for jaeger_value in loaded_jaegers:
+		var jaeger_id := str(jaeger_value).strip_edges()
+		if jaeger_id in GameState.JAEGER_IDS and jaeger_id not in state.unlocked_jaegers:
+			state.unlocked_jaegers.append(jaeger_id)
+	state.jaeger_marks = {"gipsy": 1, "striker": 1, "cherno": 1}
+	for jaeger_id in GameState.JAEGER_IDS:
+		var raw_mark: Variant = loaded_marks.get(jaeger_id, 1)
+		if typeof(raw_mark) == TYPE_INT or typeof(raw_mark) == TYPE_FLOAT:
+			state.jaeger_marks[jaeger_id] = clampi(int(raw_mark), 1, 10)
+	var selected_jaeger := str(parsed.get("selected_jaeger", "gipsy"))
+	state.selected_jaeger = selected_jaeger if selected_jaeger in state.unlocked_jaegers else "gipsy"
 	state.unlocked_regions.clear()
 	for region_value in loaded_regions:
 		var region_id := str(region_value).strip_edges()
@@ -56,6 +83,7 @@ func load_game(state: GameState) -> bool:
 			state.unlocked_regions.append(region_id)
 	if state.unlocked_regions.is_empty():
 		state.unlocked_regions.append("aurora_coast")
+	state.world_state = loaded_world_state.duplicate(true)
 	state.resources_changed.emit()
 	state.progression_changed.emit()
 	load_completed.emit(true)
