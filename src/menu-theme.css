@@ -175,3 +175,20 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;background:line
 .roster-cards article:nth-child(2) .roster-art{filter:hue-rotate(105deg) saturate(1.35);}
 .roster-cards article:nth-child(3) .roster-art{filter:hue-rotate(175deg) saturate(.8) brightness(.8);}
 @media(max-width:700px){.tm-mech{background-position:center,right center;opacity:.72}.roster-art{height:90px}}
+
+
+/* Master visual direction: weathered Pacific industrial realism */
+:root{--cyan:#43e5ff;--amber:#ff9a4b;--steel:#19394d;--oxide:#9b5032;--wet:#071722}
+#titan-menu{background:linear-gradient(100deg,#02080ef7 0%,#061521e8 42%,#04101b66 100%),radial-gradient(ellipse at 78% 45%,#0d4760aa,transparent 54%)}
+#titan-menu:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.24;background:repeating-linear-gradient(0deg,transparent 0 3px,#83dfff08 4px),linear-gradient(180deg,transparent 70%,#02070c)}
+.mission-card{background:linear-gradient(120deg,#0a202deF,#101b24d9);border-left-color:var(--amber);box-shadow:0 12px 38px #0008,inset 0 1px #9bcfe022}
+.roster-cards article{background:linear-gradient(145deg,#152a37,#07131e 68%);border-color:#38586a;box-shadow:inset 0 1px #c9f5ff16,0 10px 25px #0007}
+.roster-cards article.selected{border-color:#58eaff;box-shadow:inset 0 0 28px #46c9df18,0 0 18px #42d7ef22}
+.roster-art{object-fit:contain;background:radial-gradient(ellipse at 50% 65%,#21475b,#07131d 72%);filter:drop-shadow(0 8px 9px #0009)}
+.roster-cards article:nth-child(2) .roster-art,.roster-cards article:nth-child(3) .roster-art{filter:drop-shadow(0 8px 9px #0009)}
+#titan-panels .tp-window{background:linear-gradient(145deg,#0a1c28f7,#050e17f8);border-color:#4b8194;box-shadow:0 20px 90px #000d,inset 0 1px #d4f6ff13}
+.tp-grid article,.tp-missions article{background:linear-gradient(145deg,#132b39,#07131e);border-color:#35566a;box-shadow:inset 0 1px #c6f4ff12,0 8px 20px #0005}
+.tp-evolution{display:grid;gap:8px;padding:15px;margin:14px 0;background:linear-gradient(100deg,#142f40,#091722);border:1px solid #47758a;border-left:3px solid var(--amber)}
+.tp-evolution b{font:700 20px 'Barlow Condensed';color:#f0fbff}
+.tp-evolution span{font-size:12px;color:#9ab9c8}
+.tp-evolution button{justify-self:start;max-width:100%;font-size:10px!important}
