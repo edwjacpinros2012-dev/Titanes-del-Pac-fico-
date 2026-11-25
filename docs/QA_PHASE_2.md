@@ -52,3 +52,18 @@ No marcar esta fase como aprobada por el mero hecho de que los archivos estén e
 - [ ] El PDF binario original todavía no está versionado; consultar `REFERENCIA_PDF_ORIGINAL.md`.
 - [ ] Modelos GLB finales, texturas PBR, rigs, animaciones, ciudad/hangar de calidad final y efectos completos.
 - [ ] Deployment Vercel con el SHA más reciente y merge a main.
+
+
+## Persistencia Jaeger en Godot (revisión actual)
+- [x] El perfil nuevo inicia con Gipsy como única unidad desbloqueada.
+- [x] La lógica de GameState separa MARK por identificador de unidad y limita cada progreso a MARK I–X.
+- [x] Striker requiere dos hitos registrados y Cherno cuatro; una unidad bloqueada no puede seleccionarse.
+- [x] El guardado principal serializa unidad seleccionada, unidades desbloqueadas y MARK individuales; las partidas antiguas conservan Gipsy como inicio seguro.
+- [x] El perfil local de la escena principal incorpora los mismos campos y valida identificadores antes de restaurarlos.
+- [x] Se añadieron pruebas automatizadas para unidad inicial, selección bloqueada, desbloqueo, evolución y round-trip de guardado.
+- [ ] Estas nuevas pruebas aún deben ejecutarse en una ejecución CI posterior a los commits de esta revisión.
+- [ ] Confirmar en Godot editor que el flujo de campaña real actualiza los hitos de desbloqueo y que el modelo desplegado cambia según la unidad seleccionada. La lógica de guardado no sustituye todavía un selector visual completo de Jaegers en Godot.
+
+## Herramientas y arte
+- El flujo de trabajo no requiere Blender. El proyecto se abre desde el archivo project.godot en Godot y desde la carpeta raíz en Visual Studio Code.
+- La escena y los scripts actuales siguen usando geometría provisional en varias áreas; faltan modelos 3D finales, texturas PBR, rigs y animaciones.
