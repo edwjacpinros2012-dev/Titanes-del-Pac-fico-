@@ -47,7 +47,7 @@ No marcar esta fase como aprobada por el mero hecho de que los archivos estén e
 - [x] El valor heredado `jaegerMark` se migra como Mark del Jaeger seleccionado para conservar partidas anteriores.
 - [x] TypeScript check y build de producción: GitHub Actions run 45519487175, éxito.
 - [x] Build y type-check del workflow principal: run 45519486872, éxito.
-- [ ] Godot import/parser, repo sanity, core tests y smoke run: run 45519486918 sigue en inicialización de contenedor; no se declara aprobado.
+- [ ] Godot: run 45519486918 detectó un identificador de misión ausente y un literal de README; ambos se corrigieron. La nueva ejecución run 45519654891 está en curso; no se declara aprobada hasta que termine.
 - [ ] Prueba manual de recarga/cambio de escena en navegador real.
 - [ ] El PDF binario original todavía no está versionado; consultar `REFERENCIA_PDF_ORIGINAL.md`.
 - [ ] Modelos GLB finales, texturas PBR, rigs, animaciones, ciudad/hangar de calidad final y efectos completos.
