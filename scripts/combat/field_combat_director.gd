@@ -10,6 +10,8 @@ const COMPLETION_REWARD := {"metal": 20, "energia": 12}
 
 var player: TitanController
 var defeated_count := 0
+var defeated_enemy_ids: Array[String] = []
+var enemy_rewards_total: Dictionary = {}
 var status_text := ""
 var mission_finished := false
 var hud_label: Label
@@ -73,33 +75,42 @@ func _begin_field_mission() -> void:
 func _spawn_initial_wave() -> void:
 	var offsets := [Vector3(-10, 0, -13), Vector3(10, 0, -17), Vector3(0, 0, -25)]
 	for index in range(REQUIRED_DEFEATS):
+		var enemy_id := "Kaiju_%02d" % (index + 1)
+		if enemy_id in defeated_enemy_ids:
+			continue
 		var kaiju := CharacterBody3D.new()
 		kaiju.set_script(KaijuScript)
-		kaiju.name = "Kaiju_%02d" % (index + 1)
+		kaiju.name = enemy_id
 		kaiju.position = player.position + offsets[index]
-		kaiju.defeated.connect(_on_kaiju_defeated)
+		kaiju.defeated.connect(_on_kaiju_defeated.bind(enemy_id))
 		add_child(kaiju)
 
-func _on_kaiju_defeated(reward: Dictionary) -> void:
-	if mission_finished:
+func _on_kaiju_defeated(reward: Dictionary, enemy_id: String) -> void:
+	if mission_finished or enemy_id in defeated_enemy_ids:
 		return
-	defeated_count += 1
+	defeated_enemy_ids.append(enemy_id)
+	defeated_count = mini(defeated_enemy_ids.size(), REQUIRED_DEFEATS)
+	for resource_id in reward:
+		var amount := maxi(0, int(reward[resource_id]))
+		if amount <= 0:
+			continue
+		GlobalState.add_resource(str(resource_id), amount)
+		enemy_rewards_total[str(resource_id)] = int(enemy_rewards_total.get(str(resource_id), 0)) + amount
 	if defeated_count >= REQUIRED_DEFEATS:
 		mission_finished = true
 		if MISSION_ID not in GlobalState.completed_missions:
 			GlobalState.completed_missions.append(MISSION_ID)
-		for _enemy_index in range(REQUIRED_DEFEATS):
-			for resource_id in reward:
-				GlobalState.add_resource(str(resource_id), int(reward[resource_id]))
 		for resource_id in COMPLETION_REWARD:
-			GlobalState.add_resource(str(resource_id), int(COMPLETION_REWARD[resource_id]))
+			var completion_amount := maxi(0, int(COMPLETION_REWARD[resource_id]))
+			GlobalState.add_resource(str(resource_id), completion_amount)
+			enemy_rewards_total[str(resource_id)] = int(enemy_rewards_total.get(str(resource_id), 0)) + completion_amount
 		SaveSystem.save_game(GlobalState)
-		status_text = "Objetivo cumplido. Recompensas guardadas en el perfil local."
-		mission_completed.emit(COMPLETION_REWARD.duplicate(true))
+		status_text = "Objetivo cumplido. Recompensas individuales y de misión guardadas."
+		mission_completed.emit(enemy_rewards_total.duplicate(true))
 	else:
-		status_text = "Amenaza neutralizada. Progreso de objetivo actualizado."
+		SaveSystem.save_game(GlobalState)
+		status_text = "Amenaza neutralizada. Recompensa individual entregada y progreso guardado."
 	_update_hud()
-
 func _on_health_changed(current: float, maximum: float) -> void:
 	if health_label:
 		health_label.text = "INTEGRIDAD %d / %d    ENERGÍA %d%%" % [roundi(current), roundi(maximum), roundi(player.energy)]
@@ -115,8 +126,7 @@ func _restart_mission() -> void:
 	for kaiju in get_tree().get_nodes_in_group("field_kaiju"):
 		if is_instance_valid(kaiju):
 			kaiju.queue_free()
-	defeated_count = 0
-	status_text = "Nueva tentativa iniciada. Completa los objetivos y vuelve a la base."
+	status_text = "Nueva tentativa iniciada. El progreso y las recompensas de amenazas neutralizadas se conservan."
 	if player.has_method("restore_health"):
 		player.restore_health(float(player.get("max_health")))
 	if retry_button:
