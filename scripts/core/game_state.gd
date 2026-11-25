@@ -14,6 +14,17 @@ var completed_missions: Array[String] = []
 var selected_jaeger: String = "gipsy"
 var unlocked_jaegers: Array[String] = ["gipsy"]
 var jaeger_marks: Dictionary = {"gipsy": 1, "striker": 1, "cherno": 1}
+var world_state: Dictionary = {}
+
+func set_world_state_section(section_id: String, snapshot: Dictionary) -> void:
+	var key := section_id.strip_edges()
+	if key.is_empty():
+		return
+	world_state[key] = snapshot.duplicate(true)
+
+func get_world_state_section(section_id: String) -> Dictionary:
+	var snapshot: Variant = world_state.get(section_id, {})
+	return snapshot.duplicate(true) if typeof(snapshot) == TYPE_DICTIONARY else {}
 
 func add_resource(resource_id: String, amount: int) -> void:
 	if amount <= 0:
