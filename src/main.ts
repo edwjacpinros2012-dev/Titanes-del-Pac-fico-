@@ -19,6 +19,8 @@ class TitanesScene extends Phaser.Scene {
   private kaijuHp = 100;
   private kaijuDefeated = false;
   private buildingGroups: Record<string, THREE.Group> = {};
+  private rain?: THREE.Points;
+  private radarSweep?: Phaser.GameObjects.Arc;
   private status!: Phaser.GameObjects.Text;
   private hpBar!: Phaser.GameObjects.Rectangle;
   private energyBar!: Phaser.GameObjects.Rectangle;
@@ -63,7 +65,7 @@ class TitanesScene extends Phaser.Scene {
 
   private buildMainMenu() {
     const menu=document.createElement('section'); menu.id='titan-menu';
-    menu.innerHTML=`<header><b>PPDC // DEFENSE NETWORK</b><span>● ALERTA COSTERA</span><div class="menu-rank">PROTOCOLO DE DEFENSA · 2047</div></header><main><div class="menu-copy"><small>OPERACIÓN · PACÍFICO</small><h1>EL PACÍFICO<br><em>NO CAERÁ.</em></h1><p>La brecha sigue abierta. Despliega tu Jaeger, protege la costa y responde a la amenaza Kaiju.</p><div class="mission-card"><small>▰ MISIÓN ACTIVA · SECTOR 07</small><b>DEFENSA DE LA COSTA</b><span>OBJETIVO: interceptar al Kaiju y proteger la zona urbana.</span><div id="tm-resources" class="resource-strip"></div><div class="mission-progress"><i></i></div><label><span>AMENAZA DETECTADA</span><b>CLASE III</b></label></div><button id="tm-start">▶ DESPLEGAR JAEGER</button><button id="tm-hangar">▣ HANGAR / UNIDADES</button><button id="tm-upgrade">⬆ MEJORAR DEFENSA</button><small id="tm-system-notice"></small><footer><span>SECTOR<b>SHATTERDOME · COSTA</b></span><span>ESTADO<b>● SISTEMAS EN LÍNEA</b></span></footer></div><div class="tm-mech"><div class="rings"></div><div class="robot"><i class="head"><b></b></i><i class="body"><b></b></i><i class="arm a"></i><i class="arm b"></i><i class="leg c"></i><i class="leg d"></i></div><label>JAEGER // ${JAEGERS[this.systems.snapshot().selectedJaeger].label}<small>UNIDAD SELECCIONADA · MARK ${this.systems.snapshot().jaegerMark}</small></label></div></main><div class="tm-bottom">PPDC · PAN-PACIFIC DEFENSE CORPS <span>INTERFAZ TÁCTICA v0.3</span></div><aside id="tm-roster"><div class="roster-window"><button id="tm-close">×</button><small>HANGAR / SELECCIÓN DE UNIDADES</small><h2>ESCUADRÓN JAEGER</h2><p>Selecciona una unidad para la misión. Las estadísticas son prototipos de juego.</p><div class="roster-cards"><article class="selected"><img class="roster-art" src="/assets/jaeger-gipsy.svg" alt="Ilustración táctica del Jaeger Gipsy"><span class="unit-icon">01</span><b>GIPSY-CLASS</b><small>Equilibrado · Mark III</small><div class="unit-bars"><label>ARMADURA <i><b style="width:86%"></b></i></label><label>ENERGÍA <i><b style="width:74%"></b></i></label><label>AGILIDAD <i><b style="width:62%"></b></i></label></div></article><article class="locked"><img class="roster-art" src="/assets/jaeger-striker.svg" alt="Ilustración original del Jaeger Striker"><span class="unit-icon">02</span><b>STRIKER-CLASS</b><small>Rápido · Mark V</small><div class="unit-bars"><label>ARMADURA <i><b style="width:72%"></b></i></label><label>ENERGÍA <i><b style="width:91%"></b></i></label><label>AGILIDAD <i><b style="width:88%"></b></i></label></div></article><article class="locked"><img class="roster-art" src="/assets/jaeger-cherno.svg" alt="Ilustración original del Jaeger Cherno"><span class="unit-icon">03</span><b>CHERNO-CLASS</b><small>Pesado · Mark I</small><div class="unit-bars"><label>ARMADURA <i><b style="width:95%"></b></i></label><label>ENERGÍA <i><b style="width:68%"></b></i></label><label>AGILIDAD <i><b style="width:48%"></b></i></label></div></article></div><button id="tm-select">CONFIRMAR UNIDAD</button></div></aside>`;
+    menu.innerHTML=`<header><b>PPDC // DEFENSE NETWORK</b><span>● ALERTA COSTERA</span><div class="menu-rank">PROTOCOLO DE DEFENSA · 2047</div></header><main><div class="menu-copy"><small>OPERACIÓN · PACÍFICO</small><h1>EL PACÍFICO<br><em>NO CAERÁ.</em></h1><p>La brecha sigue abierta. Despliega tu Jaeger, protege la costa y responde a la amenaza Kaiju.</p><div class="mission-card"><small>▰ MISIÓN ACTIVA · SECTOR 07</small><b>DEFENSA DE LA COSTA</b><span>OBJETIVO: interceptar al Kaiju y proteger la zona urbana.</span><div id="tm-resources" class="resource-strip"></div><div class="mission-progress"><i></i></div><label><span>AMENAZA DETECTADA</span><b>CLASE III</b></label></div><button id="tm-start">▶ DESPLEGAR JAEGER</button><button id="tm-hangar">▣ HANGAR / UNIDADES</button><button id="tm-upgrade">⬆ MEJORAR DEFENSA</button><small id="tm-system-notice"></small><footer><span>SECTOR<b>SHATTERDOME · COSTA</b></span><span>ESTADO<b>● SISTEMAS EN LÍNEA</b></span></footer></div><div class="tm-mech"><div class="rings"></div><div class="robot"><i class="head"><b></b></i><i class="body"><b></b></i><i class="arm a"></i><i class="arm b"></i><i class="leg c"></i><i class="leg d"></i></div><label>JAEGER // ${JAEGERS[this.systems.snapshot().selectedJaeger].label}<small>UNIDAD SELECCIONADA · MARK ${this.systems.snapshot().jaegerMark}</small></label></div></main><div class="tm-bottom">PPDC · PAN-PACIFIC DEFENSE CORPS <span>INTERFAZ TÁCTICA v0.3</span></div><aside id="tm-roster"><div class="roster-window"><button id="tm-close">×</button><small>HANGAR / SELECCIÓN DE UNIDADES</small><h2>ESCUADRÓN JAEGER</h2><p>Selecciona una unidad para la misión. Las estadísticas son prototipos de juego.</p><div class="roster-cards"><article class="selected"><img class="roster-art" src="/assets/jaeger-gipsy.svg" alt="Ilustración táctica del Jaeger Gipsy"><span class="unit-icon">01</span><b>GIPSY-CLASS</b><small>Equilibrado · Mark I</small><div class="unit-bars"><label>ARMADURA <i><b style="width:86%"></b></i></label><label>ENERGÍA <i><b style="width:74%"></b></i></label><label>AGILIDAD <i><b style="width:62%"></b></i></label></div></article><article class="locked"><img class="roster-art" src="/assets/jaeger-striker.svg" alt="Ilustración original del Jaeger Striker"><span class="unit-icon">02</span><b>STRIKER-CLASS</b><small>Rápido · Mark V</small><div class="unit-bars"><label>ARMADURA <i><b style="width:72%"></b></i></label><label>ENERGÍA <i><b style="width:91%"></b></i></label><label>AGILIDAD <i><b style="width:88%"></b></i></label></div></article><article class="locked"><img class="roster-art" src="/assets/jaeger-cherno.svg" alt="Ilustración original del Jaeger Cherno"><span class="unit-icon">03</span><b>CHERNO-CLASS</b><small>Pesado · Mark I</small><div class="unit-bars"><label>ARMADURA <i><b style="width:95%"></b></i></label><label>ENERGÍA <i><b style="width:68%"></b></i></label><label>AGILIDAD <i><b style="width:48%"></b></i></label></div></article></div><button id="tm-select">CONFIRMAR UNIDAD</button></div></aside>`;
     document.body.appendChild(menu);
     menu.querySelector('#tm-start')?.addEventListener('click',()=>{menu.classList.add('started'); mountGamePanels(this.systems, (id)=>this.applySelectedJaeger(id), (id)=>this.refreshBuildingVisuals(id)); });
     menu.querySelector('#tm-hangar')?.addEventListener('click',()=>menu.querySelector('#tm-roster')?.classList.add('open'));
@@ -275,6 +277,18 @@ class TitanesScene extends Phaser.Scene {
     const grid = new THREE.GridHelper(100,50,0x1b8095,0x1b3d50); grid.position.y=0.01; this.world.add(grid);
     this.buildBase();
     this.buildCoastalCity();
+    // Costera nocturna: lluvia ligera, bruma y reflejos de emergencia.
+    const rainGeometry = new THREE.BufferGeometry();
+    const rainPositions = new Float32Array(900 * 3);
+    for (let i = 0; i < 900; i++) {
+      rainPositions[i * 3] = (Math.random() - 0.5) * 90;
+      rainPositions[i * 3 + 1] = Math.random() * 28 + 2;
+      rainPositions[i * 3 + 2] = (Math.random() - 0.5) * 90;
+    }
+    rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+    const rainMaterial = new THREE.PointsMaterial({ color: 0x8fc9df, size: 0.075, transparent: true, opacity: 0.52, depthWrite: false });
+    this.rain = new THREE.Points(rainGeometry, rainMaterial);
+    this.world.add(this.rain);
     for(let i=0;i<18;i++){
       const h=2+Math.random()*8, x=(Math.random()-.5)*55, z=-12-Math.random()*35;
       const b=new THREE.Mesh(new THREE.BoxGeometry(2+Math.random()*3,h,2),this.material(0x1b3343,0.25));
@@ -286,7 +300,15 @@ class TitanesScene extends Phaser.Scene {
   private buildHud() {
     const w=this.scale.width;
     this.add.text(24,18,'PACIFIC RIM  /  TITANES',{fontFamily:'Arial',fontSize:'18px',color:'#8defff',fontStyle:'bold'}).setScrollFactor(0);
-    this.add.text(24,45,'SECTOR: COSTA DEL PACÍFICO  •  ALERTA KAIJU',{fontSize:'10px',color:'#8ba8b8'}).setScrollFactor(0);
+    this.add.text(24,45,'SECTOR 07 / COSTA DEL PACÍFICO  •  ALERTA KAIJU',{fontSize:'10px',color:'#8ba8b8'}).setScrollFactor(0);
+    this.add.text(w-24,48,'RADAR TÁCTICO  //  EVACUACIÓN 72%  //  DEFENSA ACTIVA',{fontSize:'9px',color:'#7bdff0'}).setOrigin(1,0).setScrollFactor(0);
+    const radarX=w-90, radarY=112;
+    this.add.circle(radarX,radarY,42,0x061521,0.78).setStrokeStyle(1,0x3c91a6,0.9).setScrollFactor(0);
+    this.add.circle(radarX,radarY,27,0x061521,0).setStrokeStyle(1,0x28556a,0.9).setScrollFactor(0);
+    this.add.line(radarX,radarY,radarX-40,radarY,0x32758a,0.7).setOrigin(0).setScrollFactor(0);
+    this.add.line(radarX,radarY,radarX,radarY-40,0x32758a,0.7).setOrigin(0).setScrollFactor(0);
+    this.add.circle(radarX+16,radarY-12,3,0xff9b62,1).setScrollFactor(0);
+    this.add.text(w-24,166,'REACTOR  /  SECTOR 07',{fontSize:'8px',color:'#ffb36b'}).setOrigin(1,0).setScrollFactor(0);
     this.add.rectangle(24,83,180,10,0x263b49).setOrigin(0,0.5);
     this.hpBar=this.add.rectangle(24,83,180,10,0x37e7a4).setOrigin(0,0.5);
     this.add.text(24,65,'INTEGRIDAD',{fontSize:'9px',color:'#b9d2dc'});
@@ -321,6 +343,15 @@ class TitanesScene extends Phaser.Scene {
   }
   update(_time:number,delta:number) {
     const dt=Math.min(delta/1000,0.04);
+    if (this.rain) {
+      const positions = this.rain.geometry.attributes.position as THREE.BufferAttribute;
+      for (let i = 0; i < positions.count; i++) {
+        let y = positions.getY(i) - 18 * dt;
+        if (y < 0) y = 28;
+        positions.setY(i, y);
+      }
+      positions.needsUpdate = true;
+    }
     this.attackCooldown=Math.max(0,this.attackCooldown-dt);
     const x=(this.keys.A.isDown||this.keys.LEFT.isDown?-1:0)+(this.keys.D.isDown||this.keys.RIGHT.isDown?1:0)+this.moveX;
     const z=(this.keys.W.isDown||this.keys.UP.isDown?-1:0)+(this.keys.S.isDown||this.keys.DOWN.isDown?1:0)+this.moveZ;
