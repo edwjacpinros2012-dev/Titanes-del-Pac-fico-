@@ -994,7 +994,8 @@ func _save_local_profile() -> void:
 		"damage_model_state": damage_model.export_state() if damage_model else {},
 		"npc_state": npc_manager.export_state() if npc_manager else {},
 		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {},
-		"completed_field_missions": GlobalState.completed_missions.duplicate()
+		"completed_field_missions": GlobalState.completed_missions.duplicate(),
+		"field_combat": GlobalState.get_world_state_section("field_combat")
 	}
 	GlobalState.world_state = snapshot.duplicate(true)
 	SaveSystem.save_game(GlobalState)
