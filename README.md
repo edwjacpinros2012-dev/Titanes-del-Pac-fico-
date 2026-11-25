@@ -124,6 +124,8 @@ El script descarga el proyecto en Documentos sin sobrescribir una carpeta existe
 
 ## Dirección artística maestra — referencia vigente
 
+- [Ficha y checksum del PDF original de 19 páginas](docs/REFERENCIA_PDF_ORIGINAL.md)
+
 - [Dirección artística maestra — PDF de 19 páginas](docs/DIRECCION_ARTISTICA_MAESTRA.md)
 - [Vertical slice jugable — Fase 2](docs/PHASE_2_VERTICAL_SLICE.md)
 - [QA — Fase 2](docs/QA_PHASE_2.md)
