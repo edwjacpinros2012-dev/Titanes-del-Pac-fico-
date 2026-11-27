@@ -200,7 +200,7 @@ Se hizo una implementación pequeña para cerrar una brecha real de clima/guarda
 
 ## 5. Validación y límites
 
-- El test de lógica contiene **80 aserciones** y el script de sanity contiene **39 comprobaciones**; estos son recuentos de código, no resultados de ejecución.
+- El test de lógica contiene **81 aserciones** y el script de sanity contiene **40 comprobaciones**; estos son recuentos de código, no resultados de ejecución.
 - En la consulta del HEAD final, los tres contextos de Vercel estaban **pendientes**. Son comprobaciones de despliegue web y no demuestran que Godot haya ejecutado las pruebas.
 - La consulta disponible de ejecuciones de GitHub Actions no devolvió una ejecución verificable para este commit. Por tanto, no se declara CI de Godot aprobada en esta revisión.
 - El entorno de revisión no tiene Godot instalado y no pudo clonar el repositorio por falta de conexión de red. La validación local de Godot queda pendiente.
