@@ -115,6 +115,8 @@ func _run_tests() -> void:
 	_check(is_equal_approx(weather_manager.intensity, 0.65), "weather import restores intensity")
 	_check(is_equal_approx(weather_manager.elapsed, 35.0), "weather import restores elapsed time")
 	_check(is_equal_approx(weather_manager.get_exploration_modifier(), 0.8), "fog exposes the configured exploration modifier")
+	var fog_scan_radius := 30.0 * weather_manager.get_exploration_modifier()
+	_check(is_equal_approx(fog_scan_radius, 24.0), "fog reduces the sample reconnaissance radius consistently")
 	_check(weather_manager.get_status_text().contains("Niebla"), "weather status is readable in Spanish")
 	var weather_snapshot: Dictionary = weather_manager.export_state()
 	var restored_weather = WeatherManagerScript.new()
