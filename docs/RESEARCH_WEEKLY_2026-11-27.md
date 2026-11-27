@@ -148,7 +148,7 @@ La guía destaca orden de foco predecible, estructuras coherentes entre pantalla
 
 ### P2 — Clima y ecología con consecuencias pequeñas
 
-**Propuesta:** aplicar el modificador climático a una acción concreta de reconocimiento y relacionarlo con los estados de dos especies iniciales.
+**Propuesta:** validar el efecto climático ya conectado al reconocimiento y relacionarlo después con los estados de dos especies iniciales.
 
 - **Dependencias:** `WeatherManager`, `CreatureEcosystemManager`, POI, reconocimiento y guardado.
 - **Criterios de aceptación:** el jugador ve el efecto antes de salir; el mismo estado produce el mismo resultado durante una sesión de prueba; observación no duplica recompensa; entidades lejanas actualizan menos.
@@ -196,11 +196,12 @@ Se hizo una implementación pequeña para cerrar una brecha real de clima/guarda
 - [Aplicar clima al radio de reconocimiento](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/4597f47abc7787dea1cf4cce813b5bb25bc1509f)
 - [Prueba del efecto climático sobre el radio](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/1ed710f909a9782ba1b3bd10a7c9f38ce8b4a243)
 - [Sanity check del efecto climático](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/74a8f073f69d440c81ae604f4ab717326523f48f)
+- [Enlace del informe semanal desde README](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/e5e8b850c107f6bbcb37872d0e282b6ef6cccee3)
 
 ## 5. Validación y límites
 
 - El test de lógica contiene **80 aserciones** y el script de sanity contiene **39 comprobaciones**; estos son recuentos de código, no resultados de ejecución.
-- El estado combinado consultado para el commit de comprobaciones mostró los tres contextos de Vercel como exitosos. Eso no demuestra que Godot haya ejecutado las pruebas.
+- En la consulta del HEAD final, los tres contextos de Vercel estaban **pendientes**. Son comprobaciones de despliegue web y no demuestran que Godot haya ejecutado las pruebas.
 - La consulta disponible de ejecuciones de GitHub Actions no devolvió una ejecución verificable para este commit. Por tanto, no se declara CI de Godot aprobada en esta revisión.
 - El entorno de revisión no tiene Godot instalado y no pudo clonar el repositorio por falta de conexión de red. La validación local de Godot queda pendiente.
 - No se hizo prueba manual en Windows ni en Android.
