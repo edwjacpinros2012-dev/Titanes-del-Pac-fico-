@@ -106,6 +106,7 @@ Documentación:
 - `docs/DIAGNOSTICO_CAMPANA_JAEGERS_RECOMPENSAS_2026-11-19.md` — auditoría verificada de la demo web, campaña, Jaegers, recompensas, desbloqueos y prioridades.
 - `docs/NIVELACION_UNIFORME_DE_SISTEMAS.md` — estándar común G0–G7 para nivelar todos los sistemas con pruebas y criterios de finalización.
 - `docs/INVESTIGACION_DISENO_JUEGOS_Y_ARQUITECTURA_2026-11-24.md` — investigación de referencias de diseño, diagnóstico de la versión web, arquitectura objetivo y prioridades P0–P2.
+- `docs/RESEARCH_WEEKLY_2026-11-27.md` — informe semanal con nuevas referencias, comparación de sistemas, prioridades, dependencias, criterios de aceptación y cambios de clima/guardado.
 
 ## Exportar e instalar
 
