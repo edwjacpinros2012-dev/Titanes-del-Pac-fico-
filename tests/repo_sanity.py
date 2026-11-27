@@ -27,6 +27,7 @@ check((ROOT / "scripts/world/weather_manager.gd").is_file(), "weather manager ex
 check("WeatherManager.new()" in main_script, "main scene instantiates weather manager")
 check('"weather_state": weather_manager.export_state()' in main_script, "profile snapshot includes weather state")
 check('weather_manager.import_state(saved_weather)' in main_script, "profile load restores weather state")
+check("scan_radius *= weather_modifier" in main_script, "weather modifier affects reconnaissance scan radius")
 main_script = (ROOT / "scripts/main.gd").read_text(encoding="utf-8")
 check("gameplay_loop.mission_completed.connect" in main_script, "main scene connects mission completion reward handler")
 check("gameplay_loop.report_collection" in main_script, "resource collection feeds mission and expedition loop")
