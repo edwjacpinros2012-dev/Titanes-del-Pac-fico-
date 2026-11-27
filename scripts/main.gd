@@ -447,6 +447,8 @@ func _on_scouting_completed(reward: Dictionary, scan_center: Vector3) -> void:
 		else:
 			_add_resource(resource_id, int(reward[resource_id]))
 	var scan_radius := base_development.get_scouting_radius(30.0) if base_development else 30.0
+	var weather_modifier := weather_manager.get_exploration_modifier() if weather_manager else 1.0
+	scan_radius *= weather_modifier
 	var discovered := creature_manager.reveal_nearby(scan_center, scan_radius) if creature_manager else 0
 	contract_manager.register_action("scout")
 	if npc_manager:
@@ -454,7 +456,7 @@ func _on_scouting_completed(reward: Dictionary, scan_center: Vector3) -> void:
 	if alliance_manager:
 		alliance_manager.register_objective("scout")
 	_update_hud()
-	_show_status("Reconocimiento completado: %d especies detectadas y materiales recuperados." % discovered)
+	_show_status("Reconocimiento completado: %d especies detectadas (clima x%.2f) y materiales recuperados." % [discovered, weather_modifier])
 
 func _on_contract_completed(title: String, reward: Dictionary) -> void:
 	for reward_id in reward.keys():
