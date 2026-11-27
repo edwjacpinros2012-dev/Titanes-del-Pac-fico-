@@ -15,6 +15,8 @@ var trade_manager: TradeManager
 var contract_manager: ContractManager
 var helicopter_manager: HelicopterScoutManager
 var creature_manager: CreatureEcosystemManager
+var weather_manager: WeatherManager
+var weather_label: Label
 var npc_manager: NpcPopulationManager
 var npc_label: Label
 var kaiju_war: KaijuWarManager
@@ -98,6 +100,8 @@ func _process(delta: float) -> void:
 		helicopter_label.text = helicopter_manager.get_status_text()
 	if creature_label and creature_manager:
 		creature_label.text = creature_manager.get_status_text()
+	if weather_label and weather_manager:
+		weather_label.text = weather_manager.get_status_text()
 	if npc_label and npc_manager:
 		npc_label.text = npc_manager.get_status_text()
 	if market_label and market_open and trade_manager:
@@ -341,6 +345,11 @@ func _create_gameplay_systems() -> void:
 	helicopter_manager.name = "HelicopterScoutManager"
 	add_child(helicopter_manager)
 	helicopter_manager.scouting_completed.connect(_on_scouting_completed)
+
+	weather_manager = WeatherManager.new()
+	weather_manager.name = "WeatherManager"
+	add_child(weather_manager)
+	weather_manager.weather_changed.connect(_on_weather_changed)
 
 	creature_manager = CreatureEcosystemManager.new()
 	creature_manager.name = "CreatureEcosystemManager"
@@ -743,6 +752,8 @@ func _create_hud() -> void:
 	column.add_child(alliance_label)
 	creature_label = Label.new()
 	column.add_child(creature_label)
+	weather_label = Label.new()
+	column.add_child(weather_label)
 	npc_label = Label.new()
 	npc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(npc_label)
@@ -844,6 +855,11 @@ func _apply_loop_reward(reward: Dictionary) -> void:
 func _on_loop_event_started(_event_id: String, title: String, resource_id: String, bonus: int) -> void:
 	_show_status("EVENTO %s: recolecta %s para obtener +%d adicional." % [title, resource_id, bonus])
 
+func _on_weather_changed(weather_id: String) -> void:
+	if weather_manager:
+		_show_status("El clima cambió: " + weather_manager.get_status_text())
+	_save_local_profile()
+
 func _on_loop_event_ended(event_id: String) -> void:
 	_show_status("Evento regional finalizado: " + event_id)
 
@@ -937,7 +953,8 @@ func _save_local_profile() -> void:
 		"kaiju_war_state": kaiju_war.export_state() if kaiju_war else {},
 		"damage_model_state": damage_model.export_state() if damage_model else {},
 		"npc_state": npc_manager.export_state() if npc_manager else {},
-		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {}
+		"gameplay_loop_state": gameplay_loop.export_state() if gameplay_loop else {},
+		"weather_state": weather_manager.export_state() if weather_manager else {}
 	}
 	SaveSystem.save_profile(snapshot)
 
@@ -980,6 +997,10 @@ func _load_local_profile() -> void:
 		var saved_loop: Variant = snapshot.get("gameplay_loop_state", {})
 		if saved_loop is Dictionary and not saved_loop.is_empty():
 			gameplay_loop.import_state(saved_loop)
+	if weather_manager:
+		var saved_weather: Variant = snapshot.get("weather_state", {})
+		if saved_weather is Dictionary and not saved_weather.is_empty():
+			weather_manager.import_state(saved_weather)
 	if npc_manager:
 		var saved_npc: Variant = snapshot.get("npc_state", {})
 		if saved_npc is Dictionary and not saved_npc.is_empty():
