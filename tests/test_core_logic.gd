@@ -5,6 +5,7 @@ const InventoryScript = preload("res://scripts/resources/inventory.gd")
 const TradeManagerScript = preload("res://scripts/economy/trade_manager.gd")
 const GameLoopScript = preload("res://scripts/gameplay/game_loop_manager.gd")
 const NpcPopulationManagerScript = preload("res://scripts/npc/npc_population_manager.gd")
+const WeatherManagerScript = preload("res://scripts/world/weather_manager.gd")
 
 var passed := 0
 var failed := 0
@@ -107,6 +108,23 @@ func _run_tests() -> void:
 	_check(restored_loop.active_event.get("id", "") == loop_manager.active_event.get("id", ""), "loop save restores active event")
 	loop_manager.free()
 	restored_loop.free()
+
+	var weather_manager = WeatherManagerScript.new()
+	weather_manager.import_state({"current_weather": "fog", "intensity": 0.65, "elapsed": 35.0})
+	_check(weather_manager.current_weather == "fog", "weather import restores a supported weather state")
+	_check(is_equal_approx(weather_manager.intensity, 0.65), "weather import restores intensity")
+	_check(is_equal_approx(weather_manager.elapsed, 35.0), "weather import restores elapsed time")
+	_check(is_equal_approx(weather_manager.get_exploration_modifier(), 0.8), "fog exposes the configured exploration modifier")
+	_check(weather_manager.get_status_text().contains("Niebla"), "weather status is readable in Spanish")
+	var weather_snapshot: Dictionary = weather_manager.export_state()
+	var restored_weather = WeatherManagerScript.new()
+	restored_weather.import_state(weather_snapshot)
+	_check(restored_weather.current_weather == "fog" and is_equal_approx(restored_weather.elapsed, 35.0), "weather state survives export/import")
+	restored_weather.import_state({"current_weather": "unknown", "intensity": 2.5, "elapsed": 500.0})
+	_check(restored_weather.current_weather == "clear" and is_equal_approx(restored_weather.intensity, 0.0), "invalid weather id falls back to clear safely")
+	_check(is_equal_approx(restored_weather.elapsed, restored_weather.change_interval), "weather elapsed time is clamped to the configured interval")
+	weather_manager.free()
+	restored_weather.free()
 
 	var npc_manager = NpcPopulationManagerScript.new()
 	root.add_child(npc_manager)
