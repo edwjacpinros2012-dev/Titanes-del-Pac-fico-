@@ -79,19 +79,7 @@ El artículo explica cómo situaciones inesperadas pueden surgir de sistemas de 
 
 **Evitar duplicados:** extender `CreatureEcosystemManager`; no crear un segundo catálogo de especies ni una simulación compleja de cadena alimentaria.
 
-### E. Deep Rock Galactic — selección de misión, tutorial y variación ambiental
-
-**Fuentes oficiales:** [Updates](https://www.deeprockgalactic.com/updatesold) y [anuncio de generación de cuevas](https://store.steampowered.com/news/posts/?appids=548430&enddate=1728381644&feed=steam_community_announcements)
-
-Sus notas describen un tablero de asignaciones para guiar a nuevos jugadores, variedad de objetivos, regiones y condiciones ambientales. La selección de una operación también puede determinar una configuración de entorno reproducible.
-
-**Qué aporta:** una misión es más comprensible cuando el jugador conoce región, objetivo principal, objetivo opcional y condición especial antes de desplegarse.
-
-**Adaptación original:** tablero con una operación principal y una tarea opcional; el clima o el estado del sector añade una condición visible. Usar una semilla registrada para reproducir errores y resultados durante QA.
-
-**Evitar duplicados:** ampliar el flujo de misiones y contratos existente. No añadir otro sistema de recompensas.
-
-### F. Godot 4.3 — perfilado antes de optimizar
+### E. Godot 4.3 — perfilado antes de optimizar
 
 **Fuentes oficiales:** [Profiler](https://docs.godotengine.org/en/4.3/tutorials/scripting/debug/the_profiler.html), [CPU optimization](https://docs.godotengine.org/en/4.3/tutorials/performance/cpu_optimization.html) y [3D performance](https://docs.godotengine.org/en/4.3/tutorials/performance/optimizing_3d_performance.html).
 
@@ -103,7 +91,7 @@ La documentación recomienda identificar el cuello de botella mediante medidas d
 
 **Nota de versión:** la documentación archivada de Godot 4.3 advierte que esa versión ya no está soportada. No se recomienda cambiar el motor automáticamente en esta tarea; primero hay que probar una migración separada con una copia del proyecto y comparar resultados.
 
-### G. Microsoft Xbox Accessibility Guidelines — navegación consistente
+### F. Microsoft Xbox Accessibility Guidelines — navegación consistente
 
 **Fuente:** [XAG 112: UI navigation](https://learn.microsoft.com/en-in/gaming/accessibility/xbox-accessibility-guidelines/112)
 
@@ -196,7 +184,7 @@ Se hizo una implementación pequeña para cerrar una brecha real de clima/guarda
 
 1. `WeatherManager` ahora exporta e importa su estado, valida identificadores de clima y limita intensidad/tiempo a rangos seguros.
 2. `main.gd` instancia el manager, muestra el estado del clima en el HUD y lo incluye en el perfil local.
-3. Un cambio de clima guarda el nuevo estado del perfil.
+3. Un cambio de clima guarda el nuevo estado del perfil. El clima también ajusta el radio del reconocimiento aéreo y el informe de finalización muestra el multiplicador aplicado.
 4. Se añadieron pruebas para restauración, intensidad, tiempo, modificador de niebla, texto, fallback de clima inválido y límites.
 5. `repo_sanity.py` comprueba que el manager está conectado al flujo principal y al guardado.
 
@@ -205,6 +193,9 @@ Se hizo una implementación pequeña para cerrar una brecha real de clima/guarda
 - [Conectar clima al HUD y al perfil](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/12c5c316eb3b95d1a4738654cc3393c4ab8c9574)
 - [Pruebas de persistencia y validación del clima](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/6f068a8cbcb99308c8802d912c5dab9dda62542f)
 - [Comprobaciones estáticas de integración](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/77ebb21bd5aa19c0324e95991602aab6b20b2747)
+- [Aplicar clima al radio de reconocimiento](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/4597f47abc7787dea1cf4cce813b5bb25bc1509f)
+- [Prueba del efecto climático sobre el radio](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/1ed710f909a9782ba1b3bd10a7c9f38ce8b4a243)
+- [Sanity check del efecto climático](https://github.com/edwjacpinros2012-dev/Titanes-del-Pac-fico-/commit/74a8f073f69d440c81ae604f4ab717326523f48f)
 
 ## 5. Validación y límites
 
@@ -214,12 +205,12 @@ Se hizo una implementación pequeña para cerrar una brecha real de clima/guarda
 - El entorno de revisión no tiene Godot instalado y no pudo clonar el repositorio por falta de conexión de red. La validación local de Godot queda pendiente.
 - No se hizo prueba manual en Windows ni en Android.
 - No se exportó ni instaló ningún APK.
-- El modificador climático se muestra en el HUD, pero todavía no afecta la acción de reconocimiento ni el comportamiento de la fauna. Esa es la siguiente integración, no una función terminada.
+- El modificador climático se muestra en el HUD y ya afecta el radio del reconocimiento aéreo. Todavía no modifica los estados de la fauna.
 
 ## 6. Siguiente orden recomendado
 
 1. Confirmar ejecución de GitHub Actions para los commits de clima.
-2. Conectar el modificador del clima a una acción real de reconocimiento y probarlo.
+2. Ejecutar CI de Godot para la integración climática y comprobar manualmente el radio de reconocimiento en cada condición.
 3. Guardar observaciones de fauna y posición/objetos recolectados.
 4. Añadir un único puesto de especialista a una instalación y probar el efecto.
 5. Crear el primer evento de recuperación reutilizando el loop actual.
